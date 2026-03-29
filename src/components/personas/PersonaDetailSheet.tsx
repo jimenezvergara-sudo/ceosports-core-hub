@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X } from "lucide-react";
+import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X, Loader2, Eye, Trash2 } from "lucide-react";
 import type { Persona, DocumentoPersona, Familiar } from "@/types/persona";
 import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documentosPorVencer, requiereTutor, calcularEdad, calcularCategoria } from "@/types/persona";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type ApoderadoSource = "padre" | "madre" | "otro";
 import { format } from "date-fns";
