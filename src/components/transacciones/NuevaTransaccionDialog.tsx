@@ -44,11 +44,25 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   const [metodoPago, setMetodoPago] = useState("");
   const [referencia, setReferencia] = useState("");
   const [notas, setNotas] = useState("");
+  const [catDeportiva, setCatDeportiva] = useState("");
+  const [personaId, setPersonaId] = useState("");
 
   const categorias = categoriasTransaccion;
 
   const subcategorias =
     categorias.find((c) => c.value === categoria)?.subcategorias ?? [];
+
+  const categoriasDeportivas = useMemo(() => {
+    const cats = new Set(personasMock.map((p) => p.categoria));
+    return Array.from(cats).sort();
+  }, []);
+
+  const jugadorasFiltradas = useMemo(() => {
+    if (!catDeportiva) return [];
+    return personasMock
+      .filter((p) => p.categoria === catDeportiva)
+      .sort((a, b) => a.apellido.localeCompare(b.apellido));
+  }, [catDeportiva]);
 
   const handleTipoChange = (v: "Ingreso" | "Egreso") => {
     setTipo(v);
@@ -72,6 +86,9 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
     setMetodoPago("");
     setReferencia("");
     setNotas("");
+    setCatDeportiva("");
+    setPersonaId("");
+  };
   };
 
   const handleSubmit = async () => {
@@ -98,6 +115,8 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
       metodo_pago: metodoPago || null,
       referencia: referencia || null,
       notas: notas || null,
+      categoria_deportiva: catDeportiva || null,
+      persona_id: personaId || null,
     } as any);
 
     setLoading(false);
