@@ -60,6 +60,16 @@ export const categoriasIngreso: CategoriaTransaccion[] = [
     ],
   },
   {
+    value: "Kiosko",
+    label: "Kiosko",
+    subcategorias: [
+      { value: "Venta Alimentos", label: "Venta de Alimentos" },
+      { value: "Venta Bebidas", label: "Venta de Bebidas" },
+      { value: "Venta Snacks", label: "Venta de Snacks" },
+      { value: "Otro Kiosko", label: "Otro" },
+    ],
+  },
+  {
     value: "Otros Ingresos",
     label: "Otros Ingresos",
     subcategorias: [
