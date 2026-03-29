@@ -83,10 +83,15 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
   const [uploadLabel, setUploadLabel] = useState<string>("Cédula Identidad");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Persona | null>(null);
+  const [apoderadoSource, setApoderadoSource] = useState<ApoderadoSource>("otro");
 
   useEffect(() => {
     if (persona) {
       setDraft({ ...persona, padre: { ...persona.padre }, madre: { ...persona.madre }, apoderado: { ...persona.apoderado }, documentos: [...persona.documentos] });
+      // Detect if apoderado matches padre or madre
+      const matchPadre = persona.padre.rut && persona.apoderado.rut && persona.padre.rut === persona.apoderado.rut;
+      const matchMadre = persona.madre.rut && persona.apoderado.rut && persona.madre.rut === persona.apoderado.rut;
+      setApoderadoSource(matchPadre ? "padre" : matchMadre ? "madre" : "otro");
     }
     setEditing(false);
   }, [persona]);
