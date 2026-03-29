@@ -281,7 +281,7 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
                   <Button size="sm" variant="ghost" onClick={handleCancel} className="gap-1.5 text-xs">
                     <X className="w-3.5 h-3.5" /> Cancelar
                   </Button>
-                  <Button size="sm" onClick={handleSave} className="gap-1.5 text-xs">
+                  <Button size="sm" variant="certification" onClick={handleSave} className="gap-1.5 text-xs">
                     <Save className="w-3.5 h-3.5" /> Guardar
                   </Button>
                 </>
