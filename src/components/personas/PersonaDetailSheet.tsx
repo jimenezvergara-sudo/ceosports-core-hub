@@ -254,8 +254,18 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
       <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-              <User className="w-6 h-6 text-primary" />
+            <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Foto" className="w-14 h-14 rounded-full object-cover border-2 border-primary/30" />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+                  <User className="w-7 h-7 text-primary" />
+                </div>
+              )}
+              <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {uploadingAvatar ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Camera className="w-4 h-4 text-white" />}
+              </div>
+              <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </div>
             <div className="flex-1">
               <SheetTitle className="text-lg">{draft.nombre} {draft.apellido}</SheetTitle>
