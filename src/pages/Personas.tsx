@@ -185,13 +185,42 @@ export default function Personas() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Nombre</th>
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">RUT</th>
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Categoría</th>
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Rama</th>
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Tipo</th>
+              {([
+                ["nombre", "Nombre"],
+                ["rut", "RUT"],
+                ["categoria", "Categoría"],
+                ["rama", "Rama"],
+                ["tipo", "Tipo"],
+              ] as [SortKey, string][]).map(([key, label]) => (
+                <th
+                  key={key}
+                  onClick={() => handleSort(key)}
+                  className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider cursor-pointer select-none hover:text-foreground transition-colors"
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {label}
+                    {sortKey === key ? (
+                      sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 opacity-40" />
+                    )}
+                  </span>
+                </th>
+              ))}
               <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Docs</th>
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Estado</th>
+              <th
+                onClick={() => handleSort("estado")}
+                className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider cursor-pointer select-none hover:text-foreground transition-colors"
+              >
+                <span className="inline-flex items-center gap-1">
+                  Estado
+                  {sortKey === "estado" ? (
+                    sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                  ) : (
+                    <ArrowUpDown className="w-3 h-3 opacity-40" />
+                  )}
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
