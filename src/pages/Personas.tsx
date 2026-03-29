@@ -1,4 +1,4 @@
-import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { personasMock } from "@/data/personasMock";
 import { DOCUMENTOS_OBLIGATORIOS, documentoVencido } from "@/types/persona";
 import type { Persona } from "@/types/persona";
 import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
+import NuevaPersonaDialog from "@/components/personas/NuevaPersonaDialog";
+import ImportMasivaDialog from "@/components/personas/ImportMasivaDialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const categorias = ["Todas", "Escuelita", "U9", "U11", "U13", "U15", "U18", "Adulto"];
@@ -20,8 +22,6 @@ function DocStatusIcons({ persona }: { persona: Persona }) {
         {DOCUMENTOS_OBLIGATORIOS.map((etiqueta) => {
           const doc = persona.documentos.find((d) => d.etiqueta === etiqueta);
           const vencido = doc?.etiqueta === "Certificado Médico" && doc && documentoVencido(doc);
-          const iniciales = etiqueta === "Cédula Identidad" ? "CI" : etiqueta === "Certificado Médico" ? "CM" : "FF";
-
           return (
             <Tooltip key={etiqueta}>
               <TooltipTrigger asChild>
@@ -47,12 +47,15 @@ function DocStatusIcons({ persona }: { persona: Persona }) {
 }
 
 export default function Personas() {
+  const [personas, setPersonas] = useState<Persona[]>(personasMock);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [nuevaOpen, setNuevaOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [busqueda, setBusqueda] = useState("");
 
-  const personasFiltradas = personasMock.filter((p) => {
+  const personasFiltradas = personas.filter((p) => {
     const matchCategoria = filtroCategoria === "Todas" || p.categoria === filtroCategoria;
     const matchBusqueda = !busqueda || `${p.nombre} ${p.apellido} ${p.rut}`.toLowerCase().includes(busqueda.toLowerCase());
     return matchCategoria && matchBusqueda;
@@ -63,16 +66,49 @@ export default function Personas() {
     setSheetOpen(true);
   };
 
+  const handleNuevaPersona = (persona: Persona) => {
+    setPersonas((prev) => {
+      const idx = prev.findIndex((p) => p.rut === persona.rut);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = { ...persona, id: prev[idx].id, documentos: prev[idx].documentos };
+        return updated;
+      }
+      return [...prev, persona];
+    });
+  };
+
+  const handleImport = (imported: Persona[]) => {
+    setPersonas((prev) => {
+      const result = [...prev];
+      imported.forEach((p) => {
+        const idx = result.findIndex((e) => e.rut === p.rut);
+        if (idx >= 0) {
+          result[idx] = { ...p, id: result[idx].id, documentos: result[idx].documentos };
+        } else {
+          result.push(p);
+        }
+      });
+      return result;
+    });
+  };
+
   return (
     <PageShell
       title="Personas"
       description="Gestión de socios, jugadores y staff del club"
       icon={Users}
       actions={
-        <Button className="gap-2">
-          <Plus className="w-4 h-4" />
-          Nueva Persona
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" className="gap-2" onClick={() => setImportOpen(true)}>
+            <Upload className="w-4 h-4" />
+            Importar Excel
+          </Button>
+          <Button className="gap-2" onClick={() => setNuevaOpen(true)}>
+            <Plus className="w-4 h-4" />
+            Nueva Persona
+          </Button>
+        </div>
       }
     >
       {/* Filters */}
@@ -154,6 +190,8 @@ export default function Personas() {
       </motion.div>
 
       <PersonaDetailSheet persona={selectedPersona} open={sheetOpen} onOpenChange={setSheetOpen} />
+      <NuevaPersonaDialog open={nuevaOpen} onOpenChange={setNuevaOpen} onSave={handleNuevaPersona} />
+      <ImportMasivaDialog open={importOpen} onOpenChange={setImportOpen} onImport={handleImport} existingRuts={personas.map((p) => p.rut)} />
     </PageShell>
   );
 }
