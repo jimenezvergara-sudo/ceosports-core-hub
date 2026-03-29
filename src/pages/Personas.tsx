@@ -189,7 +189,15 @@ export default function Personas() {
         </table>
       </motion.div>
 
-      <PersonaDetailSheet persona={selectedPersona} open={sheetOpen} onOpenChange={setSheetOpen} />
+      <PersonaDetailSheet
+        persona={selectedPersona}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onSave={(updated) => {
+          setPersonas((prev) => prev.map((p) => p.id === updated.id ? updated : p));
+          setSelectedPersona(updated);
+        }}
+      />
       <NuevaPersonaDialog open={nuevaOpen} onOpenChange={setNuevaOpen} onSave={handleNuevaPersona} />
       <ImportMasivaDialog open={importOpen} onOpenChange={setImportOpen} onImport={handleImport} existingRuts={personas.map((p) => p.rut)} />
     </PageShell>
