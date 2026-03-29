@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X, Loader2, Eye, Trash2 } from "lucide-react";
+import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X, Loader2, Eye, Trash2, Camera } from "lucide-react";
 import type { Persona, DocumentoPersona, Familiar } from "@/types/persona";
 import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documentosPorVencer, requiereTutor, calcularEdad, calcularCategoria } from "@/types/persona";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
@@ -87,6 +87,9 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
   const [draft, setDraft] = useState<Persona | null>(null);
   const [apoderadoSource, setApoderadoSource] = useState<ApoderadoSource>("otro");
   const [uploading, setUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [dbDocs, setDbDocs] = useState<Array<{ id: string; etiqueta: string; nombre_archivo: string; tipo_mime: string; storage_path: string; url_publica: string | null; fecha_carga: string; fecha_vencimiento: string | null }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -100,9 +103,50 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
     if (data) setDbDocs(data);
   }, [persona]);
 
+  const loadAvatar = useCallback(async () => {
+    if (!persona) return;
+    const { data } = await supabase.storage.from("documentos").list(`${persona.id}/avatar`, { limit: 1, sortBy: { column: "created_at", order: "desc" } });
+    if (data && data.length > 0) {
+      const { data: urlData } = supabase.storage.from("documentos").getPublicUrl(`${persona.id}/avatar/${data[0].name}`);
+      setAvatarUrl(urlData.publicUrl + "?t=" + Date.now());
+    } else {
+      setAvatarUrl(null);
+    }
+  }, [persona]);
+
   useEffect(() => {
-    if (open && persona) loadDbDocs();
-  }, [open, persona, loadDbDocs]);
+    if (open && persona) {
+      loadDbDocs();
+      loadAvatar();
+    }
+  }, [open, persona, loadDbDocs, loadAvatar]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !persona) return;
+    if (!file.type.startsWith("image/")) { toast.error("Solo se permiten imágenes"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Máximo 5 MB"); return; }
+
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${persona.id}/avatar/foto.${ext}`;
+      // Remove old avatar files
+      const { data: existing } = await supabase.storage.from("documentos").list(`${persona.id}/avatar`);
+      if (existing && existing.length > 0) {
+        await supabase.storage.from("documentos").remove(existing.map(f => `${persona.id}/avatar/${f.name}`));
+      }
+      const { error } = await supabase.storage.from("documentos").upload(path, file, { contentType: file.type, upsert: true });
+      if (error) throw error;
+      toast.success("Foto actualizada");
+      await loadAvatar();
+    } catch (err: any) {
+      toast.error("Error al subir foto: " + (err.message || ""));
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -210,8 +254,18 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
       <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-              <User className="w-6 h-6 text-primary" />
+            <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Foto" className="w-14 h-14 rounded-full object-cover border-2 border-primary/30" />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+                  <User className="w-7 h-7 text-primary" />
+                </div>
+              )}
+              <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {uploadingAvatar ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Camera className="w-4 h-4 text-white" />}
+              </div>
+              <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </div>
             <div className="flex-1">
               <SheetTitle className="text-lg">{draft.nombre} {draft.apellido}</SheetTitle>
