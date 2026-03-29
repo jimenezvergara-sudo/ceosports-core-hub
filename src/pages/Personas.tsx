@@ -46,6 +46,9 @@ function DocStatusIcons({ persona }: { persona: Persona }) {
   );
 }
 
+type SortKey = "nombre" | "rut" | "categoria" | "rama" | "tipo" | "estado";
+type SortDir = "asc" | "desc" | null;
+
 export default function Personas() {
   const [personas, setPersonas] = useState<Persona[]>(personasMock);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
@@ -54,12 +57,45 @@ export default function Personas() {
   const [importOpen, setImportOpen] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [busqueda, setBusqueda] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>(null);
 
-  const personasFiltradas = personas.filter((p) => {
-    const matchCategoria = filtroCategoria === "Todas" || p.categoria === filtroCategoria;
-    const matchBusqueda = !busqueda || `${p.nombre} ${p.apellido} ${p.rut}`.toLowerCase().includes(busqueda.toLowerCase());
-    return matchCategoria && matchBusqueda;
-  });
+  const handleSort = (key: SortKey) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir("asc");
+    } else if (sortDir === "asc") {
+      setSortDir("desc");
+    } else {
+      setSortKey(null);
+      setSortDir(null);
+    }
+  };
+
+  const personasFiltradas = useMemo(() => {
+    let filtered = personas.filter((p) => {
+      const matchCategoria = filtroCategoria === "Todas" || p.categoria === filtroCategoria;
+      const matchBusqueda = !busqueda || `${p.nombre} ${p.apellido} ${p.rut}`.toLowerCase().includes(busqueda.toLowerCase());
+      return matchCategoria && matchBusqueda;
+    });
+
+    if (sortKey && sortDir) {
+      filtered = [...filtered].sort((a, b) => {
+        let valA: string, valB: string;
+        if (sortKey === "nombre") {
+          valA = `${a.nombre} ${a.apellido}`.toLowerCase();
+          valB = `${b.nombre} ${b.apellido}`.toLowerCase();
+        } else {
+          valA = (a[sortKey] ?? "").toLowerCase();
+          valB = (b[sortKey] ?? "").toLowerCase();
+        }
+        const cmp = valA.localeCompare(valB, "es");
+        return sortDir === "asc" ? cmp : -cmp;
+      });
+    }
+
+    return filtered;
+  }, [personas, filtroCategoria, busqueda, sortKey, sortDir]);
 
   const handleClickPersona = (p: Persona) => {
     setSelectedPersona(p);
