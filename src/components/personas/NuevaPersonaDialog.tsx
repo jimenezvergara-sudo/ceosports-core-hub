@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
     madreNombre: "", madreApellido: "", madreRut: "", madreTelefono: "", madreEmail: "", madreDireccion: "", madreProfesion: "",
     apoderadoNombre: "", apoderadoApellido: "", apoderadoRut: "", apoderadoTelefono: "", apoderadoEmail: "", apoderadoDireccion: "", apoderadoProfesion: "",
   });
+  const [apoderadoSource, setApoderadoSource] = useState<"padre" | "madre" | "otro">("otro");
 
   const edad = form.fechaNacimiento ? calcularEdad(form.fechaNacimiento) : null;
   const categoria = form.fechaNacimiento ? calcularCategoria(form.fechaNacimiento) : null;
