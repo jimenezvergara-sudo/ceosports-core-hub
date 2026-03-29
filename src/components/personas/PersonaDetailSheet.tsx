@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X, Loader2, Eye, Trash2, Camera } from "lucide-react";
+import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X, Loader2, Eye, Trash2, Camera, Download } from "lucide-react";
 import type { Persona, DocumentoPersona, Familiar } from "@/types/persona";
 import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documentosPorVencer, requiereTutor, calcularEdad, calcularCategoria } from "@/types/persona";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
@@ -509,31 +509,46 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
               ) : (
                 <div className="space-y-2">
                   {dbDocs.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between py-2 px-3 rounded-md bg-secondary/30">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-xs font-medium text-foreground">{doc.nombre_archivo}</p>
-                          <p className="text-[10px] text-muted-foreground">{doc.etiqueta} · {format(new Date(doc.fecha_carga), "dd/MM/yyyy")}</p>
+                    <div key={doc.id} className="rounded-md border border-border bg-secondary/20 p-3 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-semibold text-foreground">{doc.etiqueta}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {doc.url_publica && (
+                            <>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" title="Ver documento" asChild>
+                                <a href={doc.url_publica} target="_blank" rel="noopener noreferrer">
+                                  <Eye className="w-3.5 h-3.5" />
+                                </a>
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" title="Descargar" asChild>
+                                <a href={doc.url_publica} download={doc.nombre_archivo} target="_blank" rel="noopener noreferrer">
+                                  <Download className="w-3.5 h-3.5" />
+                                </a>
+                              </Button>
+                            </>
+                          )}
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" title="Eliminar" onClick={() => handleDeleteDoc(doc)}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5">
+                      <p className="text-xs text-muted-foreground">Archivo: {doc.nombre_archivo}</p>
+                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                        <span>Subido: {format(new Date(doc.fecha_carga), "dd/MM/yyyy")}</span>
                         {doc.fecha_vencimiento && (
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className={documentoVencido({ id: doc.id, etiqueta: doc.etiqueta as any, nombreArchivo: doc.nombre_archivo, tipo: doc.tipo_mime, fechaCarga: doc.fecha_carga, fechaVencimiento: doc.fecha_vencimiento }) ? "text-destructive font-semibold" : ""}>
                             Vence: {format(new Date(doc.fecha_vencimiento), "dd/MM/yyyy")}
                           </span>
                         )}
-                        {doc.url_publica && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
-                            <a href={doc.url_publica} target="_blank" rel="noopener noreferrer">
-                              <Eye className="w-3.5 h-3.5" />
-                            </a>
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => handleDeleteDoc(doc)}>
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
                       </div>
+                      {doc.url_publica && (
+                        <a href={doc.url_publica} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline truncate block">
+                          {doc.url_publica}
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
