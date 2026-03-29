@@ -197,7 +197,41 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
             </div>
           )}
 
-          {/* Fecha y Monto */}
+          {/* Categoría Deportiva */}
+          <div className="grid gap-1.5">
+            <Label>Categoría Deportiva</Label>
+            <Select value={catDeportiva} onValueChange={(v) => { setCatDeportiva(v); setPersonaId(""); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                {categoriasDeportivas.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Jugadora */}
+          {jugadorasFiltradas.length > 0 && (
+            <div className="grid gap-1.5">
+              <Label>Asignar a Jugadora</Label>
+              <Select value={personaId} onValueChange={setPersonaId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona jugadora" />
+                </SelectTrigger>
+                <SelectContent>
+                  {jugadorasFiltradas.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.apellido}, {p.nombre} — {p.rut}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Fecha *</Label>
