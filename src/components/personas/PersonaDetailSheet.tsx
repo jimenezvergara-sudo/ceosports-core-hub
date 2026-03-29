@@ -170,7 +170,7 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
-      const storagePath = `${persona.id}/${Date.now()}_${uploadLabel.replace(/\s/g, "_")}.${ext}`;
+      const storagePath = `${persona.id}/${Date.now()}_${uploadLabel.replace(/[^a-zA-Z0-9]/g, "_")}.${ext}`;
 
       const { error: storageError } = await supabase.storage
         .from("documentos")
