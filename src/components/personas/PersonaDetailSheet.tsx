@@ -87,6 +87,9 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
   const [draft, setDraft] = useState<Persona | null>(null);
   const [apoderadoSource, setApoderadoSource] = useState<ApoderadoSource>("otro");
   const [uploading, setUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [dbDocs, setDbDocs] = useState<Array<{ id: string; etiqueta: string; nombre_archivo: string; tipo_mime: string; storage_path: string; url_publica: string | null; fecha_carga: string; fecha_vencimiento: string | null }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
