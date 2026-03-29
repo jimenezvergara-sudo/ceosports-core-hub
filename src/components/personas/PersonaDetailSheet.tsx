@@ -92,6 +92,11 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [dbDocs, setDbDocs] = useState<Array<{ id: string; etiqueta: string; nombre_archivo: string; tipo_mime: string; storage_path: string; url_publica: string | null; fecha_carga: string; fecha_vencimiento: string | null }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cedulaFrontalRef = useRef<HTMLInputElement>(null);
+  const cedulaReversoRef = useRef<HTMLInputElement>(null);
+  const [cedulaFrontal, setCedulaFrontal] = useState<File | null>(null);
+  const [cedulaReverso, setCedulaReverso] = useState<File | null>(null);
+  const [uploadingCedula, setUploadingCedula] = useState(false);
 
   const loadDbDocs = useCallback(async () => {
     if (!persona) return;
@@ -165,7 +170,7 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
-      const storagePath = `${persona.id}/${Date.now()}_${uploadLabel.replace(/\s/g, "_")}.${ext}`;
+      const storagePath = `${persona.id}/${Date.now()}_${uploadLabel.replace(/[^a-zA-Z0-9]/g, "_")}.${ext}`;
 
       const { error: storageError } = await supabase.storage
         .from("documentos")
@@ -196,6 +201,54 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const uploadSingleFile = async (file: File, label: string, suffix: string) => {
+    if (!persona) throw new Error("No persona");
+    const ext = file.name.split(".").pop();
+    const sanitized = label.replace(/[^a-zA-Z0-9]/g, "_");
+    const storagePath = `${persona.id}/${Date.now()}_${sanitized}_${suffix}.${ext}`;
+
+    const { error: storageError } = await supabase.storage
+      .from("documentos")
+      .upload(storagePath, file, { contentType: file.type, upsert: false });
+    if (storageError) throw storageError;
+
+    const { data: urlData } = supabase.storage.from("documentos").getPublicUrl(storagePath);
+
+    const { error: dbError } = await supabase.from("documentos").insert({
+      persona_id: persona.id,
+      etiqueta: label,
+      nombre_archivo: `${label} - ${suffix === "frontal" ? "Frontal" : suffix === "reverso" ? "Reverso" : file.name}`,
+      tipo_mime: file.type,
+      storage_path: storagePath,
+      url_publica: urlData.publicUrl,
+      fecha_vencimiento: null,
+    });
+    if (dbError) throw dbError;
+  };
+
+  const handleCedulaUpload = async () => {
+    if (!cedulaFrontal || !cedulaReverso) {
+      toast.error("Debes seleccionar ambas imágenes: frontal y reverso");
+      return;
+    }
+    setUploadingCedula(true);
+    try {
+      await uploadSingleFile(cedulaFrontal, "Cédula Identidad", "frontal");
+      await uploadSingleFile(cedulaReverso, "Cédula Identidad", "reverso");
+      toast.success("Cédula de Identidad (frontal y reverso) subida correctamente");
+      setCedulaFrontal(null);
+      setCedulaReverso(null);
+      if (cedulaFrontalRef.current) cedulaFrontalRef.current.value = "";
+      if (cedulaReversoRef.current) cedulaReversoRef.current.value = "";
+      await loadDbDocs();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Error al subir cédula: " + (err.message || "Intenta de nuevo"));
+    } finally {
+      setUploadingCedula(false);
     }
   };
 
@@ -576,22 +629,83 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
                   </div>
                 )}
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
-              <Button
-                variant="secondary"
-                className="w-full gap-2 h-9 text-xs"
-                disabled={uploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                {uploading ? "Subiendo..." : "Seleccionar Archivo (PDF, JPG, PNG)"}
-              </Button>
+
+              {uploadLabel === "Cédula Identidad" ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium">Imagen Frontal</Label>
+                      <input
+                        ref={cedulaFrontalRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => setCedulaFrontal(e.target.files?.[0] || null)}
+                      />
+                      <Button
+                        variant="outline"
+                        className="w-full gap-2 h-9 text-xs"
+                        onClick={() => cedulaFrontalRef.current?.click()}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        {cedulaFrontal ? cedulaFrontal.name : "Seleccionar Frontal"}
+                      </Button>
+                      {cedulaFrontal && (
+                        <img src={URL.createObjectURL(cedulaFrontal)} alt="Frontal" className="w-full h-20 object-cover rounded border border-border" />
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium">Imagen Reverso</Label>
+                      <input
+                        ref={cedulaReversoRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => setCedulaReverso(e.target.files?.[0] || null)}
+                      />
+                      <Button
+                        variant="outline"
+                        className="w-full gap-2 h-9 text-xs"
+                        onClick={() => cedulaReversoRef.current?.click()}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        {cedulaReverso ? cedulaReverso.name : "Seleccionar Reverso"}
+                      </Button>
+                      {cedulaReverso && (
+                        <img src={URL.createObjectURL(cedulaReverso)} alt="Reverso" className="w-full h-20 object-cover rounded border border-border" />
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    variant="certification"
+                    className="w-full gap-2 h-9 text-xs"
+                    disabled={uploadingCedula || !cedulaFrontal || !cedulaReverso}
+                    onClick={handleCedulaUpload}
+                  >
+                    {uploadingCedula ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    {uploadingCedula ? "Subiendo..." : "Subir Cédula (Frontal + Reverso)"}
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                  <Button
+                    variant="secondary"
+                    className="w-full gap-2 h-9 text-xs"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    {uploading ? "Subiendo..." : "Seleccionar Archivo (PDF, JPG, PNG)"}
+                  </Button>
+                </>
+              )}
             </div>
           </TabsContent>
         </Tabs>
