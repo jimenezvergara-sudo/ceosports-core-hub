@@ -77,7 +77,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
 
   const handleSubmit = async () => {
     if (!categoria || !descripcion || !monto) {
-      toast.error("Completa los campos obligatorios: categoría, descripción y monto.");
+      toast.error("Completa los campos obligatorios: ítem, descripción y monto.");
       return;
     }
 
@@ -144,12 +144,12 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
             </Select>
           </div>
 
-          {/* Categoría */}
+          {/* Ítem */}
           <div className="grid gap-1.5">
-            <Label>Categoría *</Label>
+            <Label>Ítem *</Label>
             <Select value={categoria} onValueChange={handleCategoriaChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona categoría" />
+                <SelectValue placeholder="Selecciona ítem" />
               </SelectTrigger>
               <SelectContent>
                 {categorias.map((c) => (
@@ -161,13 +161,13 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
             </Select>
           </div>
 
-          {/* Subcategoría */}
+          {/* Sub Ítem */}
           {subcategorias.length > 0 && (
             <div className="grid gap-1.5">
-              <Label>Subcategoría</Label>
+              <Label>Sub Ítem</Label>
               <Select value={subcategoria} onValueChange={setSubcategoria}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona subcategoría" />
+                  <SelectValue placeholder="Selecciona sub ítem" />
                 </SelectTrigger>
                 <SelectContent>
                   {subcategorias.map((s) => (
