@@ -103,9 +103,50 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
     if (data) setDbDocs(data);
   }, [persona]);
 
+  const loadAvatar = useCallback(async () => {
+    if (!persona) return;
+    const { data } = await supabase.storage.from("documentos").list(`${persona.id}/avatar`, { limit: 1, sortBy: { column: "created_at", order: "desc" } });
+    if (data && data.length > 0) {
+      const { data: urlData } = supabase.storage.from("documentos").getPublicUrl(`${persona.id}/avatar/${data[0].name}`);
+      setAvatarUrl(urlData.publicUrl + "?t=" + Date.now());
+    } else {
+      setAvatarUrl(null);
+    }
+  }, [persona]);
+
   useEffect(() => {
-    if (open && persona) loadDbDocs();
-  }, [open, persona, loadDbDocs]);
+    if (open && persona) {
+      loadDbDocs();
+      loadAvatar();
+    }
+  }, [open, persona, loadDbDocs, loadAvatar]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !persona) return;
+    if (!file.type.startsWith("image/")) { toast.error("Solo se permiten imágenes"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Máximo 5 MB"); return; }
+
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${persona.id}/avatar/foto.${ext}`;
+      // Remove old avatar files
+      const { data: existing } = await supabase.storage.from("documentos").list(`${persona.id}/avatar`);
+      if (existing && existing.length > 0) {
+        await supabase.storage.from("documentos").remove(existing.map(f => `${persona.id}/avatar/${f.name}`));
+      }
+      const { error } = await supabase.storage.from("documentos").upload(path, file, { contentType: file.type, upsert: true });
+      if (error) throw error;
+      toast.success("Foto actualizada");
+      await loadAvatar();
+    } catch (err: any) {
+      toast.error("Error al subir foto: " + (err.message || ""));
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
