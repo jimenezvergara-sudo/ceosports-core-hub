@@ -36,13 +36,13 @@ export default function AppSidebar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
-        <div className="w-9 h-9 rounded-lg kpi-gradient-1 flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
+        <div className="w-9 h-9 rounded-md bg-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0 tracking-tight">
           CS
         </div>
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="overflow-hidden">
-            <h1 className="text-foreground font-bold text-lg leading-tight">CEO Sports</h1>
-            <p className="text-muted-foreground text-[10px] leading-tight">ERP Deportivo</p>
+            <h1 className="text-white font-bold text-lg leading-tight tracking-tight">CEO Sports</h1>
+            <p className="text-sidebar-foreground text-[10px] leading-tight tracking-wide uppercase">ERP Deportivo</p>
           </motion.div>
         )}
       </div>
