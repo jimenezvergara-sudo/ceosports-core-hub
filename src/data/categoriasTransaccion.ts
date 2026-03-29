@@ -9,7 +9,7 @@ export interface CategoriaTransaccion {
   subcategorias: SubCategoria[];
 }
 
-export const categoriasIngreso: CategoriaTransaccion[] = [
+export const categoriasTransaccion: CategoriaTransaccion[] = [
   {
     value: "Cuotas",
     label: "Cuotas",
@@ -66,21 +66,10 @@ export const categoriasIngreso: CategoriaTransaccion[] = [
       { value: "Venta Alimentos", label: "Venta de Alimentos" },
       { value: "Venta Bebidas", label: "Venta de Bebidas" },
       { value: "Venta Snacks", label: "Venta de Snacks" },
+      { value: "Compra Insumos", label: "Compra de Insumos" },
       { value: "Otro Kiosko", label: "Otro" },
     ],
   },
-  {
-    value: "Otros Ingresos",
-    label: "Otros Ingresos",
-    subcategorias: [
-      { value: "Arriendo Cancha", label: "Arriendo de Cancha" },
-      { value: "Multas Jugadores", label: "Multas Jugadores" },
-      { value: "Otro", label: "Otro" },
-    ],
-  },
-];
-
-export const categoriasEgreso: CategoriaTransaccion[] = [
   {
     value: "Infraestructura",
     label: "Infraestructura",
@@ -135,9 +124,10 @@ export const categoriasEgreso: CategoriaTransaccion[] = [
     ],
   },
   {
-    value: "Otros Egresos",
-    label: "Otros Egresos",
+    value: "Otros",
+    label: "Otros",
     subcategorias: [
+      { value: "Multas Jugadores", label: "Multas Jugadores" },
       { value: "Premiación", label: "Premiación" },
       { value: "Marketing", label: "Marketing / Diseño" },
       { value: "Otro", label: "Otro" },
