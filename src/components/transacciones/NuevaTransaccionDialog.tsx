@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +24,7 @@ import { toast } from "sonner";
 import {
   categoriasTransaccion,
 } from "@/data/categoriasTransaccion";
+import { personasMock } from "@/data/personasMock";
 
 interface Props {
   onCreated: () => void;
@@ -42,11 +44,25 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   const [metodoPago, setMetodoPago] = useState("");
   const [referencia, setReferencia] = useState("");
   const [notas, setNotas] = useState("");
+  const [catDeportiva, setCatDeportiva] = useState("");
+  const [personaId, setPersonaId] = useState("");
 
   const categorias = categoriasTransaccion;
 
   const subcategorias =
     categorias.find((c) => c.value === categoria)?.subcategorias ?? [];
+
+  const categoriasDeportivas = useMemo(() => {
+    const cats = new Set(personasMock.map((p) => p.categoria));
+    return Array.from(cats).sort();
+  }, []);
+
+  const jugadorasFiltradas = useMemo(() => {
+    if (!catDeportiva) return [];
+    return personasMock
+      .filter((p) => p.categoria === catDeportiva)
+      .sort((a, b) => a.apellido.localeCompare(b.apellido));
+  }, [catDeportiva]);
 
   const handleTipoChange = (v: "Ingreso" | "Egreso") => {
     setTipo(v);
@@ -70,6 +86,8 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
     setMetodoPago("");
     setReferencia("");
     setNotas("");
+    setCatDeportiva("");
+    setPersonaId("");
   };
 
   const handleSubmit = async () => {
@@ -96,6 +114,8 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
       metodo_pago: metodoPago || null,
       referencia: referencia || null,
       notas: notas || null,
+      categoria_deportiva: catDeportiva || null,
+      persona_id: personaId || null,
     } as any);
 
     setLoading(false);
@@ -177,7 +197,41 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
             </div>
           )}
 
-          {/* Fecha y Monto */}
+          {/* Categoría Deportiva */}
+          <div className="grid gap-1.5">
+            <Label>Categoría Deportiva</Label>
+            <Select value={catDeportiva} onValueChange={(v) => { setCatDeportiva(v); setPersonaId(""); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                {categoriasDeportivas.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Jugadora */}
+          {jugadorasFiltradas.length > 0 && (
+            <div className="grid gap-1.5">
+              <Label>Asignar a Jugadora</Label>
+              <Select value={personaId} onValueChange={setPersonaId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona jugadora" />
+                </SelectTrigger>
+                <SelectContent>
+                  {jugadorasFiltradas.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.apellido}, {p.nombre} — {p.rut}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Fecha *</Label>
