@@ -56,10 +56,10 @@ export default function AppSidebar() {
               key={item.to}
               to={item.to}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-primary/15 text-primary shadow-glow"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  ? "bg-sidebar-accent text-white"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-white"
               )}
             >
               <item.icon className="w-5 h-5 shrink-0" />
