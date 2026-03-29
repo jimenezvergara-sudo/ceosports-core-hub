@@ -92,6 +92,11 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [dbDocs, setDbDocs] = useState<Array<{ id: string; etiqueta: string; nombre_archivo: string; tipo_mime: string; storage_path: string; url_publica: string | null; fecha_carga: string; fecha_vencimiento: string | null }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cedulaFrontalRef = useRef<HTMLInputElement>(null);
+  const cedulaReversoRef = useRef<HTMLInputElement>(null);
+  const [cedulaFrontal, setCedulaFrontal] = useState<File | null>(null);
+  const [cedulaReverso, setCedulaReverso] = useState<File | null>(null);
+  const [uploadingCedula, setUploadingCedula] = useState(false);
 
   const loadDbDocs = useCallback(async () => {
     if (!persona) return;
