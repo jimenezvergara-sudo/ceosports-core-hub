@@ -47,6 +47,10 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
       return;
     }
 
+    const padreData = { nombre: form.padreNombre, apellido: form.padreApellido, rut: form.padreRut, telefono: form.padreTelefono, email: form.padreEmail, direccion: form.padreDireccion, profesion: form.padreProfesion };
+    const madreData = { nombre: form.madreNombre, apellido: form.madreApellido, rut: form.madreRut, telefono: form.madreTelefono, email: form.madreEmail, direccion: form.madreDireccion, profesion: form.madreProfesion };
+    const apoderadoData = apoderadoSource === "padre" ? { ...padreData } : apoderadoSource === "madre" ? { ...madreData } : { nombre: form.apoderadoNombre, apellido: form.apoderadoApellido, rut: form.apoderadoRut, telefono: form.apoderadoTelefono, email: form.apoderadoEmail, direccion: form.apoderadoDireccion, profesion: form.apoderadoProfesion };
+
     const persona: Persona = {
       id: crypto.randomUUID(),
       nombre: form.nombre.trim(),
@@ -60,9 +64,9 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
       estado: "Activo",
       talla: form.talla, tallaUniforme: form.tallaUniforme, peso: form.peso,
       colegio: form.colegio, previsionSalud: form.previsionSalud, alergias: form.alergias,
-      padre: { nombre: form.padreNombre, apellido: form.padreApellido, rut: form.padreRut, telefono: form.padreTelefono, email: form.padreEmail, direccion: form.padreDireccion, profesion: form.padreProfesion },
-      madre: { nombre: form.madreNombre, apellido: form.madreApellido, rut: form.madreRut, telefono: form.madreTelefono, email: form.madreEmail, direccion: form.madreDireccion, profesion: form.madreProfesion },
-      apoderado: { nombre: form.apoderadoNombre, apellido: form.apoderadoApellido, rut: form.apoderadoRut, telefono: form.apoderadoTelefono, email: form.apoderadoEmail, direccion: form.apoderadoDireccion, profesion: form.apoderadoProfesion },
+      padre: padreData,
+      madre: madreData,
+      apoderado: apoderadoData,
       documentos: [],
     };
     onSave(persona);
