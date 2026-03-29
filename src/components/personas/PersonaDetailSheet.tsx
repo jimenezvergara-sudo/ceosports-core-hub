@@ -449,28 +449,37 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
             </div>
 
             <div className="glass rounded-lg p-4 space-y-3">
-              <h4 className="text-sm font-semibold text-foreground">Documentos Cargados</h4>
-              {draft.documentos.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">Sin documentos cargados</p>
+              <h4 className="text-sm font-semibold text-foreground">Documentos en la Nube</h4>
+              {dbDocs.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">Sin documentos subidos aún</p>
               ) : (
                 <div className="space-y-2">
-                  {draft.documentos.map((doc) => (
+                  {dbDocs.map((doc) => (
                     <div key={doc.id} className="flex items-center justify-between py-2 px-3 rounded-md bg-secondary/30">
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-muted-foreground" />
                         <div>
-                          <p className="text-xs font-medium text-foreground">{doc.nombreArchivo}</p>
-                          <p className="text-[10px] text-muted-foreground">{doc.etiqueta} · {doc.fechaCarga}</p>
+                          <p className="text-xs font-medium text-foreground">{doc.nombre_archivo}</p>
+                          <p className="text-[10px] text-muted-foreground">{doc.etiqueta} · {format(new Date(doc.fecha_carga), "dd/MM/yyyy")}</p>
                         </div>
                       </div>
-                      {doc.fechaVencimiento && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-muted-foreground" />
-                          <span className={`text-[10px] ${documentoVencido(doc) ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
-                            {format(new Date(doc.fechaVencimiento), "dd/MM/yyyy")}
+                      <div className="flex items-center gap-1.5">
+                        {doc.fecha_vencimiento && (
+                          <span className="text-[10px] text-muted-foreground">
+                            Vence: {format(new Date(doc.fecha_vencimiento), "dd/MM/yyyy")}
                           </span>
-                        </div>
-                      )}
+                        )}
+                        {doc.url_publica && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
+                            <a href={doc.url_publica} target="_blank" rel="noopener noreferrer">
+                              <Eye className="w-3.5 h-3.5" />
+                            </a>
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => handleDeleteDoc(doc)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -494,15 +503,26 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
                 {uploadLabel === "Certificado Médico" && (
                   <div className="space-y-1.5">
                     <Label className="text-xs">Fecha de Vencimiento</Label>
-                    <Input type="date" className="h-9 text-xs" />
+                    <Input type="date" value={uploadVencimiento} onChange={(e) => setUploadVencimiento(e.target.value)} className="h-9 text-xs" />
                   </div>
                 )}
               </div>
-              <Button variant="secondary" className="w-full gap-2 h-9 text-xs" disabled>
-                <Upload className="w-3.5 h-3.5" />
-                Seleccionar Archivo (PDF, JPG, PNG)
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <Button
+                variant="secondary"
+                className="w-full gap-2 h-9 text-xs"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                {uploading ? "Subiendo..." : "Seleccionar Archivo (PDF, JPG, PNG)"}
               </Button>
-              <p className="text-[10px] text-muted-foreground">La carga de archivos requiere conexión a Lovable Cloud</p>
             </div>
           </TabsContent>
         </Tabs>
