@@ -72,6 +72,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
     onSave(persona);
     onOpenChange(false);
     toast.success(`${persona.nombre} ${persona.apellido} registrado/a exitosamente`);
+    setApoderadoSource("otro");
     setForm({
       nombre: "", apellido: "", rut: "", fechaNacimiento: "", direccion: "",
       rama: "Masc", tipo: "Jugador",
