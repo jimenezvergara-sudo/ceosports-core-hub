@@ -29,6 +29,7 @@ export interface Persona {
   tipo: "Jugador" | "Jugadora" | "Socio" | "Socia";
   estado: "Activo" | "Moroso" | "Inactivo";
   talla: string;
+  tallaUniforme: string;
   peso: string;
   colegio: string;
   previsionSalud: string;

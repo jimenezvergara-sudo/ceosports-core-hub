@@ -142,6 +142,7 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange }: Prop
               <div className="grid grid-cols-2 gap-4">
                 <InfoField label="Talla" value={persona.talla} />
                 <InfoField label="Peso" value={persona.peso} />
+                <InfoField label="Talla Uniforme" value={persona.tallaUniforme} />
                 <InfoField label="Previsión de Salud" value={persona.previsionSalud} />
                 <InfoField label="Alergias" value={persona.alergias} />
               </div>
