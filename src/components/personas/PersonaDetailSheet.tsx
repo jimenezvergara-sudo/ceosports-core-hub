@@ -204,6 +204,54 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
     }
   };
 
+  const uploadSingleFile = async (file: File, label: string, suffix: string) => {
+    if (!persona) throw new Error("No persona");
+    const ext = file.name.split(".").pop();
+    const sanitized = label.replace(/[^a-zA-Z0-9]/g, "_");
+    const storagePath = `${persona.id}/${Date.now()}_${sanitized}_${suffix}.${ext}`;
+
+    const { error: storageError } = await supabase.storage
+      .from("documentos")
+      .upload(storagePath, file, { contentType: file.type, upsert: false });
+    if (storageError) throw storageError;
+
+    const { data: urlData } = supabase.storage.from("documentos").getPublicUrl(storagePath);
+
+    const { error: dbError } = await supabase.from("documentos").insert({
+      persona_id: persona.id,
+      etiqueta: label,
+      nombre_archivo: `${label} - ${suffix === "frontal" ? "Frontal" : suffix === "reverso" ? "Reverso" : file.name}`,
+      tipo_mime: file.type,
+      storage_path: storagePath,
+      url_publica: urlData.publicUrl,
+      fecha_vencimiento: null,
+    });
+    if (dbError) throw dbError;
+  };
+
+  const handleCedulaUpload = async () => {
+    if (!cedulaFrontal || !cedulaReverso) {
+      toast.error("Debes seleccionar ambas imágenes: frontal y reverso");
+      return;
+    }
+    setUploadingCedula(true);
+    try {
+      await uploadSingleFile(cedulaFrontal, "Cédula Identidad", "frontal");
+      await uploadSingleFile(cedulaReverso, "Cédula Identidad", "reverso");
+      toast.success("Cédula de Identidad (frontal y reverso) subida correctamente");
+      setCedulaFrontal(null);
+      setCedulaReverso(null);
+      if (cedulaFrontalRef.current) cedulaFrontalRef.current.value = "";
+      if (cedulaReversoRef.current) cedulaReversoRef.current.value = "";
+      await loadDbDocs();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Error al subir cédula: " + (err.message || "Intenta de nuevo"));
+    } finally {
+      setUploadingCedula(false);
+    }
+  };
+
   const handleDeleteDoc = async (doc: typeof dbDocs[0]) => {
     const { error: storageErr } = await supabase.storage.from("documentos").remove([doc.storage_path]);
     if (storageErr) { toast.error("Error al eliminar archivo"); return; }
