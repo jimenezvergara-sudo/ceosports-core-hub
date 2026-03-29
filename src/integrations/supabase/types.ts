@@ -56,6 +56,54 @@ export type Database = {
         }
         Relationships: []
       }
+      transacciones: {
+        Row: {
+          categoria: string
+          created_at: string
+          descripcion: string
+          estado: string
+          fecha: string
+          id: string
+          metodo_pago: string | null
+          monto: number
+          notas: string | null
+          referencia: string | null
+          subcategoria: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          descripcion: string
+          estado?: string
+          fecha?: string
+          id?: string
+          metodo_pago?: string | null
+          monto: number
+          notas?: string | null
+          referencia?: string | null
+          subcategoria?: string | null
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          metodo_pago?: string | null
+          monto?: number
+          notas?: string | null
+          referencia?: string | null
+          subcategoria?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
