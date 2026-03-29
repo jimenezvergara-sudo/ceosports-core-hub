@@ -82,9 +82,87 @@ function DocStatusIcon({ doc }: { doc?: DocumentoPersona }) {
 
 export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave }: Props) {
   const [uploadLabel, setUploadLabel] = useState<string>("Cédula Identidad");
+  const [uploadVencimiento, setUploadVencimiento] = useState<string>("");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Persona | null>(null);
   const [apoderadoSource, setApoderadoSource] = useState<ApoderadoSource>("otro");
+  const [uploading, setUploading] = useState(false);
+  const [dbDocs, setDbDocs] = useState<Array<{ id: string; etiqueta: string; nombre_archivo: string; tipo_mime: string; storage_path: string; url_publica: string | null; fecha_carga: string; fecha_vencimiento: string | null }>>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const loadDbDocs = useCallback(async () => {
+    if (!persona) return;
+    const { data } = await supabase
+      .from("documentos")
+      .select("*")
+      .eq("persona_id", persona.id)
+      .order("fecha_carga", { ascending: false });
+    if (data) setDbDocs(data);
+  }, [persona]);
+
+  useEffect(() => {
+    if (open && persona) loadDbDocs();
+  }, [open, persona, loadDbDocs]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !persona) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Formato no soportado. Usa JPG, PNG, WebP o PDF.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("El archivo no puede superar 10 MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const storagePath = `${persona.id}/${Date.now()}_${uploadLabel.replace(/\s/g, "_")}.${ext}`;
+
+      const { error: storageError } = await supabase.storage
+        .from("documentos")
+        .upload(storagePath, file, { contentType: file.type, upsert: false });
+
+      if (storageError) throw storageError;
+
+      const { data: urlData } = supabase.storage.from("documentos").getPublicUrl(storagePath);
+
+      const { error: dbError } = await supabase.from("documentos").insert({
+        persona_id: persona.id,
+        etiqueta: uploadLabel,
+        nombre_archivo: file.name,
+        tipo_mime: file.type,
+        storage_path: storagePath,
+        url_publica: urlData.publicUrl,
+        fecha_vencimiento: uploadLabel === "Certificado Médico" && uploadVencimiento ? uploadVencimiento : null,
+      });
+
+      if (dbError) throw dbError;
+
+      toast.success(`${uploadLabel} subido correctamente`);
+      setUploadVencimiento("");
+      await loadDbDocs();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Error al subir: " + (err.message || "Intenta de nuevo"));
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDeleteDoc = async (doc: typeof dbDocs[0]) => {
+    const { error: storageErr } = await supabase.storage.from("documentos").remove([doc.storage_path]);
+    if (storageErr) { toast.error("Error al eliminar archivo"); return; }
+    const { error: dbErr } = await supabase.from("documentos").delete().eq("id", doc.id);
+    if (dbErr) { toast.error("Error al eliminar registro"); return; }
+    toast.success("Documento eliminado");
+    await loadDbDocs();
+  };
 
   useEffect(() => {
     if (persona) {
