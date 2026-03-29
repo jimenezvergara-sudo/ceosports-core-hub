@@ -2,62 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @layer base {
   :root {
-    --background: 233 33% 10%;
-    --foreground: 220 20% 90%;
+    /* Fondo Gris Platino */
+    --background: 216 14% 95%;
+    --foreground: 210 29% 15%;
 
-    --card: 233 30% 13%;
-    --card-foreground: 220 20% 90%;
+    /* Tarjetas Blanco Papel */
+    --card: 216 33% 97%;
+    --card-foreground: 210 29% 15%;
 
-    --popover: 233 30% 15%;
-    --popover-foreground: 220 20% 90%;
+    /* Popovers */
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 29% 15%;
 
-    --primary: 217 70% 50%;
+    /* Primary: Azul Diplomático #102A43 */
+    --primary: 210 63% 16%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 233 20% 20%;
-    --secondary-foreground: 220 15% 75%;
+    /* Secondary */
+    --secondary: 216 14% 91%;
+    --secondary-foreground: 210 29% 25%;
 
-    --muted: 233 20% 16%;
-    --muted-foreground: 220 10% 55%;
+    /* Muted */
+    --muted: 216 14% 93%;
+    --muted-foreground: 210 10% 46%;
 
-    --accent: 217 70% 50%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent: Azul Diplomático lighter */
+    --accent: 210 50% 92%;
+    --accent-foreground: 210 63% 16%;
 
-    --destructive: 0 72% 51%;
+    /* Destructive / Rojo Lacre #9E1A1A */
+    --destructive: 0 72% 36%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 60% 45%;
+    /* Certification: Rojo Lacre */
+    --certification: 0 72% 36%;
+    --certification-foreground: 0 0% 100%;
+
+    --success: 142 55% 38%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 10%;
 
-    --border: 233 20% 18%;
-    --input: 233 20% 18%;
-    --ring: 217 70% 50%;
+    /* Borders: Gris Archivo */
+    --border: 216 14% 85%;
+    --input: 216 14% 85%;
+    --ring: 210 63% 16%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 233 33% 8%;
-    --sidebar-foreground: 220 15% 70%;
-    --sidebar-primary: 217 70% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 233 25% 14%;
-    --sidebar-accent-foreground: 220 20% 90%;
-    --sidebar-border: 233 20% 15%;
-    --sidebar-ring: 217 70% 50%;
+    /* Sidebar: Azul Diplomático */
+    --sidebar-background: 210 63% 16%;
+    --sidebar-foreground: 210 20% 78%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 210 63% 16%;
+    --sidebar-accent: 210 55% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 210 50% 22%;
+    --sidebar-ring: 0 0% 100%;
 
-    --kpi-gradient-1: linear-gradient(135deg, hsl(217 70% 50%), hsl(230 70% 60%));
-    --kpi-gradient-2: linear-gradient(135deg, hsl(142 60% 45%), hsl(160 60% 50%));
-    --kpi-gradient-3: linear-gradient(135deg, hsl(38 92% 50%), hsl(25 90% 55%));
-    --kpi-gradient-4: linear-gradient(135deg, hsl(0 72% 51%), hsl(340 70% 55%));
+    /* KPI Gradients – more muted, corporate */
+    --kpi-gradient-1: linear-gradient(135deg, hsl(210 63% 16%), hsl(210 50% 28%));
+    --kpi-gradient-2: linear-gradient(135deg, hsl(142 55% 38%), hsl(160 50% 42%));
+    --kpi-gradient-3: linear-gradient(135deg, hsl(38 80% 50%), hsl(28 75% 52%));
+    --kpi-gradient-4: linear-gradient(135deg, hsl(0 72% 36%), hsl(0 60% 44%));
 
-    --shadow-card: 0 4px 24px -4px hsla(233, 33%, 5%, 0.5);
-    --shadow-glow: 0 0 20px -5px hsla(217, 70%, 50%, 0.3);
+    --shadow-card: 0 1px 3px 0 hsla(210, 29%, 15%, 0.06), 0 1px 2px -1px hsla(210, 29%, 15%, 0.06);
+    --shadow-glow: 0 0 0 2px hsla(210, 63%, 16%, 0.12);
   }
 }
 
@@ -68,7 +83,7 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Libre Franklin', system-ui, sans-serif;
   }
 
   code, pre {
@@ -96,6 +111,6 @@
     box-shadow: var(--shadow-glow);
   }
   .glass {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+    @apply bg-card border border-border shadow-card;
   }
 }

@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Libre Franklin", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
@@ -42,6 +42,10 @@ export default {
         warning: {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
+        },
+        certification: {
+          DEFAULT: "hsl(var(--certification))",
+          foreground: "hsl(var(--certification-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",

@@ -18,7 +18,7 @@ export default function PageShell({ title, description, icon: Icon, children, ac
         className="flex items-start justify-between"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center border border-primary/20">
             <Icon className="w-5 h-5 text-primary" />
           </div>
           <div>

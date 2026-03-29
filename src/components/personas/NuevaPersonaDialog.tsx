@@ -267,7 +267,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
 
         <div className="flex justify-end gap-2 pt-4 border-t border-border">
           <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} className="gap-2">
+          <Button variant="certification" onClick={handleSubmit} className="gap-2">
             <Save className="w-4 h-4" />
             Guardar Persona
           </Button>
