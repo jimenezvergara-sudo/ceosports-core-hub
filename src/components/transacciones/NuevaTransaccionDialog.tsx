@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import {
   categoriasTransaccion,
 } from "@/data/categoriasTransaccion";
+import { personasMock } from "@/data/personasMock";
 
 interface Props {
   onCreated: () => void;
