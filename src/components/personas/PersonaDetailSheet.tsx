@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X } from "lucide-react";
+import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X, Loader2, Eye, Trash2 } from "lucide-react";
 import type { Persona, DocumentoPersona, Familiar } from "@/types/persona";
 import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documentosPorVencer, requiereTutor, calcularEdad, calcularCategoria } from "@/types/persona";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type ApoderadoSource = "padre" | "madre" | "otro";
 import { format } from "date-fns";
@@ -81,9 +82,87 @@ function DocStatusIcon({ doc }: { doc?: DocumentoPersona }) {
 
 export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave }: Props) {
   const [uploadLabel, setUploadLabel] = useState<string>("Cédula Identidad");
+  const [uploadVencimiento, setUploadVencimiento] = useState<string>("");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Persona | null>(null);
   const [apoderadoSource, setApoderadoSource] = useState<ApoderadoSource>("otro");
+  const [uploading, setUploading] = useState(false);
+  const [dbDocs, setDbDocs] = useState<Array<{ id: string; etiqueta: string; nombre_archivo: string; tipo_mime: string; storage_path: string; url_publica: string | null; fecha_carga: string; fecha_vencimiento: string | null }>>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const loadDbDocs = useCallback(async () => {
+    if (!persona) return;
+    const { data } = await supabase
+      .from("documentos")
+      .select("*")
+      .eq("persona_id", persona.id)
+      .order("fecha_carga", { ascending: false });
+    if (data) setDbDocs(data);
+  }, [persona]);
+
+  useEffect(() => {
+    if (open && persona) loadDbDocs();
+  }, [open, persona, loadDbDocs]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !persona) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Formato no soportado. Usa JPG, PNG, WebP o PDF.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("El archivo no puede superar 10 MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const storagePath = `${persona.id}/${Date.now()}_${uploadLabel.replace(/\s/g, "_")}.${ext}`;
+
+      const { error: storageError } = await supabase.storage
+        .from("documentos")
+        .upload(storagePath, file, { contentType: file.type, upsert: false });
+
+      if (storageError) throw storageError;
+
+      const { data: urlData } = supabase.storage.from("documentos").getPublicUrl(storagePath);
+
+      const { error: dbError } = await supabase.from("documentos").insert({
+        persona_id: persona.id,
+        etiqueta: uploadLabel,
+        nombre_archivo: file.name,
+        tipo_mime: file.type,
+        storage_path: storagePath,
+        url_publica: urlData.publicUrl,
+        fecha_vencimiento: uploadLabel === "Certificado Médico" && uploadVencimiento ? uploadVencimiento : null,
+      });
+
+      if (dbError) throw dbError;
+
+      toast.success(`${uploadLabel} subido correctamente`);
+      setUploadVencimiento("");
+      await loadDbDocs();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Error al subir: " + (err.message || "Intenta de nuevo"));
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDeleteDoc = async (doc: typeof dbDocs[0]) => {
+    const { error: storageErr } = await supabase.storage.from("documentos").remove([doc.storage_path]);
+    if (storageErr) { toast.error("Error al eliminar archivo"); return; }
+    const { error: dbErr } = await supabase.from("documentos").delete().eq("id", doc.id);
+    if (dbErr) { toast.error("Error al eliminar registro"); return; }
+    toast.success("Documento eliminado");
+    await loadDbDocs();
+  };
 
   useEffect(() => {
     if (persona) {
@@ -370,28 +449,37 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
             </div>
 
             <div className="glass rounded-lg p-4 space-y-3">
-              <h4 className="text-sm font-semibold text-foreground">Documentos Cargados</h4>
-              {draft.documentos.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">Sin documentos cargados</p>
+              <h4 className="text-sm font-semibold text-foreground">Documentos en la Nube</h4>
+              {dbDocs.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">Sin documentos subidos aún</p>
               ) : (
                 <div className="space-y-2">
-                  {draft.documentos.map((doc) => (
+                  {dbDocs.map((doc) => (
                     <div key={doc.id} className="flex items-center justify-between py-2 px-3 rounded-md bg-secondary/30">
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-muted-foreground" />
                         <div>
-                          <p className="text-xs font-medium text-foreground">{doc.nombreArchivo}</p>
-                          <p className="text-[10px] text-muted-foreground">{doc.etiqueta} · {doc.fechaCarga}</p>
+                          <p className="text-xs font-medium text-foreground">{doc.nombre_archivo}</p>
+                          <p className="text-[10px] text-muted-foreground">{doc.etiqueta} · {format(new Date(doc.fecha_carga), "dd/MM/yyyy")}</p>
                         </div>
                       </div>
-                      {doc.fechaVencimiento && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-muted-foreground" />
-                          <span className={`text-[10px] ${documentoVencido(doc) ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
-                            {format(new Date(doc.fechaVencimiento), "dd/MM/yyyy")}
+                      <div className="flex items-center gap-1.5">
+                        {doc.fecha_vencimiento && (
+                          <span className="text-[10px] text-muted-foreground">
+                            Vence: {format(new Date(doc.fecha_vencimiento), "dd/MM/yyyy")}
                           </span>
-                        </div>
-                      )}
+                        )}
+                        {doc.url_publica && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
+                            <a href={doc.url_publica} target="_blank" rel="noopener noreferrer">
+                              <Eye className="w-3.5 h-3.5" />
+                            </a>
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => handleDeleteDoc(doc)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -415,15 +503,26 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
                 {uploadLabel === "Certificado Médico" && (
                   <div className="space-y-1.5">
                     <Label className="text-xs">Fecha de Vencimiento</Label>
-                    <Input type="date" className="h-9 text-xs" />
+                    <Input type="date" value={uploadVencimiento} onChange={(e) => setUploadVencimiento(e.target.value)} className="h-9 text-xs" />
                   </div>
                 )}
               </div>
-              <Button variant="secondary" className="w-full gap-2 h-9 text-xs" disabled>
-                <Upload className="w-3.5 h-3.5" />
-                Seleccionar Archivo (PDF, JPG, PNG)
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <Button
+                variant="secondary"
+                className="w-full gap-2 h-9 text-xs"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                {uploading ? "Subiendo..." : "Seleccionar Archivo (PDF, JPG, PNG)"}
               </Button>
-              <p className="text-[10px] text-muted-foreground">La carga de archivos requiere conexión a Lovable Cloud</p>
             </div>
           </TabsContent>
         </Tabs>

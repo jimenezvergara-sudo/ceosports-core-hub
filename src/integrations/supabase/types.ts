@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      documentos: {
+        Row: {
+          created_at: string
+          etiqueta: string
+          fecha_carga: string
+          fecha_vencimiento: string | null
+          id: string
+          nombre_archivo: string
+          persona_id: string
+          storage_path: string
+          tipo_mime: string
+          updated_at: string
+          url_publica: string | null
+        }
+        Insert: {
+          created_at?: string
+          etiqueta: string
+          fecha_carga?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          nombre_archivo: string
+          persona_id: string
+          storage_path: string
+          tipo_mime: string
+          updated_at?: string
+          url_publica?: string | null
+        }
+        Update: {
+          created_at?: string
+          etiqueta?: string
+          fecha_carga?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          nombre_archivo?: string
+          persona_id?: string
+          storage_path?: string
+          tipo_mime?: string
+          updated_at?: string
+          url_publica?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
