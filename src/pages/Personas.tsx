@@ -1,10 +1,10 @@
-import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload } from "lucide-react";
+import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { personasMock } from "@/data/personasMock";
 import { DOCUMENTOS_OBLIGATORIOS, documentoVencido } from "@/types/persona";
 import type { Persona } from "@/types/persona";
@@ -46,6 +46,9 @@ function DocStatusIcons({ persona }: { persona: Persona }) {
   );
 }
 
+type SortKey = "nombre" | "rut" | "categoria" | "rama" | "tipo" | "estado";
+type SortDir = "asc" | "desc" | null;
+
 export default function Personas() {
   const [personas, setPersonas] = useState<Persona[]>(personasMock);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
@@ -54,12 +57,45 @@ export default function Personas() {
   const [importOpen, setImportOpen] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [busqueda, setBusqueda] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>(null);
 
-  const personasFiltradas = personas.filter((p) => {
-    const matchCategoria = filtroCategoria === "Todas" || p.categoria === filtroCategoria;
-    const matchBusqueda = !busqueda || `${p.nombre} ${p.apellido} ${p.rut}`.toLowerCase().includes(busqueda.toLowerCase());
-    return matchCategoria && matchBusqueda;
-  });
+  const handleSort = (key: SortKey) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir("asc");
+    } else if (sortDir === "asc") {
+      setSortDir("desc");
+    } else {
+      setSortKey(null);
+      setSortDir(null);
+    }
+  };
+
+  const personasFiltradas = useMemo(() => {
+    let filtered = personas.filter((p) => {
+      const matchCategoria = filtroCategoria === "Todas" || p.categoria === filtroCategoria;
+      const matchBusqueda = !busqueda || `${p.nombre} ${p.apellido} ${p.rut}`.toLowerCase().includes(busqueda.toLowerCase());
+      return matchCategoria && matchBusqueda;
+    });
+
+    if (sortKey && sortDir) {
+      filtered = [...filtered].sort((a, b) => {
+        let valA: string, valB: string;
+        if (sortKey === "nombre") {
+          valA = `${a.nombre} ${a.apellido}`.toLowerCase();
+          valB = `${b.nombre} ${b.apellido}`.toLowerCase();
+        } else {
+          valA = (a[sortKey] ?? "").toLowerCase();
+          valB = (b[sortKey] ?? "").toLowerCase();
+        }
+        const cmp = valA.localeCompare(valB, "es");
+        return sortDir === "asc" ? cmp : -cmp;
+      });
+    }
+
+    return filtered;
+  }, [personas, filtroCategoria, busqueda, sortKey, sortDir]);
 
   const handleClickPersona = (p: Persona) => {
     setSelectedPersona(p);
@@ -149,13 +185,42 @@ export default function Personas() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Nombre</th>
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">RUT</th>
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Categoría</th>
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Rama</th>
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Tipo</th>
+              {([
+                ["nombre", "Nombre"],
+                ["rut", "RUT"],
+                ["categoria", "Categoría"],
+                ["rama", "Rama"],
+                ["tipo", "Tipo"],
+              ] as [SortKey, string][]).map(([key, label]) => (
+                <th
+                  key={key}
+                  onClick={() => handleSort(key)}
+                  className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider cursor-pointer select-none hover:text-foreground transition-colors"
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {label}
+                    {sortKey === key ? (
+                      sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 opacity-40" />
+                    )}
+                  </span>
+                </th>
+              ))}
               <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Docs</th>
-              <th className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider">Estado</th>
+              <th
+                onClick={() => handleSort("estado")}
+                className="text-left p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider cursor-pointer select-none hover:text-foreground transition-colors"
+              >
+                <span className="inline-flex items-center gap-1">
+                  Estado
+                  {sortKey === "estado" ? (
+                    sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                  ) : (
+                    <ArrowUpDown className="w-3 h-3 opacity-40" />
+                  )}
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
