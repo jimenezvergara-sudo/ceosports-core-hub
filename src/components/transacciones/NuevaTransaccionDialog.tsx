@@ -89,7 +89,6 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
     setCatDeportiva("");
     setPersonaId("");
   };
-  };
 
   const handleSubmit = async () => {
     if (!categoria || !descripcion || !monto) {
