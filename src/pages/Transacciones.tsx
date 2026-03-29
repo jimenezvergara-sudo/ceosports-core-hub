@@ -96,7 +96,7 @@ export default function Transacciones() {
                   Descripción
                 </th>
                 <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">
-                  Categoría
+                  Ítem
                 </th>
                 <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">
                   Tipo
