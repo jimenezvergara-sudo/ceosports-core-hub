@@ -9,7 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X } from "lucide-react";
 import type { Persona, DocumentoPersona, Familiar } from "@/types/persona";
 import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documentosPorVencer, requiereTutor, calcularEdad, calcularCategoria } from "@/types/persona";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+
+type ApoderadoSource = "padre" | "madre" | "otro";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
