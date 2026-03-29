@@ -1,10 +1,10 @@
-import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload } from "lucide-react";
+import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { personasMock } from "@/data/personasMock";
 import { DOCUMENTOS_OBLIGATORIOS, documentoVencido } from "@/types/persona";
 import type { Persona } from "@/types/persona";
