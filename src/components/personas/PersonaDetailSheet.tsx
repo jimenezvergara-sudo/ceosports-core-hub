@@ -629,22 +629,83 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
                   </div>
                 )}
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
-              <Button
-                variant="secondary"
-                className="w-full gap-2 h-9 text-xs"
-                disabled={uploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                {uploading ? "Subiendo..." : "Seleccionar Archivo (PDF, JPG, PNG)"}
-              </Button>
+
+              {uploadLabel === "Cédula Identidad" ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium">Imagen Frontal</Label>
+                      <input
+                        ref={cedulaFrontalRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => setCedulaFrontal(e.target.files?.[0] || null)}
+                      />
+                      <Button
+                        variant="outline"
+                        className="w-full gap-2 h-9 text-xs"
+                        onClick={() => cedulaFrontalRef.current?.click()}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        {cedulaFrontal ? cedulaFrontal.name : "Seleccionar Frontal"}
+                      </Button>
+                      {cedulaFrontal && (
+                        <img src={URL.createObjectURL(cedulaFrontal)} alt="Frontal" className="w-full h-20 object-cover rounded border border-border" />
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium">Imagen Reverso</Label>
+                      <input
+                        ref={cedulaReversoRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => setCedulaReverso(e.target.files?.[0] || null)}
+                      />
+                      <Button
+                        variant="outline"
+                        className="w-full gap-2 h-9 text-xs"
+                        onClick={() => cedulaReversoRef.current?.click()}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        {cedulaReverso ? cedulaReverso.name : "Seleccionar Reverso"}
+                      </Button>
+                      {cedulaReverso && (
+                        <img src={URL.createObjectURL(cedulaReverso)} alt="Reverso" className="w-full h-20 object-cover rounded border border-border" />
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    variant="certification"
+                    className="w-full gap-2 h-9 text-xs"
+                    disabled={uploadingCedula || !cedulaFrontal || !cedulaReverso}
+                    onClick={handleCedulaUpload}
+                  >
+                    {uploadingCedula ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    {uploadingCedula ? "Subiendo..." : "Subir Cédula (Frontal + Reverso)"}
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                  <Button
+                    variant="secondary"
+                    className="w-full gap-2 h-9 text-xs"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    {uploading ? "Subiendo..." : "Seleccionar Archivo (PDF, JPG, PNG)"}
+                  </Button>
+                </>
+              )}
             </div>
           </TabsContent>
         </Tabs>
