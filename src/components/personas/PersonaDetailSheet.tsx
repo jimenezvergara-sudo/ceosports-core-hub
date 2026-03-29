@@ -244,10 +244,78 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
 
           {/* ─── FAMILIA ─── */}
           <TabsContent value="familia" className="space-y-4 mt-4">
-            <FamiliarCard titulo="Padre" familiar={draft.padre} editing={editing} onChange={(f) => setDraft((p) => p ? { ...p, padre: f } : p)} />
-            <FamiliarCard titulo="Madre" familiar={draft.madre} editing={editing} onChange={(f) => setDraft((p) => p ? { ...p, madre: f } : p)} />
+            <FamiliarCard titulo="Padre" familiar={draft.padre} editing={editing} onChange={(f) => {
+              setDraft((p) => {
+                if (!p) return p;
+                const updated = { ...p, padre: f };
+                if (apoderadoSource === "padre") updated.apoderado = { ...f };
+                return updated;
+              });
+            }} />
+            <FamiliarCard titulo="Madre" familiar={draft.madre} editing={editing} onChange={(f) => {
+              setDraft((p) => {
+                if (!p) return p;
+                const updated = { ...p, madre: f };
+                if (apoderadoSource === "madre") updated.apoderado = { ...f };
+                return updated;
+              });
+            }} />
             <Separator />
-            <FamiliarCard titulo="Apoderado / Tutor" familiar={draft.apoderado} editing={editing} onChange={(f) => setDraft((p) => p ? { ...p, apoderado: f } : p)} />
+            <div className="glass rounded-lg p-4 space-y-3">
+              <h4 className="text-sm font-semibold text-foreground">Apoderado / Tutor</h4>
+              {editing ? (
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">¿Quién es el apoderado?</Label>
+                    <Select value={apoderadoSource} onValueChange={(v: ApoderadoSource) => {
+                      setApoderadoSource(v);
+                      if (v === "padre") setDraft((p) => p ? { ...p, apoderado: { ...p.padre } } : p);
+                      else if (v === "madre") setDraft((p) => p ? { ...p, apoderado: { ...p.madre } } : p);
+                      else setDraft((p) => p ? { ...p, apoderado: { nombre: "", apellido: "", rut: "", telefono: "", email: "", direccion: "", profesion: "" } } : p);
+                    }}>
+                      <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="padre">Mismo que el Padre</SelectItem>
+                        <SelectItem value="madre">Misma que la Madre</SelectItem>
+                        <SelectItem value="otro">Otra persona</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {apoderadoSource === "otro" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <InfoField label="Nombre" value={draft.apoderado.nombre} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, nombre: v } } : p)} />
+                      <InfoField label="Apellido" value={draft.apoderado.apellido} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, apellido: v } } : p)} />
+                      <InfoField label="RUT" value={draft.apoderado.rut} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, rut: v } } : p)} />
+                      <InfoField label="Teléfono" value={draft.apoderado.telefono} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, telefono: v } } : p)} />
+                      <InfoField label="Email" value={draft.apoderado.email} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, email: v } } : p)} />
+                      <InfoField label="Dirección" value={draft.apoderado.direccion} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, direccion: v } } : p)} />
+                      <InfoField label="Profesión" value={draft.apoderado.profesion} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, profesion: v } } : p)} />
+                    </div>
+                  )}
+                  {apoderadoSource !== "otro" && (
+                    <p className="text-xs text-muted-foreground italic">
+                      Los datos del apoderado se copiarán automáticamente del {apoderadoSource === "padre" ? "Padre" : "la Madre"}.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                (() => {
+                  const ap = draft.apoderado;
+                  const tieneData = ap.nombre || ap.rut;
+                  if (!tieneData) return <p className="text-xs text-muted-foreground italic">Sin información registrada</p>;
+                  return (
+                    <div className="grid grid-cols-2 gap-3">
+                      <InfoField label="Nombre" value={`${ap.nombre} ${ap.apellido}`} />
+                      <InfoField label="RUT" value={ap.rut} />
+                      <InfoField label="Teléfono" value={ap.telefono} />
+                      <InfoField label="Email" value={ap.email} />
+                      <InfoField label="Dirección" value={ap.direccion} />
+                      <InfoField label="Profesión" value={ap.profesion} />
+                    </div>
+                  );
+                })()
+              )}
+            </div>
           </TabsContent>
 
           {/* ─── SALUD ─── */}
