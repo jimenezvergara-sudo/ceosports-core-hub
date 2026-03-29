@@ -59,6 +59,7 @@ export type Database = {
       transacciones: {
         Row: {
           categoria: string
+          categoria_deportiva: string | null
           created_at: string
           descripcion: string
           estado: string
@@ -67,6 +68,7 @@ export type Database = {
           metodo_pago: string | null
           monto: number
           notas: string | null
+          persona_id: string | null
           referencia: string | null
           subcategoria: string | null
           tipo: string
@@ -74,6 +76,7 @@ export type Database = {
         }
         Insert: {
           categoria: string
+          categoria_deportiva?: string | null
           created_at?: string
           descripcion: string
           estado?: string
@@ -82,6 +85,7 @@ export type Database = {
           metodo_pago?: string | null
           monto: number
           notas?: string | null
+          persona_id?: string | null
           referencia?: string | null
           subcategoria?: string | null
           tipo: string
@@ -89,6 +93,7 @@ export type Database = {
         }
         Update: {
           categoria?: string
+          categoria_deportiva?: string | null
           created_at?: string
           descripcion?: string
           estado?: string
@@ -97,6 +102,7 @@ export type Database = {
           metodo_pago?: string | null
           monto?: number
           notas?: string | null
+          persona_id?: string | null
           referencia?: string | null
           subcategoria?: string | null
           tipo?: string
