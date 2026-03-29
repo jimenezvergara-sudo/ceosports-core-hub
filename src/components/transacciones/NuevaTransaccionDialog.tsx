@@ -21,9 +21,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  categoriasIngreso,
-  categoriasEgreso,
-  type CategoriaTransaccion,
+  categoriasTransaccion,
 } from "@/data/categoriasTransaccion";
 
 interface Props {
@@ -45,8 +43,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   const [referencia, setReferencia] = useState("");
   const [notas, setNotas] = useState("");
 
-  const categorias: CategoriaTransaccion[] =
-    tipo === "Ingreso" ? categoriasIngreso : categoriasEgreso;
+  const categorias = categoriasTransaccion;
 
   const subcategorias =
     categorias.find((c) => c.value === categoria)?.subcategorias ?? [];
