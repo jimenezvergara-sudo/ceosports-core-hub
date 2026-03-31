@@ -58,7 +58,7 @@ export default function Transacciones() {
   useEffect(() => {
     fetchTxs();
   }, [fechaDesde, fechaHasta]);
-  }, []);
+  
 
   const totalIngresos = txs
     .filter((t) => t.tipo === "Ingreso" && t.estado !== "Anulado")
