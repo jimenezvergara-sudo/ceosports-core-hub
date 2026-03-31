@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import NuevaTransaccionDialog from "@/components/transacciones/NuevaTransaccionDialog";
+import TransaccionDetailSheet from "@/components/transacciones/TransaccionDetailSheet";
 
 interface Transaccion {
   id: string;
@@ -17,16 +18,21 @@ interface Transaccion {
   estado: string;
   metodo_pago: string | null;
   referencia: string | null;
+  notas: string | null;
+  categoria_deportiva: string | null;
+  persona_id: string | null;
+  created_at: string;
 }
 
 export default function Transacciones() {
   const [txs, setTxs] = useState<Transaccion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTx, setSelectedTx] = useState<Transaccion | null>(null);
 
   const fetchTxs = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from("transacciones" as any)
+      .from("transacciones")
       .select("*")
       .order("fecha", { ascending: false })
       .limit(100);
@@ -126,7 +132,8 @@ export default function Transacciones() {
                 txs.map((tx) => (
                   <tr
                     key={tx.id}
-                    className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+                    onClick={() => setSelectedTx(tx)}
+                    className="border-b border-border/50 hover:bg-muted/30 transition-colors cursor-pointer"
                   >
                     <td className="p-3 font-mono text-xs text-muted-foreground">
                       {tx.fecha}
@@ -185,6 +192,12 @@ export default function Transacciones() {
           </table>
         </div>
       </motion.div>
+
+      <TransaccionDetailSheet
+        transaccion={selectedTx}
+        open={!!selectedTx}
+        onOpenChange={(open) => !open && setSelectedTx(null)}
+      />
     </PageShell>
   );
 }
