@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import PageShell from "@/components/shared/PageShell";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import NuevaTransaccionDialog from "@/components/transacciones/NuevaTransaccionDialog";
