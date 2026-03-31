@@ -35,11 +35,20 @@ export default function Transacciones() {
   const [loading, setLoading] = useState(true);
   const [selectedTx, setSelectedTx] = useState<Transaccion | null>(null);
 
+  // Default: first day of current month to today
+  const now = new Date();
+  const [fechaDesde, setFechaDesde] = useState<Date>(new Date(now.getFullYear(), now.getMonth(), 1));
+  const [fechaHasta, setFechaHasta] = useState<Date>(now);
+
   const fetchTxs = async () => {
     setLoading(true);
+    const desde = format(fechaDesde, "yyyy-MM-dd");
+    const hasta = format(fechaHasta, "yyyy-MM-dd");
     const { data } = await supabase
       .from("transacciones")
       .select("*")
+      .gte("fecha", desde)
+      .lte("fecha", hasta)
       .order("fecha", { ascending: false })
       .limit(100);
     setTxs((data as unknown as Transaccion[]) ?? []);
@@ -48,6 +57,7 @@ export default function Transacciones() {
 
   useEffect(() => {
     fetchTxs();
+  }, [fechaDesde, fechaHasta]);
   }, []);
 
   const totalIngresos = txs
