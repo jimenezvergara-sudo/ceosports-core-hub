@@ -75,6 +75,46 @@ export default function Transacciones() {
       icon={ArrowLeftRight}
       actions={<NuevaTransaccionDialog onCreated={fetchTxs} />}
     >
+      {/* Filtro de fechas */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <span className="text-sm text-muted-foreground font-medium">Período:</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("w-[180px] justify-start text-left font-normal", !fechaDesde && "text-muted-foreground")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(fechaDesde, "dd MMM yyyy", { locale: es })}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={fechaDesde}
+              onSelect={(d) => d && setFechaDesde(d)}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+        <span className="text-sm text-muted-foreground">—</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("w-[180px] justify-start text-left font-normal", !fechaHasta && "text-muted-foreground")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(fechaHasta, "dd MMM yyyy", { locale: es })}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={fechaHasta}
+              onSelect={(d) => d && setFechaHasta(d)}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
       {/* Resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {[
