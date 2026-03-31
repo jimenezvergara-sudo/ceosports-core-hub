@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import PageShell from "@/components/shared/PageShell";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import NuevaTransaccionDialog from "@/components/transacciones/NuevaTransaccionDialog";
@@ -29,11 +35,20 @@ export default function Transacciones() {
   const [loading, setLoading] = useState(true);
   const [selectedTx, setSelectedTx] = useState<Transaccion | null>(null);
 
+  // Default: first day of current month to today
+  const now = new Date();
+  const [fechaDesde, setFechaDesde] = useState<Date>(new Date(now.getFullYear(), now.getMonth(), 1));
+  const [fechaHasta, setFechaHasta] = useState<Date>(now);
+
   const fetchTxs = async () => {
     setLoading(true);
+    const desde = format(fechaDesde, "yyyy-MM-dd");
+    const hasta = format(fechaHasta, "yyyy-MM-dd");
     const { data } = await supabase
       .from("transacciones")
       .select("*")
+      .gte("fecha", desde)
+      .lte("fecha", hasta)
       .order("fecha", { ascending: false })
       .limit(100);
     setTxs((data as unknown as Transaccion[]) ?? []);
@@ -42,7 +57,8 @@ export default function Transacciones() {
 
   useEffect(() => {
     fetchTxs();
-  }, []);
+  }, [fechaDesde, fechaHasta]);
+  
 
   const totalIngresos = txs
     .filter((t) => t.tipo === "Ingreso" && t.estado !== "Anulado")
@@ -59,6 +75,46 @@ export default function Transacciones() {
       icon={ArrowLeftRight}
       actions={<NuevaTransaccionDialog onCreated={fetchTxs} />}
     >
+      {/* Filtro de fechas */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <span className="text-sm text-muted-foreground font-medium">Período:</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("w-[180px] justify-start text-left font-normal", !fechaDesde && "text-muted-foreground")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(fechaDesde, "dd MMM yyyy", { locale: es })}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={fechaDesde}
+              onSelect={(d) => d && setFechaDesde(d)}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+        <span className="text-sm text-muted-foreground">—</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("w-[180px] justify-start text-left font-normal", !fechaHasta && "text-muted-foreground")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(fechaHasta, "dd MMM yyyy", { locale: es })}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={fechaHasta}
+              onSelect={(d) => d && setFechaHasta(d)}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
       {/* Resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {[
