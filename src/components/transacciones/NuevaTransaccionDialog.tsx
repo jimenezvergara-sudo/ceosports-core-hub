@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,9 +20,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  categoriasTransaccion,
-} from "@/data/categoriasTransaccion";
+import { categoriasTransaccion } from "@/data/categoriasTransaccion";
 import { personasMock } from "@/data/personasMock";
 
 interface Props {
@@ -47,10 +44,20 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   const [catDeportiva, setCatDeportiva] = useState("");
   const [personaId, setPersonaId] = useState("");
 
-  const categorias = categoriasTransaccion;
+  // Filter categories by selected tipo
+  const categoriasFiltradas = useMemo(
+    () => categoriasTransaccion.filter((c) => c.tipo === tipo || c.tipo === "Ambos"),
+    [tipo]
+  );
 
-  const subcategorias =
-    categorias.find((c) => c.value === categoria)?.subcategorias ?? [];
+  const categoriaSeleccionada = useMemo(
+    () => categoriasTransaccion.find((c) => c.value === categoria),
+    [categoria]
+  );
+
+  const subcategorias = categoriaSeleccionada?.subcategorias ?? [];
+  const permiteCatDeportiva = categoriaSeleccionada?.permiteCategoriaDeportiva ?? false;
+  const permiteJugadora = categoriaSeleccionada?.permiteJugadora ?? false;
 
   const categoriasDeportivas = useMemo(() => {
     const cats = new Set(personasMock.map((p) => p.categoria));
@@ -58,21 +65,25 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   }, []);
 
   const jugadorasFiltradas = useMemo(() => {
-    if (!catDeportiva) return [];
+    if (!catDeportiva || !permiteJugadora) return [];
     return personasMock
       .filter((p) => p.categoria === catDeportiva)
       .sort((a, b) => a.apellido.localeCompare(b.apellido));
-  }, [catDeportiva]);
+  }, [catDeportiva, permiteJugadora]);
 
   const handleTipoChange = (v: "Ingreso" | "Egreso") => {
     setTipo(v);
     setCategoria("");
     setSubcategoria("");
+    setCatDeportiva("");
+    setPersonaId("");
   };
 
   const handleCategoriaChange = (v: string) => {
     setCategoria(v);
     setSubcategoria("");
+    setCatDeportiva("");
+    setPersonaId("");
   };
 
   const resetForm = () => {
@@ -103,7 +114,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
     }
 
     setLoading(true);
-    const { error } = await supabase.from("transacciones" as any).insert({
+    const { error } = await supabase.from("transacciones").insert({
       tipo,
       categoria,
       subcategoria: subcategoria || null,
@@ -116,7 +127,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
       notas: notas || null,
       categoria_deportiva: catDeportiva || null,
       persona_id: personaId || null,
-    } as any);
+    });
 
     setLoading(false);
 
@@ -169,7 +180,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
                 <SelectValue placeholder="Selecciona ítem" />
               </SelectTrigger>
               <SelectContent>
-                {categorias.map((c) => (
+                {categoriasFiltradas.map((c) => (
                   <SelectItem key={c.value} value={c.value}>
                     {c.label}
                   </SelectItem>
@@ -197,23 +208,25 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
             </div>
           )}
 
-          {/* Categoría Deportiva */}
-          <div className="grid gap-1.5">
-            <Label>Categoría Deportiva</Label>
-            <Select value={catDeportiva} onValueChange={(v) => { setCatDeportiva(v); setPersonaId(""); }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoriasDeportivas.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Categoría Deportiva - solo si el ítem lo permite */}
+          {permiteCatDeportiva && (
+            <div className="grid gap-1.5">
+              <Label>Categoría Deportiva</Label>
+              <Select value={catDeportiva} onValueChange={(v) => { setCatDeportiva(v); setPersonaId(""); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoriasDeportivas.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-          {/* Jugadora */}
-          {jugadorasFiltradas.length > 0 && (
+          {/* Jugadora - solo si el ítem lo permite Y hay categoría seleccionada */}
+          {permiteJugadora && jugadorasFiltradas.length > 0 && (
             <div className="grid gap-1.5">
               <Label>Asignar a Jugadora</Label>
               <Select value={personaId} onValueChange={setPersonaId}>
@@ -230,7 +243,6 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
               </Select>
             </div>
           )}
-
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">

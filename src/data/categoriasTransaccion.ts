@@ -6,13 +6,22 @@ export interface SubCategoria {
 export interface CategoriaTransaccion {
   value: string;
   label: string;
+  tipo: "Ingreso" | "Egreso" | "Ambos";
+  /** Permite asignar categoría deportiva */
+  permiteCategoriaDeportiva: boolean;
+  /** Permite asignar a una jugadora individual */
+  permiteJugadora: boolean;
   subcategorias: SubCategoria[];
 }
 
 export const categoriasTransaccion: CategoriaTransaccion[] = [
+  // ── INGRESOS ──
   {
     value: "Cuotas",
     label: "Cuotas",
+    tipo: "Ingreso",
+    permiteCategoriaDeportiva: true,
+    permiteJugadora: true,
     subcategorias: [
       { value: "Mensual", label: "Cuota Mensual" },
       { value: "Inscripción", label: "Inscripción" },
@@ -23,6 +32,9 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
   {
     value: "Subvención",
     label: "Subvenciones",
+    tipo: "Ingreso",
+    permiteCategoriaDeportiva: false,
+    permiteJugadora: false,
     subcategorias: [
       { value: "Fondeporte", label: "Fondeporte" },
       { value: "Municipal", label: "Municipal" },
@@ -34,6 +46,9 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
   {
     value: "Donación",
     label: "Donaciones",
+    tipo: "Ingreso",
+    permiteCategoriaDeportiva: false,
+    permiteJugadora: false,
     subcategorias: [
       { value: "Empresa", label: "Empresa" },
       { value: "Persona Natural", label: "Persona Natural" },
@@ -43,6 +58,9 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
   {
     value: "Sponsors",
     label: "Sponsors / Auspicios",
+    tipo: "Ingreso",
+    permiteCategoriaDeportiva: false,
+    permiteJugadora: false,
     subcategorias: [
       { value: "Auspicio", label: "Auspicio" },
       { value: "Publicidad", label: "Publicidad" },
@@ -52,6 +70,9 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
   {
     value: "Eventos",
     label: "Eventos",
+    tipo: "Ingreso",
+    permiteCategoriaDeportiva: false,
+    permiteJugadora: false,
     subcategorias: [
       { value: "Torneo Organizado", label: "Torneo Organizado" },
       { value: "Rifas", label: "Rifas" },
@@ -60,19 +81,62 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
     ],
   },
   {
-    value: "Kiosko",
-    label: "Kiosko",
+    value: "Kiosko Venta",
+    label: "Kiosko (Ventas)",
+    tipo: "Ingreso",
+    permiteCategoriaDeportiva: true,
+    permiteJugadora: false,
     subcategorias: [
       { value: "Venta Alimentos", label: "Venta de Alimentos" },
       { value: "Venta Bebidas", label: "Venta de Bebidas" },
       { value: "Venta Snacks", label: "Venta de Snacks" },
+      { value: "Otro Kiosko Venta", label: "Otro" },
+    ],
+  },
+  {
+    value: "Multas",
+    label: "Multas Jugadoras",
+    tipo: "Ingreso",
+    permiteCategoriaDeportiva: true,
+    permiteJugadora: true,
+    subcategorias: [
+      { value: "Multa Atraso", label: "Atraso" },
+      { value: "Multa Inasistencia", label: "Inasistencia" },
+      { value: "Multa Disciplinaria", label: "Disciplinaria" },
+      { value: "Otra Multa", label: "Otra" },
+    ],
+  },
+  {
+    value: "Otros Ingresos",
+    label: "Otros Ingresos",
+    tipo: "Ingreso",
+    permiteCategoriaDeportiva: false,
+    permiteJugadora: false,
+    subcategorias: [
+      { value: "Otro Ingreso", label: "Otro" },
+    ],
+  },
+
+  // ── EGRESOS ──
+  {
+    value: "Kiosko Compra",
+    label: "Kiosko (Compras)",
+    tipo: "Egreso",
+    permiteCategoriaDeportiva: true,
+    permiteJugadora: false,
+    subcategorias: [
+      { value: "Compra Alimentos", label: "Compra de Alimentos" },
+      { value: "Compra Bebidas", label: "Compra de Bebidas" },
       { value: "Compra Insumos", label: "Compra de Insumos" },
-      { value: "Otro Kiosko", label: "Otro" },
+      { value: "Otro Kiosko Compra", label: "Otro" },
     ],
   },
   {
     value: "Infraestructura",
     label: "Infraestructura",
+    tipo: "Egreso",
+    permiteCategoriaDeportiva: false,
+    permiteJugadora: false,
     subcategorias: [
       { value: "Arriendo Cancha", label: "Arriendo de Cancha" },
       { value: "Mantención", label: "Mantención Instalaciones" },
@@ -83,6 +147,9 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
   {
     value: "Equipamiento",
     label: "Equipamiento Deportivo",
+    tipo: "Egreso",
+    permiteCategoriaDeportiva: true,
+    permiteJugadora: false,
     subcategorias: [
       { value: "Implementación", label: "Implementación (Balones, Conos, etc.)" },
       { value: "Uniformes", label: "Uniformes" },
@@ -93,6 +160,9 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
   {
     value: "Competencia",
     label: "Competencia / Torneos",
+    tipo: "Egreso",
+    permiteCategoriaDeportiva: true,
+    permiteJugadora: false,
     subcategorias: [
       { value: "Inscripción Torneo", label: "Inscripción a Torneo" },
       { value: "Traslados", label: "Traslados" },
@@ -104,6 +174,9 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
   {
     value: "Personal",
     label: "Personal / Honorarios",
+    tipo: "Egreso",
+    permiteCategoriaDeportiva: true,
+    permiteJugadora: false,
     subcategorias: [
       { value: "Honorarios DT", label: "Director Técnico" },
       { value: "Preparador Físico", label: "Preparador Físico" },
@@ -115,6 +188,9 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
   {
     value: "Administrativo",
     label: "Administrativo / Legal",
+    tipo: "Egreso",
+    permiteCategoriaDeportiva: false,
+    permiteJugadora: false,
     subcategorias: [
       { value: "Seguros", label: "Seguros" },
       { value: "Legal", label: "Gastos Legales" },
@@ -124,13 +200,15 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
     ],
   },
   {
-    value: "Otros",
-    label: "Otros",
+    value: "Otros Egresos",
+    label: "Otros Egresos",
+    tipo: "Egreso",
+    permiteCategoriaDeportiva: false,
+    permiteJugadora: false,
     subcategorias: [
-      { value: "Multas Jugadores", label: "Multas Jugadores" },
       { value: "Premiación", label: "Premiación" },
       { value: "Marketing", label: "Marketing / Diseño" },
-      { value: "Otro", label: "Otro" },
+      { value: "Otro Egreso", label: "Otro" },
     ],
   },
 ];
