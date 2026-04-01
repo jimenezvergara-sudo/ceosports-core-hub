@@ -94,6 +94,63 @@ export type Database = {
           },
         ]
       }
+      beneficios_cuota: {
+        Row: {
+          activo: boolean
+          categoria_id: string | null
+          created_at: string
+          fecha_fin: string | null
+          fecha_inicio: string | null
+          id: string
+          motivo: string | null
+          persona_id: string
+          tipo_beneficio: string
+          valor: number
+          valor_tipo: string
+        }
+        Insert: {
+          activo?: boolean
+          categoria_id?: string | null
+          created_at?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          motivo?: string | null
+          persona_id: string
+          tipo_beneficio: string
+          valor: number
+          valor_tipo?: string
+        }
+        Update: {
+          activo?: boolean
+          categoria_id?: string | null
+          created_at?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          motivo?: string | null
+          persona_id?: string
+          tipo_beneficio?: string
+          valor?: number
+          valor_tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beneficios_cuota_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beneficios_cuota_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias: {
         Row: {
           created_at: string
@@ -114,6 +171,142 @@ export type Database = {
           rama?: string
         }
         Relationships: []
+      }
+      cuota_configuraciones: {
+        Row: {
+          activa: boolean
+          categoria_id: string | null
+          created_at: string
+          dia_vencimiento: number
+          fecha_fin: string | null
+          fecha_inicio: string | null
+          frecuencia: string
+          id: string
+          monto_base: number
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          activa?: boolean
+          categoria_id?: string | null
+          created_at?: string
+          dia_vencimiento?: number
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          frecuencia?: string
+          id?: string
+          monto_base: number
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          activa?: boolean
+          categoria_id?: string | null
+          created_at?: string
+          dia_vencimiento?: number
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          frecuencia?: string
+          id?: string
+          monto_base?: number
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cuota_configuraciones_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cuotas: {
+        Row: {
+          apoderado_id: string | null
+          categoria_id: string | null
+          configuracion_id: string | null
+          created_at: string
+          descuento: number
+          estado: string
+          fecha_emision: string
+          fecha_vencimiento: string
+          id: string
+          monto_final: number
+          monto_original: number
+          observaciones: string | null
+          periodo: string
+          persona_id: string
+          recargo: number
+          updated_at: string
+        }
+        Insert: {
+          apoderado_id?: string | null
+          categoria_id?: string | null
+          configuracion_id?: string | null
+          created_at?: string
+          descuento?: number
+          estado?: string
+          fecha_emision?: string
+          fecha_vencimiento: string
+          id?: string
+          monto_final: number
+          monto_original: number
+          observaciones?: string | null
+          periodo: string
+          persona_id: string
+          recargo?: number
+          updated_at?: string
+        }
+        Update: {
+          apoderado_id?: string | null
+          categoria_id?: string | null
+          configuracion_id?: string | null
+          created_at?: string
+          descuento?: number
+          estado?: string
+          fecha_emision?: string
+          fecha_vencimiento?: string
+          id?: string
+          monto_final?: number
+          monto_original?: number
+          observaciones?: string | null
+          periodo?: string
+          persona_id?: string
+          recargo?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cuotas_apoderado_id_fkey"
+            columns: ["apoderado_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cuotas_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cuotas_configuracion_id_fkey"
+            columns: ["configuracion_id"]
+            isOneToOne: false
+            referencedRelation: "cuota_configuraciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cuotas_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       documentos: {
         Row: {
@@ -255,6 +448,60 @@ export type Database = {
             columns: ["solicitud_id"]
             isOneToOne: false
             referencedRelation: "solicitudes_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pagos_cuotas: {
+        Row: {
+          comprobante_path: string | null
+          created_at: string
+          cuota_id: string
+          fecha_pago: string
+          id: string
+          metodo_pago: string | null
+          monto_pagado: number
+          observaciones: string | null
+          recibido_por_id: string | null
+          referencia: string | null
+        }
+        Insert: {
+          comprobante_path?: string | null
+          created_at?: string
+          cuota_id: string
+          fecha_pago?: string
+          id?: string
+          metodo_pago?: string | null
+          monto_pagado: number
+          observaciones?: string | null
+          recibido_por_id?: string | null
+          referencia?: string | null
+        }
+        Update: {
+          comprobante_path?: string | null
+          created_at?: string
+          cuota_id?: string
+          fecha_pago?: string
+          id?: string
+          metodo_pago?: string | null
+          monto_pagado?: number
+          observaciones?: string | null
+          recibido_por_id?: string | null
+          referencia?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_cuotas_cuota_id_fkey"
+            columns: ["cuota_id"]
+            isOneToOne: false
+            referencedRelation: "cuotas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_cuotas_recibido_por_id_fkey"
+            columns: ["recibido_por_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
             referencedColumns: ["id"]
           },
         ]
