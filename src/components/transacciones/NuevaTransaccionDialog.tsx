@@ -43,6 +43,9 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   const [notas, setNotas] = useState("");
   const [catDeportiva, setCatDeportiva] = useState("");
   const [personaId, setPersonaId] = useState("");
+  const [comprobante, setComprobante] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [personaId, setPersonaId] = useState("");
 
   // Filter categories by selected tipo
   const categoriasFiltradas = useMemo(
