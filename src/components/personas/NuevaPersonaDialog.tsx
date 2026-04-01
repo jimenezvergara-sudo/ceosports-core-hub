@@ -76,12 +76,78 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
       return;
     }
 
+    const jugadorId = (dbPersona as any)?.id;
+
+    // Helper to create familiar as persona + relation
+    const crearFamiliar = async (
+      familiar: { nombre: string; apellido: string; rut: string; telefono: string; email: string },
+      tipoRelacion: string
+    ) => {
+      if (!familiar.nombre.trim() && !familiar.apellido.trim()) return;
+      // Check if a persona with same RUT already exists
+      let familiarId: string | null = null;
+      if (familiar.rut.trim()) {
+        const { data: existing } = await supabase
+          .from("personas")
+          .select("id")
+          .eq("rut", familiar.rut.trim())
+          .maybeSingle();
+        if ((existing as any)?.id) familiarId = (existing as any).id;
+      }
+      if (!familiarId) {
+        const { data: newFam, error: famErr } = await supabase
+          .from("personas")
+          .insert({
+            nombre: familiar.nombre.trim() || "Sin nombre",
+            apellido: familiar.apellido.trim() || familiar.nombre.trim(),
+            rut: familiar.rut.trim() || null,
+            tipo_persona: "apoderado",
+            estado: "activo",
+            email: familiar.email.trim() || null,
+            telefono: familiar.telefono.trim() || null,
+          } as any)
+          .select("id")
+          .single();
+        if (famErr) { console.error("Error creando familiar:", famErr); return; }
+        familiarId = (newFam as any)?.id;
+      }
+      if (familiarId && jugadorId) {
+        await supabase.from("persona_relaciones" as any).insert({
+          persona_id: jugadorId,
+          relacionado_id: familiarId,
+          tipo_relacion: tipoRelacion,
+        } as any);
+      }
+    };
+
+    // Create padre
+    if (form.padreNombre.trim() || form.padreApellido.trim()) {
+      await crearFamiliar(
+        { nombre: form.padreNombre, apellido: form.padreApellido, rut: form.padreRut, telefono: form.padreTelefono, email: form.padreEmail },
+        "padre"
+      );
+    }
+    // Create madre
+    if (form.madreNombre.trim() || form.madreApellido.trim()) {
+      await crearFamiliar(
+        { nombre: form.madreNombre, apellido: form.madreApellido, rut: form.madreRut, telefono: form.madreTelefono, email: form.madreEmail },
+        "madre"
+      );
+    }
+    // Create apoderado (if "otro" and not same as padre/madre)
+    if (apoderadoSource === "otro" && (form.apoderadoNombre.trim() || form.apoderadoApellido.trim())) {
+      await crearFamiliar(
+        { nombre: form.apoderadoNombre, apellido: form.apoderadoApellido, rut: form.apoderadoRut, telefono: form.apoderadoTelefono, email: form.apoderadoEmail },
+        "apoderado"
+      );
+    }
+
     const padreData = { nombre: form.padreNombre, apellido: form.padreApellido, rut: form.padreRut, telefono: form.padreTelefono, email: form.padreEmail, direccion: form.padreDireccion, profesion: form.padreProfesion };
     const madreData = { nombre: form.madreNombre, apellido: form.madreApellido, rut: form.madreRut, telefono: form.madreTelefono, email: form.madreEmail, direccion: form.madreDireccion, profesion: form.madreProfesion };
     const apoderadoData = apoderadoSource === "padre" ? { ...padreData } : apoderadoSource === "madre" ? { ...madreData } : { nombre: form.apoderadoNombre, apellido: form.apoderadoApellido, rut: form.apoderadoRut, telefono: form.apoderadoTelefono, email: form.apoderadoEmail, direccion: form.apoderadoDireccion, profesion: form.apoderadoProfesion };
 
     const persona: Persona = {
-      id: (dbPersona as any)?.id ?? crypto.randomUUID(),
+      id: jugadorId ?? crypto.randomUUID(),
       nombre: form.nombre.trim(),
       apellido: form.apellido.trim(),
       rut: form.rut.trim(),
