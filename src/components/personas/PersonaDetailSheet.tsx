@@ -173,7 +173,7 @@ function CategoriaAssignment({ personaId }: { personaId: string }) {
   );
 }
 
-
+export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave }: Props) {
   const [uploadLabel, setUploadLabel] = useState<string>("Cédula Identidad");
   const [uploadVencimiento, setUploadVencimiento] = useState<string>("");
   const [editing, setEditing] = useState(false);
