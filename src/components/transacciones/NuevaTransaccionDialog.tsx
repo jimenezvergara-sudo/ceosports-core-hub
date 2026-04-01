@@ -346,6 +346,37 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
               onChange={(e) => setNotas(e.target.value)}
             />
           </div>
+
+          {/* Comprobante */}
+          <div className="grid gap-1.5">
+            <Label>Comprobante de Pago</Label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf"
+              className="hidden"
+              onChange={(e) => setComprobante(e.target.files?.[0] ?? null)}
+            />
+            {comprobante ? (
+              <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg border border-border">
+                <Upload className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="text-sm text-foreground truncate flex-1">{comprobante.name}</span>
+                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setComprobante(null)}>
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2 justify-start text-muted-foreground"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="w-4 h-4" />
+                Subir comprobante (imagen o PDF)
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
