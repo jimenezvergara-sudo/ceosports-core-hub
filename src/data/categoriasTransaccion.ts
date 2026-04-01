@@ -119,6 +119,19 @@ export const categoriasTransaccion: CategoriaTransaccion[] = [
 
   // ── EGRESOS ──
   {
+    value: "Club",
+    label: "Club",
+    tipo: "Egreso",
+    permiteCategoriaDeportiva: false,
+    permiteJugadora: false,
+    subcategorias: [
+      { value: "Gastos Generales", label: "Gastos Generales" },
+      { value: "Representación", label: "Representación" },
+      { value: "Actividades Sociales", label: "Actividades Sociales" },
+      { value: "Otro Club", label: "Otro" },
+    ],
+  },
+  {
     value: "Kiosko Compra",
     label: "Kiosko (Compras)",
     tipo: "Egreso",

@@ -1,4 +1,4 @@
-import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload, ArrowUp, ArrowDown, ArrowUpDown, Loader2 } from "lucide-react";
+import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload, ArrowUp, ArrowDown, ArrowUpDown, Settings } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,10 @@ import type { Persona } from "@/types/persona";
 import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
 import NuevaPersonaDialog from "@/components/personas/NuevaPersonaDialog";
 import ImportMasivaDialog from "@/components/personas/ImportMasivaDialog";
+import CategoriasManager from "@/components/personas/CategoriasManager";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
-
-const categorias = ["Todas", "Escuelita", "U9", "U11", "U13", "U15", "U18", "Adulto"];
+import { useCategorias } from "@/hooks/use-relational-data";
 
 function DocStatusIcons({ persona }: { persona: Persona }) {
   const [dbDocs, setDbDocs] = useState<{ etiqueta: string; fecha_vencimiento: string | null }[]>([]);
@@ -90,10 +90,13 @@ export default function Personas() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [nuevaOpen, setNuevaOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [categoriasOpen, setCategoriasOpen] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [busqueda, setBusqueda] = useState("");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>(null);
+  const { categorias: dbCategorias } = useCategorias();
+  const categoriasFilter = ["Todas", ...dbCategorias.map((c) => c.nombre)];
 
   const handleSort = (key: SortKey) => {
     if (sortKey !== key) {
@@ -193,8 +196,8 @@ export default function Personas() {
             onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {categorias.map((cat) => (
+        <div className="flex gap-1.5 flex-wrap items-center">
+          {categoriasFilter.map((cat) => (
             <button
               key={cat}
               onClick={() => setFiltroCategoria(cat)}
@@ -207,6 +210,13 @@ export default function Personas() {
               {cat}
             </button>
           ))}
+          <button
+            onClick={() => setCategoriasOpen(true)}
+            className="px-2 py-1.5 text-xs rounded-md border border-dashed border-border text-muted-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
+            title="Administrar categorías"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
@@ -300,6 +310,7 @@ export default function Personas() {
       />
       <NuevaPersonaDialog open={nuevaOpen} onOpenChange={setNuevaOpen} onSave={handleNuevaPersona} />
       <ImportMasivaDialog open={importOpen} onOpenChange={setImportOpen} onImport={handleImport} existingRuts={personas.map((p) => p.rut)} />
+      <CategoriasManager open={categoriasOpen} onOpenChange={setCategoriasOpen} />
     </PageShell>
   );
 }

@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Plus } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { Plus, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +43,8 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   const [notas, setNotas] = useState("");
   const [catDeportiva, setCatDeportiva] = useState("");
   const [personaId, setPersonaId] = useState("");
+  const [comprobante, setComprobante] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Filter categories by selected tipo
   const categoriasFiltradas = useMemo(
@@ -99,6 +101,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
     setNotas("");
     setCatDeportiva("");
     setPersonaId("");
+    setComprobante(null);
   };
 
   const handleSubmit = async () => {
@@ -114,6 +117,21 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
     }
 
     setLoading(true);
+
+    // Upload comprobante if provided
+    let comprobantePath: string | null = null;
+    if (comprobante) {
+      const ext = comprobante.name.split(".").pop();
+      const path = `comprobantes/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("documentos").upload(path, comprobante);
+      if (upErr) {
+        toast.error("Error al subir comprobante: " + upErr.message);
+        setLoading(false);
+        return;
+      }
+      comprobantePath = path;
+    }
+
     const { error } = await supabase.from("transacciones").insert({
       tipo,
       categoria,
@@ -124,7 +142,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
       estado,
       metodo_pago: metodoPago || null,
       referencia: referencia || null,
-      notas: notas || null,
+      notas: comprobantePath ? `${notas || ""}\n[Comprobante: ${comprobantePath}]`.trim() : (notas || null),
       categoria_deportiva: catDeportiva || null,
       persona_id: personaId || null,
       origen_tipo: "manual",
@@ -327,6 +345,37 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
             />
+          </div>
+
+          {/* Comprobante */}
+          <div className="grid gap-1.5">
+            <Label>Comprobante de Pago</Label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf"
+              className="hidden"
+              onChange={(e) => setComprobante(e.target.files?.[0] ?? null)}
+            />
+            {comprobante ? (
+              <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg border border-border">
+                <Upload className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="text-sm text-foreground truncate flex-1">{comprobante.name}</span>
+                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setComprobante(null)}>
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2 justify-start text-muted-foreground"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="w-4 h-4" />
+                Subir comprobante (imagen o PDF)
+              </Button>
+            )}
           </div>
         </div>
 
