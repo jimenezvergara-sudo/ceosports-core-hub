@@ -12,6 +12,7 @@ import Documentos from "@/pages/Documentos";
 import Staff from "@/pages/Staff";
 import Organizacion from "@/pages/Organizacion";
 import Compras from "@/pages/Compras";
+import Cuotas from "@/pages/Cuotas";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
