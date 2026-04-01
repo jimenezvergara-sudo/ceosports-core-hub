@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { personasMock } from "@/data/personasMock";
 import { DOCUMENTOS_OBLIGATORIOS, documentoVencido } from "@/types/persona";
 import type { Persona } from "@/types/persona";
