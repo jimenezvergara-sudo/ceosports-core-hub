@@ -21,6 +21,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TIPOS_GASTO, PRIORIDADES } from "@/data/comprasConstants";
+import { usePersonas, useCategorias, useProyectos, personaLabel } from "@/hooks/use-relational-data";
 
 interface Props {
   onCreated: () => void;
@@ -30,19 +31,23 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const { personas } = usePersonas();
+  const { categorias } = useCategorias();
+  const { proyectos } = useProyectos();
+
   const [form, setForm] = useState({
     titulo: "",
     descripcion: "",
-    categoria_equipo: "",
     tipo_gasto: "",
-    proyecto_asociado: "",
     cantidad: 1,
     monto_estimado: 0,
     prioridad: "media",
     fecha_requerida: "",
     proveedor_sugerido: "",
     justificacion: "",
-    solicitante: "",
+    solicitante_id: "",
+    categoria_id: "",
+    proyecto_id: "",
   });
 
   const set = (k: string, v: string | number) =>
@@ -50,13 +55,14 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
 
   const resetForm = () =>
     setForm({
-      titulo: "", descripcion: "", categoria_equipo: "", tipo_gasto: "",
-      proyecto_asociado: "", cantidad: 1, monto_estimado: 0, prioridad: "media",
-      fecha_requerida: "", proveedor_sugerido: "", justificacion: "", solicitante: "",
+      titulo: "", descripcion: "", tipo_gasto: "",
+      cantidad: 1, monto_estimado: 0, prioridad: "media",
+      fecha_requerida: "", proveedor_sugerido: "", justificacion: "",
+      solicitante_id: "", categoria_id: "", proyecto_id: "",
     });
 
   const handleSubmit = async (estado: "borrador" | "enviada") => {
-    if (!form.titulo.trim() || !form.descripcion.trim() || !form.tipo_gasto || !form.solicitante.trim()) {
+    if (!form.titulo.trim() || !form.descripcion.trim() || !form.tipo_gasto || !form.solicitante_id) {
       toast.error("Completa los campos obligatorios: título, descripción, tipo de gasto y solicitante.");
       return;
     }
@@ -65,11 +71,29 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
       return;
     }
 
+    const solicitantePersona = personas.find(p => p.id === form.solicitante_id);
+    const categoriaObj = categorias.find(c => c.id === form.categoria_id);
+
     setLoading(true);
     const { error } = await supabase.from("solicitudes_compra" as any).insert({
-      ...form,
+      titulo: form.titulo,
+      descripcion: form.descripcion,
+      tipo_gasto: form.tipo_gasto,
+      cantidad: form.cantidad,
+      monto_estimado: form.monto_estimado,
+      prioridad: form.prioridad,
       fecha_requerida: form.fecha_requerida || null,
+      proveedor_sugerido: form.proveedor_sugerido || null,
+      justificacion: form.justificacion || null,
       estado,
+      // Relational FK columns
+      solicitante_id: form.solicitante_id || null,
+      categoria_id: form.categoria_id || null,
+      proyecto_id: form.proyecto_id || null,
+      // Legacy TEXT columns for backward compat
+      solicitante: solicitantePersona ? `${solicitantePersona.nombre} ${solicitantePersona.apellido}` : "",
+      categoria_equipo: categoriaObj ? categoriaObj.nombre : null,
+      proyecto_asociado: proyectos.find(p => p.id === form.proyecto_id)?.nombre || null,
     } as any);
 
     if (error) {
@@ -110,7 +134,14 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
 
           <div>
             <Label className="text-xs">Solicitante *</Label>
-            <Input value={form.solicitante} onChange={(e) => set("solicitante", e.target.value)} placeholder="Nombre" className="mt-1" />
+            <Select value={form.solicitante_id} onValueChange={(v) => set("solicitante_id", v)}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar persona" /></SelectTrigger>
+              <SelectContent>
+                {personas.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -127,12 +158,26 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
 
           <div>
             <Label className="text-xs">Categoría / Equipo</Label>
-            <Input value={form.categoria_equipo} onChange={(e) => set("categoria_equipo", e.target.value)} placeholder="Ej: Sub-14" className="mt-1" />
+            <Select value={form.categoria_id} onValueChange={(v) => set("categoria_id", v)}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
+              <SelectContent>
+                {categorias.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.nombre} ({c.rama})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
             <Label className="text-xs">Proyecto Asociado</Label>
-            <Input value={form.proyecto_asociado} onChange={(e) => set("proyecto_asociado", e.target.value)} placeholder="Opcional" className="mt-1" />
+            <Select value={form.proyecto_id} onValueChange={(v) => set("proyecto_id", v)}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar proyecto" /></SelectTrigger>
+              <SelectContent>
+                {proyectos.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

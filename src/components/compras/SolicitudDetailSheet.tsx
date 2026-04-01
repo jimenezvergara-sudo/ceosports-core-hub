@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ESTADO_COLOR, MEDIOS_PAGO } from "@/data/comprasConstants";
 import type { EstadoCompra } from "@/data/comprasConstants";
+import { usePersonas, useProyectos, personaLabel } from "@/hooks/use-relational-data";
 
 interface Solicitud {
   id: string;
@@ -98,15 +99,18 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
   const [tab, setTab] = useState<"detalle" | "aprobar" | "ejecutar" | "rendir">("detalle");
   const [uploading, setUploading] = useState(false);
 
-  const [apForm, setApForm] = useState({ aprobado_por: "", decision: "aprobada", monto_aprobado: 0, centro_costo: "", proyecto_asociado: "", responsable_compra: "", observaciones: "" });
-  const [ejForm, setEjForm] = useState({ proveedor_real: "", monto_real: 0, fecha_compra: "", medio_pago: "", numero_comprobante: "", comprobante_path: "", observaciones: "" });
-  const [reForm, setReForm] = useState({ monto_rendido: 0, observaciones_tesoreria: "", estado_revision: "rendida" });
+  const { personas } = usePersonas();
+  const { proyectos } = useProyectos();
+
+  const [apForm, setApForm] = useState({ aprobado_por_id: "", decision: "aprobada", monto_aprobado: 0, centro_costo: "", proyecto_id: "", responsable_compra_id: "", observaciones: "" });
+  const [ejForm, setEjForm] = useState({ proveedor_real: "", monto_real: 0, fecha_compra: "", medio_pago: "", numero_comprobante: "", comprobante_path: "", observaciones: "", ejecutado_por_id: "" });
+  const [reForm, setReForm] = useState({ monto_rendido: 0, observaciones_tesoreria: "", estado_revision: "rendida", revisado_por_id: "" });
 
   useEffect(() => {
     if (solicitud) {
       fetchRelated(solicitud.id);
       setTab("detalle");
-      setApForm(f => ({ ...f, monto_aprobado: solicitud.monto_estimado, proyecto_asociado: solicitud.proyecto_asociado || "" }));
+      setApForm(f => ({ ...f, monto_aprobado: solicitud.monto_estimado }));
     }
   }, [solicitud]);
 
@@ -123,14 +127,16 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
     setHistorial((hi.data as any) ?? []);
   };
 
-  const logHistory = async (solicitud_id: string, accion: string, responsable: string, detalle?: string) => {
-    await supabase.from("historial_compra" as any).insert({ solicitud_id, accion, responsable, detalle } as any);
+  const logHistory = async (solicitud_id: string, accion: string, responsable: string, responsable_id?: string, detalle?: string) => {
+    await supabase.from("historial_compra" as any).insert({
+      solicitud_id, accion, responsable, responsable_id: responsable_id || null, detalle,
+    } as any);
   };
 
-  const updateEstado = async (nuevoEstado: string, responsable: string) => {
+  const updateEstado = async (nuevoEstado: string, responsable: string, responsable_id?: string) => {
     if (!solicitud) return;
     await supabase.from("solicitudes_compra" as any).update({ estado: nuevoEstado } as any).eq("id", solicitud.id);
-    await logHistory(solicitud.id, `Estado cambiado a ${nuevoEstado}`, responsable);
+    await logHistory(solicitud.id, `Estado cambiado a ${nuevoEstado}`, responsable, responsable_id);
   };
 
   const handleFileUpload = async (file: File): Promise<string | null> => {
@@ -148,9 +154,26 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
   };
 
   const handleAprobar = async () => {
-    if (!solicitud || !apForm.aprobado_por.trim()) { toast.error("Ingresa quién aprueba"); return; }
-    await supabase.from("aprobaciones_compra" as any).insert({ solicitud_id: solicitud.id, ...apForm, monto_aprobado: apForm.monto_aprobado || null } as any);
-    await updateEstado(apForm.decision === "aprobada" ? "aprobada" : "rechazada", apForm.aprobado_por);
+    if (!solicitud || !apForm.aprobado_por_id) { toast.error("Selecciona quién aprueba"); return; }
+    const persona = personas.find(p => p.id === apForm.aprobado_por_id);
+    const responsablePersona = personas.find(p => p.id === apForm.responsable_compra_id);
+    const proyectoObj = proyectos.find(p => p.id === apForm.proyecto_id);
+
+    await supabase.from("aprobaciones_compra" as any).insert({
+      solicitud_id: solicitud.id,
+      aprobado_por_id: apForm.aprobado_por_id,
+      aprobado_por: persona ? `${persona.nombre} ${persona.apellido}` : "",
+      decision: apForm.decision,
+      monto_aprobado: apForm.monto_aprobado || null,
+      centro_costo: apForm.centro_costo || null,
+      proyecto_id: apForm.proyecto_id || null,
+      proyecto_asociado: proyectoObj?.nombre || null,
+      responsable_compra_id: apForm.responsable_compra_id || null,
+      responsable_compra: responsablePersona ? `${responsablePersona.nombre} ${responsablePersona.apellido}` : null,
+      observaciones: apForm.observaciones || null,
+    } as any);
+    const personaName = persona ? `${persona.nombre} ${persona.apellido}` : "";
+    await updateEstado(apForm.decision === "aprobada" ? "aprobada" : "rechazada", personaName, apForm.aprobado_por_id);
     toast.success(apForm.decision === "aprobada" ? "Solicitud aprobada" : "Solicitud rechazada");
     onUpdated(); fetchRelated(solicitud.id); setTab("detalle");
   };
@@ -164,11 +187,18 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
       if (!ok) return;
     }
     await supabase.from("ejecuciones_compra" as any).insert({
-      solicitud_id: solicitud.id, ...ejForm,
+      solicitud_id: solicitud.id,
+      proveedor_real: ejForm.proveedor_real,
+      monto_real: ejForm.monto_real,
       fecha_compra: ejForm.fecha_compra || new Date().toISOString().split("T")[0],
+      medio_pago: ejForm.medio_pago,
+      numero_comprobante: ejForm.numero_comprobante || null,
       comprobante_path: ejForm.comprobante_path || null,
+      observaciones: ejForm.observaciones || null,
+      ejecutado_por_id: ejForm.ejecutado_por_id || null,
     } as any);
-    await updateEstado("comprada", "Sistema");
+    const ejecutor = personas.find(p => p.id === ejForm.ejecutado_por_id);
+    await updateEstado("comprada", ejecutor ? `${ejecutor.nombre} ${ejecutor.apellido}` : "Sistema", ejForm.ejecutado_por_id);
     toast.success("Compra registrada"); onUpdated(); fetchRelated(solicitud.id); setTab("detalle");
   };
 
@@ -178,10 +208,13 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
     const diferencia = reForm.monto_rendido - montoAprobado;
     await supabase.from("rendiciones_compra" as any).insert({
       solicitud_id: solicitud.id, monto_rendido: reForm.monto_rendido, diferencia,
-      estado_revision: reForm.estado_revision, observaciones_tesoreria: reForm.observaciones_tesoreria || null,
+      estado_revision: reForm.estado_revision,
+      observaciones_tesoreria: reForm.observaciones_tesoreria || null,
       fecha_cierre: reForm.estado_revision === "cerrada" ? new Date().toISOString() : null,
+      revisado_por_id: reForm.revisado_por_id || null,
     } as any);
-    await updateEstado(reForm.estado_revision, "Tesorería");
+    const revisor = personas.find(p => p.id === reForm.revisado_por_id);
+    await updateEstado(reForm.estado_revision, revisor ? `${revisor.nombre} ${revisor.apellido}` : "Tesorería", reForm.revisado_por_id);
     toast.success("Rendición registrada"); onUpdated(); fetchRelated(solicitud.id); setTab("detalle");
   };
 
@@ -202,7 +235,6 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-xl w-full p-0 flex flex-col h-full">
-        {/* Header */}
         <div className="p-4 sm:p-6 pb-0">
           <SheetHeader>
             <SheetTitle className="text-base sm:text-lg leading-tight pr-6">{solicitud.titulo}</SheetTitle>
@@ -212,7 +244,6 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
             </div>
           </SheetHeader>
 
-          {/* Tabs */}
           <div className="flex gap-0 mt-4 border-b border-border -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto">
             {tabs.map((t) => (
               <button
@@ -226,7 +257,6 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
           </div>
         </div>
 
-        {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {tab === "detalle" && (
             <>
@@ -320,7 +350,14 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
           {tab === "aprobar" && (
             <FormSection>
               <FormField label="Aprobado por *">
-                <Input value={apForm.aprobado_por} onChange={(e) => setApForm(f => ({ ...f, aprobado_por: e.target.value }))} />
+                <Select value={apForm.aprobado_por_id} onValueChange={(v) => setApForm(f => ({ ...f, aprobado_por_id: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar persona" /></SelectTrigger>
+                  <SelectContent>
+                    {personas.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormField>
               <FormField label="Decisión">
                 <Select value={apForm.decision} onValueChange={(v) => setApForm(f => ({ ...f, decision: v }))}>
@@ -337,8 +374,25 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
               <FormField label="Centro de Costo">
                 <Input value={apForm.centro_costo} onChange={(e) => setApForm(f => ({ ...f, centro_costo: e.target.value }))} />
               </FormField>
+              <FormField label="Proyecto Asociado">
+                <Select value={apForm.proyecto_id} onValueChange={(v) => setApForm(f => ({ ...f, proyecto_id: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar proyecto" /></SelectTrigger>
+                  <SelectContent>
+                    {proyectos.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
               <FormField label="Responsable de Compra">
-                <Input value={apForm.responsable_compra} onChange={(e) => setApForm(f => ({ ...f, responsable_compra: e.target.value }))} />
+                <Select value={apForm.responsable_compra_id} onValueChange={(v) => setApForm(f => ({ ...f, responsable_compra_id: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar persona" /></SelectTrigger>
+                  <SelectContent>
+                    {personas.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormField>
               <FormField label="Observaciones">
                 <Textarea value={apForm.observaciones} onChange={(e) => setApForm(f => ({ ...f, observaciones: e.target.value }))} rows={2} />
@@ -348,6 +402,16 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
 
           {tab === "ejecutar" && (
             <FormSection>
+              <FormField label="Ejecutado por">
+                <Select value={ejForm.ejecutado_por_id} onValueChange={(v) => setEjForm(f => ({ ...f, ejecutado_por_id: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar persona" /></SelectTrigger>
+                  <SelectContent>
+                    {personas.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
               <FormField label="Proveedor Real *">
                 <Input value={ejForm.proveedor_real} onChange={(e) => setEjForm(f => ({ ...f, proveedor_real: e.target.value }))} />
               </FormField>
@@ -398,6 +462,16 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
 
           {tab === "rendir" && (
             <FormSection>
+              <FormField label="Revisado por">
+                <Select value={reForm.revisado_por_id} onValueChange={(v) => setReForm(f => ({ ...f, revisado_por_id: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar persona" /></SelectTrigger>
+                  <SelectContent>
+                    {personas.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
               <FormField label="Monto Rendido ($)">
                 <Input type="number" value={reForm.monto_rendido} onChange={(e) => setReForm(f => ({ ...f, monto_rendido: Number(e.target.value) }))} />
               </FormField>
