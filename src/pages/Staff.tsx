@@ -229,6 +229,56 @@ export default function Staff() {
           {renderSection("Cuerpo Técnico", tecnicos)}
           {renderSection("Operativos", operativos)}
           {otros.length > 0 && renderSection("Otros", otros)}
+
+          {/* Apoderados section */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Apoderados / Familiares</h3>
+            {loadingApoderados ? (
+              <p className="text-sm text-muted-foreground bg-card border border-border rounded-lg p-4">Cargando...</p>
+            ) : Object.keys(apoderadosGrouped).length === 0 ? (
+              <p className="text-sm text-muted-foreground bg-card border border-border rounded-lg p-4">Sin apoderados registrados</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {Object.entries(apoderadosGrouped).map(([personaId, items], i) => {
+                  const first = items[0];
+                  const tipoLabels: Record<string, string> = { padre: "Padre", madre: "Madre", apoderado: "Apoderado", tutor: "Tutor" };
+                  return (
+                    <motion.div
+                      key={personaId}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.03 * i }}
+                      className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex flex-wrap gap-1">
+                          {items.map((item, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-xs">
+                              {tipoLabels[item.tipo_relacion] || item.tipo_relacion}
+                            </Badge>
+                          ))}
+                        </div>
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <p className="text-foreground font-semibold text-sm">
+                        {first.apellido}, {first.nombre}
+                      </p>
+                      {first.rut && (
+                        <p className="text-[10px] font-mono text-muted-foreground mt-0.5">{first.rut}</p>
+                      )}
+                      <div className="mt-2 space-y-0.5">
+                        {items.map((item, idx) => (
+                          <p key={idx} className="text-xs text-muted-foreground">
+                            {tipoLabels[item.tipo_relacion] || item.tipo_relacion} de {item.jugador_nombre}
+                          </p>
+                        ))}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
