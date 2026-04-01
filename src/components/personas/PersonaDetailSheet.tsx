@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X, Loader2, Eye, Trash2, Camera, Download, Link2 } from "lucide-react";
+import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Pencil, Save, X, Loader2, Eye, Trash2, Camera, Download, Link2, Plus } from "lucide-react";
 import RelacionesTab from "@/components/personas/RelacionesTab";
 import type { Persona, DocumentoPersona, Familiar } from "@/types/persona";
 import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documentosPorVencer, requiereTutor, calcularEdad, calcularCategoria } from "@/types/persona";
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCategorias } from "@/hooks/use-relational-data";
 
 type ApoderadoSource = "padre" | "madre" | "otro";
 import { format } from "date-fns";
@@ -79,6 +80,97 @@ function DocStatusIcon({ doc }: { doc?: DocumentoPersona }) {
     return <AlertTriangle className="w-4 h-4 text-warning" />;
   }
   return <CheckCircle2 className="w-4 h-4 text-success" />;
+}
+
+function CategoriaAssignment({ personaId }: { personaId: string }) {
+  const { categorias } = useCategorias();
+  const [assigned, setAssigned] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [selectedCat, setSelectedCat] = useState("");
+
+  const loadAssigned = useCallback(async () => {
+    const { data } = await supabase
+      .from("persona_categoria")
+      .select("categoria_id")
+      .eq("persona_id", personaId);
+    setAssigned((data as any[])?.map((r) => r.categoria_id) ?? []);
+    setLoading(false);
+  }, [personaId]);
+
+  useEffect(() => { loadAssigned(); }, [loadAssigned]);
+
+  const addCategory = async () => {
+    if (!selectedCat) return;
+    await supabase.from("persona_categoria").insert({ persona_id: personaId, categoria_id: selectedCat } as any);
+    setSelectedCat("");
+    setAdding(false);
+    toast.success("Categoría asignada");
+    loadAssigned();
+  };
+
+  const removeCategory = async (catId: string) => {
+    await supabase.from("persona_categoria").delete().eq("persona_id", personaId).eq("categoria_id", catId);
+    toast.success("Categoría removida");
+    loadAssigned();
+  };
+
+  const available = categorias.filter((c) => !assigned.includes(c.id));
+  const assignedCats = categorias.filter((c) => assigned.includes(c.id));
+
+  return (
+    <div className="glass rounded-lg p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-semibold text-foreground">Categorías Deportivas</Label>
+        {!adding && available.length > 0 && (
+          <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setAdding(true)}>
+            <Plus className="w-3.5 h-3.5" /> Agregar
+          </Button>
+        )}
+      </div>
+
+      {loading ? (
+        <p className="text-xs text-muted-foreground">Cargando...</p>
+      ) : assignedCats.length === 0 && !adding ? (
+        <p className="text-xs text-muted-foreground italic">Sin categorías asignadas.
+          <button className="text-primary ml-1 underline" onClick={() => setAdding(true)}>Agregar</button>
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {assignedCats.map((c) => (
+            <Badge key={c.id} variant="secondary" className="text-xs gap-1 pr-1">
+              {c.nombre} ({c.rama})
+              <button
+                onClick={() => removeCategory(c.id)}
+                className="ml-0.5 rounded-full hover:bg-destructive/20 p-0.5"
+              >
+                <X className="w-3 h-3 text-destructive" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {adding && (
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <Select value={selectedCat} onValueChange={setSelectedCat}>
+              <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
+              <SelectContent position="popper" className="z-[9999]">
+                {available.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.nombre} ({c.rama})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button size="sm" className="h-8" onClick={addCategory} disabled={!selectedCat}>Asignar</Button>
+          <Button size="sm" variant="ghost" className="h-8" onClick={() => { setAdding(false); setSelectedCat(""); }}>
+            <X className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave }: Props) {
@@ -422,6 +514,9 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
                 )}
               </div>
             </div>
+            {/* ─── CATEGORÍAS ASIGNADAS ─── */}
+            <CategoriaAssignment personaId={draft.id} />
+
             {necesitaTutor && (
               <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-warning mt-0.5 shrink-0" />
