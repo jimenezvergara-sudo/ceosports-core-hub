@@ -101,6 +101,29 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
 
   const { personas } = usePersonas();
   const { proyectos } = useProyectos();
+  const { roles: staffRoles } = useStaffRoles();
+  const [nivelesAprobacion, setNivelesAprobacion] = useState<any[]>([]);
+
+  useEffect(() => {
+    supabase.from("niveles_aprobacion" as any).select("*").eq("activo", true).order("monto_minimo").then(({ data }) => {
+      setNivelesAprobacion((data as any[]) ?? []);
+    });
+  }, []);
+
+  // Filter personas authorized to approve based on purchase amount
+  const personasAutorizadas = (() => {
+    if (!solicitud) return [];
+    const monto = solicitud.monto_estimado;
+    const nivel = nivelesAprobacion.find((n: any) =>
+      monto >= n.monto_minimo && (n.monto_maximo === null || monto <= n.monto_maximo)
+    );
+    if (!nivel) return personas; // fallback: show all
+    const rolesAutorizados: string[] = nivel.roles_autorizados;
+    const personaIdsAutorizadas = staffRoles
+      .filter(sr => sr.activo && rolesAutorizados.includes(sr.rol))
+      .map(sr => sr.persona_id);
+    return personas.filter(p => personaIdsAutorizadas.includes(p.id));
+  })();
 
   const [apForm, setApForm] = useState({ aprobado_por_id: "", decision: "aprobada", monto_aprobado: 0, centro_costo: "", proyecto_id: "", responsable_compra_id: "", observaciones: "" });
   const [ejForm, setEjForm] = useState({ proveedor_real: "", monto_real: 0, fecha_compra: "", medio_pago: "", numero_comprobante: "", comprobante_path: "", observaciones: "", ejecutado_por_id: "" });
