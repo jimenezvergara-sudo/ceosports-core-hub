@@ -349,9 +349,10 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
         </SheetHeader>
 
         <Tabs defaultValue="personal" className="mt-2">
-          <TabsList className="w-full grid grid-cols-4">
+          <TabsList className="w-full grid grid-cols-5">
             <TabsTrigger value="personal" className="gap-1.5 text-xs"><User className="w-3.5 h-3.5" /> Personal</TabsTrigger>
             <TabsTrigger value="familia" className="gap-1.5 text-xs"><Users className="w-3.5 h-3.5" /> Familia</TabsTrigger>
+            <TabsTrigger value="relaciones" className="gap-1.5 text-xs"><Link2 className="w-3.5 h-3.5" /> Relaciones</TabsTrigger>
             <TabsTrigger value="salud" className="gap-1.5 text-xs"><HeartPulse className="w-3.5 h-3.5" /> Salud</TabsTrigger>
             <TabsTrigger value="documentos" className="gap-1.5 text-xs"><FileText className="w-3.5 h-3.5" /> Documentos</TabsTrigger>
           </TabsList>
