@@ -61,7 +61,7 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
     monto_estimado: 0,
     prioridad: "media",
     fecha_requerida: "",
-    proveedor_sugerido: "",
+    proveedor_id: "",
     justificacion: "",
     solicitante_id: "",
     categoria_id: "",
@@ -75,7 +75,7 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
     setForm({
       titulo: "", descripcion: "", tipo_gasto: "",
       cantidad: 1, monto_estimado: 0, prioridad: "media",
-      fecha_requerida: "", proveedor_sugerido: "", justificacion: "",
+      fecha_requerida: "", proveedor_id: "", justificacion: "",
       solicitante_id: "", categoria_id: "", proyecto_id: "",
     });
 
