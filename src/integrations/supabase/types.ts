@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      aprobaciones_compra: {
+        Row: {
+          aprobado_por: string
+          centro_costo: string | null
+          created_at: string
+          decision: string
+          fecha_aprobacion: string
+          id: string
+          monto_aprobado: number | null
+          observaciones: string | null
+          proyecto_asociado: string | null
+          responsable_compra: string | null
+          solicitud_id: string
+        }
+        Insert: {
+          aprobado_por: string
+          centro_costo?: string | null
+          created_at?: string
+          decision: string
+          fecha_aprobacion?: string
+          id?: string
+          monto_aprobado?: number | null
+          observaciones?: string | null
+          proyecto_asociado?: string | null
+          responsable_compra?: string | null
+          solicitud_id: string
+        }
+        Update: {
+          aprobado_por?: string
+          centro_costo?: string | null
+          created_at?: string
+          decision?: string
+          fecha_aprobacion?: string
+          id?: string
+          monto_aprobado?: number | null
+          observaciones?: string | null
+          proyecto_asociado?: string | null
+          responsable_compra?: string | null
+          solicitud_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aprobaciones_compra_solicitud_id_fkey"
+            columns: ["solicitud_id"]
+            isOneToOne: false
+            referencedRelation: "solicitudes_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos: {
         Row: {
           created_at: string
@@ -53,6 +103,189 @@ export type Database = {
           tipo_mime?: string
           updated_at?: string
           url_publica?: string | null
+        }
+        Relationships: []
+      }
+      ejecuciones_compra: {
+        Row: {
+          comprobante_path: string | null
+          created_at: string
+          fecha_compra: string
+          id: string
+          medio_pago: string
+          monto_real: number
+          numero_comprobante: string | null
+          observaciones: string | null
+          proveedor_real: string
+          solicitud_id: string
+        }
+        Insert: {
+          comprobante_path?: string | null
+          created_at?: string
+          fecha_compra?: string
+          id?: string
+          medio_pago: string
+          monto_real: number
+          numero_comprobante?: string | null
+          observaciones?: string | null
+          proveedor_real: string
+          solicitud_id: string
+        }
+        Update: {
+          comprobante_path?: string | null
+          created_at?: string
+          fecha_compra?: string
+          id?: string
+          medio_pago?: string
+          monto_real?: number
+          numero_comprobante?: string | null
+          observaciones?: string | null
+          proveedor_real?: string
+          solicitud_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ejecuciones_compra_solicitud_id_fkey"
+            columns: ["solicitud_id"]
+            isOneToOne: false
+            referencedRelation: "solicitudes_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historial_compra: {
+        Row: {
+          accion: string
+          created_at: string
+          detalle: string | null
+          id: string
+          responsable: string
+          solicitud_id: string
+        }
+        Insert: {
+          accion: string
+          created_at?: string
+          detalle?: string | null
+          id?: string
+          responsable: string
+          solicitud_id: string
+        }
+        Update: {
+          accion?: string
+          created_at?: string
+          detalle?: string | null
+          id?: string
+          responsable?: string
+          solicitud_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historial_compra_solicitud_id_fkey"
+            columns: ["solicitud_id"]
+            isOneToOne: false
+            referencedRelation: "solicitudes_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rendiciones_compra: {
+        Row: {
+          created_at: string
+          diferencia: number
+          estado_revision: string
+          fecha_cierre: string | null
+          id: string
+          monto_rendido: number
+          observaciones_tesoreria: string | null
+          solicitud_id: string
+        }
+        Insert: {
+          created_at?: string
+          diferencia?: number
+          estado_revision?: string
+          fecha_cierre?: string | null
+          id?: string
+          monto_rendido: number
+          observaciones_tesoreria?: string | null
+          solicitud_id: string
+        }
+        Update: {
+          created_at?: string
+          diferencia?: number
+          estado_revision?: string
+          fecha_cierre?: string | null
+          id?: string
+          monto_rendido?: number
+          observaciones_tesoreria?: string | null
+          solicitud_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rendiciones_compra_solicitud_id_fkey"
+            columns: ["solicitud_id"]
+            isOneToOne: false
+            referencedRelation: "solicitudes_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solicitudes_compra: {
+        Row: {
+          adjunto_path: string | null
+          cantidad: number
+          categoria_equipo: string | null
+          created_at: string
+          descripcion: string
+          estado: string
+          fecha_requerida: string | null
+          id: string
+          justificacion: string | null
+          monto_estimado: number
+          prioridad: string
+          proveedor_sugerido: string | null
+          proyecto_asociado: string | null
+          solicitante: string
+          tipo_gasto: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          adjunto_path?: string | null
+          cantidad?: number
+          categoria_equipo?: string | null
+          created_at?: string
+          descripcion: string
+          estado?: string
+          fecha_requerida?: string | null
+          id?: string
+          justificacion?: string | null
+          monto_estimado: number
+          prioridad?: string
+          proveedor_sugerido?: string | null
+          proyecto_asociado?: string | null
+          solicitante: string
+          tipo_gasto: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          adjunto_path?: string | null
+          cantidad?: number
+          categoria_equipo?: string | null
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          fecha_requerida?: string | null
+          id?: string
+          justificacion?: string | null
+          monto_estimado?: number
+          prioridad?: string
+          proveedor_sugerido?: string | null
+          proyecto_asociado?: string | null
+          solicitante?: string
+          tipo_gasto?: string
+          titulo?: string
+          updated_at?: string
         }
         Relationships: []
       }
