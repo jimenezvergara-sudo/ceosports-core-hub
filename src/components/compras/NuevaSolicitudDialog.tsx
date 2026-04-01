@@ -101,7 +101,8 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
       monto_estimado: form.monto_estimado,
       prioridad: form.prioridad,
       fecha_requerida: form.fecha_requerida || null,
-      proveedor_sugerido: form.proveedor_sugerido || null,
+      proveedor_sugerido: proveedores.find(p => p.id === form.proveedor_id)?.nombre || null,
+      proveedor_id: form.proveedor_id || null,
       justificacion: form.justificacion || null,
       estado,
       // Relational FK columns
