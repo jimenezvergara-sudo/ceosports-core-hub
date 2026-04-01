@@ -169,7 +169,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
                 <Input value={form.padreRut} onChange={(e) => update("padreRut", e.target.value)} placeholder="RUT" className="h-8 text-xs font-mono" />
                 <Input value={form.padreTelefono} onChange={(e) => update("padreTelefono", e.target.value)} placeholder="Teléfono" className="h-8 text-xs" />
                 <Input value={form.padreEmail} onChange={(e) => update("padreEmail", e.target.value)} placeholder="Email" className="h-8 text-xs" />
-                <Input value={form.padreProfesion} onChange={(e) => update("padreProfesion", e.target.value)} placeholder="Profesión" className="h-8 text-xs" />
+                <Input value={form.padreProfesion} onChange={(e) => update("padreProfesion", e.target.value)} placeholder="Profesión / Ocupación" className="h-8 text-xs" />
                 <Input value={form.padreDireccion} onChange={(e) => update("padreDireccion", e.target.value)} placeholder="Dirección" className="h-8 text-xs col-span-2" />
               </div>
             </div>
