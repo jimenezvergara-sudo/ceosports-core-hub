@@ -12,6 +12,7 @@ import Documentos from "@/pages/Documentos";
 import Staff from "@/pages/Staff";
 import Organizacion from "@/pages/Organizacion";
 import Compras from "@/pages/Compras";
+import Proveedores from "@/pages/Proveedores";
 import Cuotas from "@/pages/Cuotas";
 import NotFound from "@/pages/NotFound";
 
