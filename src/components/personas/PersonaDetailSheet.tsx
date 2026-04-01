@@ -477,7 +477,7 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
                       <InfoField label="Teléfono" value={draft.apoderado.telefono} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, telefono: v } } : p)} />
                       <InfoField label="Email" value={draft.apoderado.email} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, email: v } } : p)} />
                       <InfoField label="Dirección" value={draft.apoderado.direccion} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, direccion: v } } : p)} />
-                      <InfoField label="Profesión" value={draft.apoderado.profesion} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, profesion: v } } : p)} />
+                      <InfoField label="Profesión / Ocupación" value={draft.apoderado.profesion} editing onChange={(v) => setDraft((p) => p ? { ...p, apoderado: { ...p.apoderado, profesion: v } } : p)} />
                     </div>
                   )}
                   {apoderadoSource !== "otro" && (
