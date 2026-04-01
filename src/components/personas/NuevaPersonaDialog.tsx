@@ -178,6 +178,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
                     <SelectItem value="Jugadora">Jugadora</SelectItem>
                     <SelectItem value="Socio">Socio</SelectItem>
                     <SelectItem value="Socia">Socia</SelectItem>
+                    <SelectItem value="Staff">Staff</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
