@@ -67,7 +67,7 @@ function FamiliarCard({ titulo, familiar, editing, onChange }: { titulo: string;
         <InfoField label="Teléfono" value={familiar.telefono} editing={editing} onChange={(v) => update("telefono", v)} />
         <InfoField label="Email" value={familiar.email} editing={editing} onChange={(v) => update("email", v)} />
         <InfoField label="Dirección" value={familiar.direccion} editing={editing} onChange={(v) => update("direccion", v)} />
-        <InfoField label="Profesión" value={familiar.profesion} editing={editing} onChange={(v) => update("profesion", v)} />
+        <InfoField label="Profesión / Ocupación" value={familiar.profesion} editing={editing} onChange={(v) => update("profesion", v)} />
       </div>
     </div>
   );
