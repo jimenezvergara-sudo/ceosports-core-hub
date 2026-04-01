@@ -34,6 +34,17 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
   const { personas } = usePersonas();
   const { categorias } = useCategorias();
   const { proyectos } = useProyectos();
+  const { roles: staffRoles } = useStaffRoles();
+
+  // Build solicitante options from active staff
+  const solicitanteOptions = staffRoles
+    .filter((r) => r.activo)
+    .map((r) => ({
+      id: r.persona_id,
+      label: `${r.persona_apellido}, ${r.persona_nombre} — ${r.rol}${r.categoria_nombre ? ` (${r.categoria_nombre})` : ""}`,
+    }))
+    // deduplicate by persona_id (show first role found)
+    .filter((v, i, arr) => arr.findIndex((x) => x.id === v.id) === i);
 
   const [form, setForm] = useState({
     titulo: "",
