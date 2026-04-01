@@ -117,6 +117,21 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
     }
 
     setLoading(true);
+
+    // Upload comprobante if provided
+    let comprobantePath: string | null = null;
+    if (comprobante) {
+      const ext = comprobante.name.split(".").pop();
+      const path = `comprobantes/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("documentos").upload(path, comprobante);
+      if (upErr) {
+        toast.error("Error al subir comprobante: " + upErr.message);
+        setLoading(false);
+        return;
+      }
+      comprobantePath = path;
+    }
+
     const { error } = await supabase.from("transacciones").insert({
       tipo,
       categoria,
@@ -127,7 +142,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
       estado,
       metodo_pago: metodoPago || null,
       referencia: referencia || null,
-      notas: notas || null,
+      notas: comprobantePath ? `${notas || ""}\n[Comprobante: ${comprobantePath}]`.trim() : (notas || null),
       categoria_deportiva: catDeportiva || null,
       persona_id: personaId || null,
       origen_tipo: "manual",
