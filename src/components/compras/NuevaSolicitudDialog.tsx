@@ -146,11 +146,15 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
           <div>
             <Label className="text-xs">Solicitante *</Label>
             <Select value={form.solicitante_id} onValueChange={(v) => set("solicitante_id", v)}>
-              <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar persona" /></SelectTrigger>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar solicitante" /></SelectTrigger>
               <SelectContent>
-                {personas.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
-                ))}
+                {solicitanteOptions.length === 0 ? (
+                  <SelectItem value="__empty" disabled>Asigna roles en Staff primero</SelectItem>
+                ) : (
+                  solicitanteOptions.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
