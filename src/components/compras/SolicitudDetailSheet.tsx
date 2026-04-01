@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ESTADO_COLOR, MEDIOS_PAGO } from "@/data/comprasConstants";
 import type { EstadoCompra } from "@/data/comprasConstants";
-import { usePersonas, useProyectos, personaLabel } from "@/hooks/use-relational-data";
+import { usePersonas, useProyectos, useStaffRoles, personaLabel } from "@/hooks/use-relational-data";
 
 interface Solicitud {
   id: string;
@@ -101,6 +101,29 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
 
   const { personas } = usePersonas();
   const { proyectos } = useProyectos();
+  const { roles: staffRoles } = useStaffRoles();
+  const [nivelesAprobacion, setNivelesAprobacion] = useState<any[]>([]);
+
+  useEffect(() => {
+    supabase.from("niveles_aprobacion" as any).select("*").eq("activo", true).order("monto_minimo").then(({ data }) => {
+      setNivelesAprobacion((data as any[]) ?? []);
+    });
+  }, []);
+
+  // Filter personas authorized to approve based on purchase amount
+  const personasAutorizadas = (() => {
+    if (!solicitud) return [];
+    const monto = solicitud.monto_estimado;
+    const nivel = nivelesAprobacion.find((n: any) =>
+      monto >= n.monto_minimo && (n.monto_maximo === null || monto <= n.monto_maximo)
+    );
+    if (!nivel) return personas; // fallback: show all
+    const rolesAutorizados: string[] = nivel.roles_autorizados;
+    const personaIdsAutorizadas = staffRoles
+      .filter(sr => sr.activo && rolesAutorizados.includes(sr.rol))
+      .map(sr => sr.persona_id);
+    return personas.filter(p => personaIdsAutorizadas.includes(p.id));
+  })();
 
   const [apForm, setApForm] = useState({ aprobado_por_id: "", decision: "aprobada", monto_aprobado: 0, centro_costo: "", proyecto_id: "", responsable_compra_id: "", observaciones: "" });
   const [ejForm, setEjForm] = useState({ proveedor_real: "", monto_real: 0, fecha_compra: "", medio_pago: "", numero_comprobante: "", comprobante_path: "", observaciones: "", ejecutado_por_id: "" });
@@ -349,11 +372,25 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
 
           {tab === "aprobar" && (
             <FormSection>
+              {(() => {
+                const monto = solicitud.monto_estimado;
+                const nivel = nivelesAprobacion.find((n: any) =>
+                  monto >= n.monto_minimo && (n.monto_maximo === null || monto <= n.monto_maximo)
+                );
+                return nivel ? (
+                  <div className="text-xs text-muted-foreground bg-muted/50 p-2.5 rounded-md mb-1">
+                    <span className="font-medium">Nivel de autorización:</span> {nivel.descripcion}
+                  </div>
+                ) : null;
+              })()}
               <FormField label="Aprobado por *">
                 <Select value={apForm.aprobado_por_id} onValueChange={(v) => setApForm(f => ({ ...f, aprobado_por_id: v }))}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar persona" /></SelectTrigger>
                   <SelectContent>
-                    {personas.map((p) => (
+                    {personasAutorizadas.length === 0 && (
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">No hay staff autorizado para este monto</div>
+                    )}
+                    {personasAutorizadas.map((p) => (
                       <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
                     ))}
                   </SelectContent>
