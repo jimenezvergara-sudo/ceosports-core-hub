@@ -13,9 +13,12 @@ import {
   Truck,
   ChevronLeft,
   ChevronRight,
+  LogOut,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/use-auth";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -33,6 +36,7 @@ const navItems = [
 export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { clubActual, clubs, setClubActual, signOut } = useAuth();
 
   return (
     <motion.aside
@@ -40,15 +44,15 @@ export default function AppSidebar() {
       transition={{ duration: 0.25, ease: "easeInOut" }}
       className="fixed left-0 top-0 h-screen z-30 flex flex-col bg-sidebar border-r border-sidebar-border"
     >
-      {/* Logo */}
+      {/* Club header */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
         <div className="w-9 h-9 rounded-md bg-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0 tracking-tight">
-          CS
+          {clubActual?.nombre?.substring(0, 2).toUpperCase() || "CS"}
         </div>
         {!collapsed && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="overflow-hidden">
-            <h1 className="text-white font-bold text-lg leading-tight tracking-tight">CEO Sports</h1>
-            <p className="text-sidebar-foreground text-[10px] leading-tight tracking-wide uppercase">ERP Deportivo</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="overflow-hidden min-w-0">
+            <h1 className="text-white font-bold text-sm leading-tight tracking-tight truncate">{clubActual?.nombre || "CEO Sports"}</h1>
+            <p className="text-sidebar-foreground text-[10px] leading-tight tracking-wide uppercase truncate">{clubActual?.deporte || "ERP Deportivo"}</p>
           </motion.div>
         )}
       </div>
@@ -75,13 +79,31 @@ export default function AppSidebar() {
         })}
       </nav>
 
-      {/* Collapse toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="m-2 p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-white transition-colors flex items-center justify-center"
-      >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
+      {/* Footer actions */}
+      <div className="px-2 pb-2 space-y-1">
+        {clubs.length > 1 && (
+          <button
+            onClick={() => { localStorage.removeItem("club_id"); window.location.reload(); }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-white transition-colors text-sm"
+          >
+            <RefreshCw className="w-4 h-4 shrink-0" />
+            {!collapsed && <span>Cambiar club</span>}
+          </button>
+        )}
+        <button
+          onClick={signOut}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-white transition-colors text-sm"
+        >
+          <LogOut className="w-4 h-4 shrink-0" />
+          {!collapsed && <span>Cerrar sesión</span>}
+        </button>
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="w-full p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-white transition-colors flex items-center justify-center"
+        >
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+      </div>
     </motion.aside>
   );
 }
