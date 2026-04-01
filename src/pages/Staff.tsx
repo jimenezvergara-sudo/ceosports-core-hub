@@ -244,7 +244,7 @@ export default function Staff() {
               <Select value={form.persona_id} onValueChange={(v) => setForm({ ...form, persona_id: v })}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar persona" /></SelectTrigger>
                 <SelectContent>
-                  {personas.map((p) => (
+                  {personas.filter((p) => p.tipo_persona !== "jugador").map((p) => (
                     <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
                   ))}
                 </SelectContent>
