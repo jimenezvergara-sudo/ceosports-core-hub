@@ -295,6 +295,45 @@ export type Database = {
           },
         ]
       }
+      persona_relaciones: {
+        Row: {
+          created_at: string
+          id: string
+          persona_id: string
+          relacionado_id: string
+          tipo_relacion: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          persona_id: string
+          relacionado_id: string
+          tipo_relacion?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          persona_id?: string
+          relacionado_id?: string
+          tipo_relacion?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "persona_relaciones_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "persona_relaciones_relacionado_id_fkey"
+            columns: ["relacionado_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personas: {
         Row: {
           apellido: string
