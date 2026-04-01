@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Building2,
   ShoppingCart,
+  Receipt,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
