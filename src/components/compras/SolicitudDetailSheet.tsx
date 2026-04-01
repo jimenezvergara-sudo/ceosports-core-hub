@@ -372,11 +372,25 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
 
           {tab === "aprobar" && (
             <FormSection>
+              {(() => {
+                const monto = solicitud.monto_estimado;
+                const nivel = nivelesAprobacion.find((n: any) =>
+                  monto >= n.monto_minimo && (n.monto_maximo === null || monto <= n.monto_maximo)
+                );
+                return nivel ? (
+                  <div className="text-xs text-muted-foreground bg-muted/50 p-2.5 rounded-md mb-1">
+                    <span className="font-medium">Nivel de autorización:</span> {nivel.descripcion}
+                  </div>
+                ) : null;
+              })()}
               <FormField label="Aprobado por *">
                 <Select value={apForm.aprobado_por_id} onValueChange={(v) => setApForm(f => ({ ...f, aprobado_por_id: v }))}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar persona" /></SelectTrigger>
                   <SelectContent>
-                    {personas.map((p) => (
+                    {personasAutorizadas.length === 0 && (
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">No hay staff autorizado para este monto</div>
+                    )}
+                    {personasAutorizadas.map((p) => (
                       <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
                     ))}
                   </SelectContent>
