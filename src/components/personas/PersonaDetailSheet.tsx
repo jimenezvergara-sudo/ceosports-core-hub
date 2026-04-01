@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X, Loader2, Eye, Trash2, Camera, Download } from "lucide-react";
+import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Calendar, Pencil, Save, X, Loader2, Eye, Trash2, Camera, Download, Link2 } from "lucide-react";
+import RelacionesTab from "@/components/personas/RelacionesTab";
 import type { Persona, DocumentoPersona, Familiar } from "@/types/persona";
 import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documentosPorVencer, requiereTutor, calcularEdad, calcularCategoria } from "@/types/persona";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
@@ -348,9 +349,10 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
         </SheetHeader>
 
         <Tabs defaultValue="personal" className="mt-2">
-          <TabsList className="w-full grid grid-cols-4">
+          <TabsList className="w-full grid grid-cols-5">
             <TabsTrigger value="personal" className="gap-1.5 text-xs"><User className="w-3.5 h-3.5" /> Personal</TabsTrigger>
             <TabsTrigger value="familia" className="gap-1.5 text-xs"><Users className="w-3.5 h-3.5" /> Familia</TabsTrigger>
+            <TabsTrigger value="relaciones" className="gap-1.5 text-xs"><Link2 className="w-3.5 h-3.5" /> Relaciones</TabsTrigger>
             <TabsTrigger value="salud" className="gap-1.5 text-xs"><HeartPulse className="w-3.5 h-3.5" /> Salud</TabsTrigger>
             <TabsTrigger value="documentos" className="gap-1.5 text-xs"><FileText className="w-3.5 h-3.5" /> Documentos</TabsTrigger>
           </TabsList>
@@ -502,6 +504,11 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
                 })()
               )}
             </div>
+          </TabsContent>
+
+          {/* ─── RELACIONES ─── */}
+          <TabsContent value="relaciones">
+            <RelacionesTab personaId={draft.id} tipoPersona={draft.tipo.toLowerCase().includes("jugador") ? "jugador" : "apoderado"} />
           </TabsContent>
 
           {/* ─── SALUD ─── */}
