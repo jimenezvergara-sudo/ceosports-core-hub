@@ -102,6 +102,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
     setNotas("");
     setCatDeportiva("");
     setPersonaId("");
+    setComprobante(null);
   };
 
   const handleSubmit = async () => {
