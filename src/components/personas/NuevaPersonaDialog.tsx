@@ -24,7 +24,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
   const [form, setForm] = useState({
     nombre: "", apellido: "", rut: "", fechaNacimiento: "", direccion: "",
     rama: "Masc" as "Masc" | "Fem" | "Mixto",
-    tipo: "Jugador" as "Jugador" | "Jugadora" | "Socio" | "Socia",
+    tipo: "Jugador" as "Jugador" | "Jugadora" | "Socio" | "Socia" | "Staff",
     talla: "", tallaUniforme: "", peso: "", colegio: "", previsionSalud: "", alergias: "",
     padreNombre: "", padreApellido: "", padreRut: "", padreTelefono: "", padreEmail: "", padreDireccion: "", padreProfesion: "",
     madreNombre: "", madreApellido: "", madreRut: "", madreTelefono: "", madreEmail: "", madreDireccion: "", madreProfesion: "",
