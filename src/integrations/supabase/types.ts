@@ -19,6 +19,7 @@ export type Database = {
           aprobado_por: string
           aprobado_por_id: string | null
           centro_costo: string | null
+          club_id: string | null
           created_at: string
           decision: string
           fecha_aprobacion: string
@@ -35,6 +36,7 @@ export type Database = {
           aprobado_por: string
           aprobado_por_id?: string | null
           centro_costo?: string | null
+          club_id?: string | null
           created_at?: string
           decision: string
           fecha_aprobacion?: string
@@ -51,6 +53,7 @@ export type Database = {
           aprobado_por?: string
           aprobado_por_id?: string | null
           centro_costo?: string | null
+          club_id?: string | null
           created_at?: string
           decision?: string
           fecha_aprobacion?: string
@@ -69,6 +72,13 @@ export type Database = {
             columns: ["aprobado_por_id"]
             isOneToOne: false
             referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aprobaciones_compra_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
           {
@@ -98,6 +108,7 @@ export type Database = {
         Row: {
           activo: boolean
           categoria_id: string | null
+          club_id: string | null
           created_at: string
           fecha_fin: string | null
           fecha_inicio: string | null
@@ -111,6 +122,7 @@ export type Database = {
         Insert: {
           activo?: boolean
           categoria_id?: string | null
+          club_id?: string | null
           created_at?: string
           fecha_fin?: string | null
           fecha_inicio?: string | null
@@ -124,6 +136,7 @@ export type Database = {
         Update: {
           activo?: boolean
           categoria_id?: string | null
+          club_id?: string | null
           created_at?: string
           fecha_fin?: string | null
           fecha_inicio?: string | null
@@ -143,6 +156,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "beneficios_cuota_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "beneficios_cuota_persona_id_fkey"
             columns: ["persona_id"]
             isOneToOne: false
@@ -153,24 +173,35 @@ export type Database = {
       }
       categorias: {
         Row: {
+          club_id: string | null
           created_at: string
           id: string
           nombre: string
           rama: string
         }
         Insert: {
+          club_id?: string | null
           created_at?: string
           id?: string
           nombre: string
           rama?: string
         }
         Update: {
+          club_id?: string | null
           created_at?: string
           id?: string
           nombre?: string
           rama?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categorias_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       club_usuarios: {
         Row: {
@@ -247,6 +278,7 @@ export type Database = {
         Row: {
           activa: boolean
           categoria_id: string | null
+          club_id: string | null
           created_at: string
           dia_vencimiento: number
           fecha_fin: string | null
@@ -260,6 +292,7 @@ export type Database = {
         Insert: {
           activa?: boolean
           categoria_id?: string | null
+          club_id?: string | null
           created_at?: string
           dia_vencimiento?: number
           fecha_fin?: string | null
@@ -273,6 +306,7 @@ export type Database = {
         Update: {
           activa?: boolean
           categoria_id?: string | null
+          club_id?: string | null
           created_at?: string
           dia_vencimiento?: number
           fecha_fin?: string | null
@@ -291,12 +325,20 @@ export type Database = {
             referencedRelation: "categorias"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cuota_configuraciones_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
         ]
       }
       cuotas: {
         Row: {
           apoderado_id: string | null
           categoria_id: string | null
+          club_id: string | null
           configuracion_id: string | null
           created_at: string
           descuento: number
@@ -315,6 +357,7 @@ export type Database = {
         Insert: {
           apoderado_id?: string | null
           categoria_id?: string | null
+          club_id?: string | null
           configuracion_id?: string | null
           created_at?: string
           descuento?: number
@@ -333,6 +376,7 @@ export type Database = {
         Update: {
           apoderado_id?: string | null
           categoria_id?: string | null
+          club_id?: string | null
           configuracion_id?: string | null
           created_at?: string
           descuento?: number
@@ -364,6 +408,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cuotas_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cuotas_configuracion_id_fkey"
             columns: ["configuracion_id"]
             isOneToOne: false
@@ -381,6 +432,7 @@ export type Database = {
       }
       documentos: {
         Row: {
+          club_id: string | null
           created_at: string
           etiqueta: string
           fecha_carga: string
@@ -394,6 +446,7 @@ export type Database = {
           url_publica: string | null
         }
         Insert: {
+          club_id?: string | null
           created_at?: string
           etiqueta: string
           fecha_carga?: string
@@ -407,6 +460,7 @@ export type Database = {
           url_publica?: string | null
         }
         Update: {
+          club_id?: string | null
           created_at?: string
           etiqueta?: string
           fecha_carga?: string
@@ -419,10 +473,19 @@ export type Database = {
           updated_at?: string
           url_publica?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "documentos_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ejecuciones_compra: {
         Row: {
+          club_id: string | null
           comprobante_path: string | null
           created_at: string
           ejecutado_por_id: string | null
@@ -436,6 +499,7 @@ export type Database = {
           solicitud_id: string
         }
         Insert: {
+          club_id?: string | null
           comprobante_path?: string | null
           created_at?: string
           ejecutado_por_id?: string | null
@@ -449,6 +513,7 @@ export type Database = {
           solicitud_id: string
         }
         Update: {
+          club_id?: string | null
           comprobante_path?: string | null
           created_at?: string
           ejecutado_por_id?: string | null
@@ -462,6 +527,13 @@ export type Database = {
           solicitud_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ejecuciones_compra_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ejecuciones_compra_ejecutado_por_id_fkey"
             columns: ["ejecutado_por_id"]
@@ -480,6 +552,7 @@ export type Database = {
       }
       evaluaciones_proveedor: {
         Row: {
+          club_id: string | null
           comentario: string | null
           created_at: string
           id: string
@@ -490,6 +563,7 @@ export type Database = {
           solicitud_id: string | null
         }
         Insert: {
+          club_id?: string | null
           comentario?: string | null
           created_at?: string
           id?: string
@@ -500,6 +574,7 @@ export type Database = {
           solicitud_id?: string | null
         }
         Update: {
+          club_id?: string | null
           comentario?: string | null
           created_at?: string
           id?: string
@@ -510,6 +585,13 @@ export type Database = {
           solicitud_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "evaluaciones_proveedor_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "evaluaciones_proveedor_proveedor_id_fkey"
             columns: ["proveedor_id"]
@@ -529,6 +611,7 @@ export type Database = {
       historial_compra: {
         Row: {
           accion: string
+          club_id: string | null
           created_at: string
           detalle: string | null
           id: string
@@ -538,6 +621,7 @@ export type Database = {
         }
         Insert: {
           accion: string
+          club_id?: string | null
           created_at?: string
           detalle?: string | null
           id?: string
@@ -547,6 +631,7 @@ export type Database = {
         }
         Update: {
           accion?: string
+          club_id?: string | null
           created_at?: string
           detalle?: string | null
           id?: string
@@ -555,6 +640,13 @@ export type Database = {
           solicitud_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "historial_compra_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "historial_compra_responsable_id_fkey"
             columns: ["responsable_id"]
@@ -574,6 +666,7 @@ export type Database = {
       niveles_aprobacion: {
         Row: {
           activo: boolean
+          club_id: string | null
           created_at: string
           descripcion: string | null
           id: string
@@ -584,6 +677,7 @@ export type Database = {
         }
         Insert: {
           activo?: boolean
+          club_id?: string | null
           created_at?: string
           descripcion?: string | null
           id?: string
@@ -594,6 +688,7 @@ export type Database = {
         }
         Update: {
           activo?: boolean
+          club_id?: string | null
           created_at?: string
           descripcion?: string | null
           id?: string
@@ -602,10 +697,19 @@ export type Database = {
           roles_autorizados?: string[]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "niveles_aprobacion_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pagos_cuotas: {
         Row: {
+          club_id: string | null
           comprobante_path: string | null
           created_at: string
           cuota_id: string
@@ -618,6 +722,7 @@ export type Database = {
           referencia: string | null
         }
         Insert: {
+          club_id?: string | null
           comprobante_path?: string | null
           created_at?: string
           cuota_id: string
@@ -630,6 +735,7 @@ export type Database = {
           referencia?: string | null
         }
         Update: {
+          club_id?: string | null
           comprobante_path?: string | null
           created_at?: string
           cuota_id?: string
@@ -642,6 +748,13 @@ export type Database = {
           referencia?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pagos_cuotas_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pagos_cuotas_cuota_id_fkey"
             columns: ["cuota_id"]
@@ -702,18 +815,21 @@ export type Database = {
       persona_categoria: {
         Row: {
           categoria_id: string
+          club_id: string | null
           created_at: string
           id: string
           persona_id: string
         }
         Insert: {
           categoria_id: string
+          club_id?: string | null
           created_at?: string
           id?: string
           persona_id: string
         }
         Update: {
           categoria_id?: string
+          club_id?: string | null
           created_at?: string
           id?: string
           persona_id?: string
@@ -727,6 +843,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "persona_categoria_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "persona_categoria_persona_id_fkey"
             columns: ["persona_id"]
             isOneToOne: false
@@ -737,6 +860,7 @@ export type Database = {
       }
       persona_relaciones: {
         Row: {
+          club_id: string | null
           created_at: string
           id: string
           persona_id: string
@@ -744,6 +868,7 @@ export type Database = {
           tipo_relacion: string
         }
         Insert: {
+          club_id?: string | null
           created_at?: string
           id?: string
           persona_id: string
@@ -751,6 +876,7 @@ export type Database = {
           tipo_relacion?: string
         }
         Update: {
+          club_id?: string | null
           created_at?: string
           id?: string
           persona_id?: string
@@ -758,6 +884,13 @@ export type Database = {
           tipo_relacion?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "persona_relaciones_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "persona_relaciones_persona_id_fkey"
             columns: ["persona_id"]
@@ -777,6 +910,7 @@ export type Database = {
       personas: {
         Row: {
           apellido: string
+          club_id: string | null
           created_at: string
           email: string | null
           estado: string
@@ -790,6 +924,7 @@ export type Database = {
         }
         Insert: {
           apellido: string
+          club_id?: string | null
           created_at?: string
           email?: string | null
           estado?: string
@@ -803,6 +938,7 @@ export type Database = {
         }
         Update: {
           apellido?: string
+          club_id?: string | null
           created_at?: string
           email?: string | null
           estado?: string
@@ -814,7 +950,15 @@ export type Database = {
           tipo_persona?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "personas_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -843,6 +987,7 @@ export type Database = {
       proveedores: {
         Row: {
           activo: boolean
+          club_id: string | null
           created_at: string
           direccion: string | null
           email: string | null
@@ -857,6 +1002,7 @@ export type Database = {
         }
         Insert: {
           activo?: boolean
+          club_id?: string | null
           created_at?: string
           direccion?: string | null
           email?: string | null
@@ -871,6 +1017,7 @@ export type Database = {
         }
         Update: {
           activo?: boolean
+          club_id?: string | null
           created_at?: string
           direccion?: string | null
           email?: string | null
@@ -883,10 +1030,19 @@ export type Database = {
           tipo_servicio?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "proveedores_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       proyectos: {
         Row: {
+          club_id: string | null
           created_at: string
           estado: string
           fecha_fin: string | null
@@ -898,6 +1054,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          club_id?: string | null
           created_at?: string
           estado?: string
           fecha_fin?: string | null
@@ -909,6 +1066,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          club_id?: string | null
           created_at?: string
           estado?: string
           fecha_fin?: string | null
@@ -919,10 +1077,19 @@ export type Database = {
           tipo?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "proyectos_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rendiciones_compra: {
         Row: {
+          club_id: string | null
           created_at: string
           diferencia: number
           estado_revision: string
@@ -934,6 +1101,7 @@ export type Database = {
           solicitud_id: string
         }
         Insert: {
+          club_id?: string | null
           created_at?: string
           diferencia?: number
           estado_revision?: string
@@ -945,6 +1113,7 @@ export type Database = {
           solicitud_id: string
         }
         Update: {
+          club_id?: string | null
           created_at?: string
           diferencia?: number
           estado_revision?: string
@@ -956,6 +1125,13 @@ export type Database = {
           solicitud_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rendiciones_compra_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rendiciones_compra_revisado_por_id_fkey"
             columns: ["revisado_por_id"]
@@ -978,6 +1154,7 @@ export type Database = {
           cantidad: number
           categoria_equipo: string | null
           categoria_id: string | null
+          club_id: string | null
           created_at: string
           descripcion: string
           estado: string
@@ -1001,6 +1178,7 @@ export type Database = {
           cantidad?: number
           categoria_equipo?: string | null
           categoria_id?: string | null
+          club_id?: string | null
           created_at?: string
           descripcion: string
           estado?: string
@@ -1024,6 +1202,7 @@ export type Database = {
           cantidad?: number
           categoria_equipo?: string | null
           categoria_id?: string | null
+          club_id?: string | null
           created_at?: string
           descripcion?: string
           estado?: string
@@ -1048,6 +1227,13 @@ export type Database = {
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_compra_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
           {
@@ -1077,6 +1263,7 @@ export type Database = {
         Row: {
           activo: boolean
           categoria_id: string | null
+          club_id: string | null
           created_at: string
           id: string
           persona_id: string
@@ -1086,6 +1273,7 @@ export type Database = {
         Insert: {
           activo?: boolean
           categoria_id?: string | null
+          club_id?: string | null
           created_at?: string
           id?: string
           persona_id: string
@@ -1095,6 +1283,7 @@ export type Database = {
         Update: {
           activo?: boolean
           categoria_id?: string | null
+          club_id?: string | null
           created_at?: string
           id?: string
           persona_id?: string
@@ -1107,6 +1296,13 @@ export type Database = {
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_roles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
           {
@@ -1123,6 +1319,7 @@ export type Database = {
           categoria: string
           categoria_deportiva: string | null
           categoria_ref_id: string | null
+          club_id: string | null
           created_at: string
           descripcion: string
           estado: string
@@ -1145,6 +1342,7 @@ export type Database = {
           categoria: string
           categoria_deportiva?: string | null
           categoria_ref_id?: string | null
+          club_id?: string | null
           created_at?: string
           descripcion: string
           estado?: string
@@ -1167,6 +1365,7 @@ export type Database = {
           categoria?: string
           categoria_deportiva?: string | null
           categoria_ref_id?: string | null
+          club_id?: string | null
           created_at?: string
           descripcion?: string
           estado?: string
@@ -1191,6 +1390,13 @@ export type Database = {
             columns: ["categoria_ref_id"]
             isOneToOne: false
             referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transacciones_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
           {
