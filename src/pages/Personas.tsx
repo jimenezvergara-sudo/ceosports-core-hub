@@ -1,4 +1,4 @@
-import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload, ArrowUp, ArrowDown, ArrowUpDown, Loader2 } from "lucide-react";
+import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload, ArrowUp, ArrowDown, ArrowUpDown, Loader2, Settings } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,10 @@ import type { Persona } from "@/types/persona";
 import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
 import NuevaPersonaDialog from "@/components/personas/NuevaPersonaDialog";
 import ImportMasivaDialog from "@/components/personas/ImportMasivaDialog";
+import CategoriasManager from "@/components/personas/CategoriasManager";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
-
-const categorias = ["Todas", "Escuelita", "U9", "U11", "U13", "U15", "U18", "Adulto"];
+import { useCategorias } from "@/hooks/use-relational-data";
 
 function DocStatusIcons({ persona }: { persona: Persona }) {
   const [dbDocs, setDbDocs] = useState<{ etiqueta: string; fecha_vencimiento: string | null }[]>([]);
