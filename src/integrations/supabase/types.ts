@@ -801,6 +801,51 @@ export type Database = {
           },
         ]
       }
+      staff_roles: {
+        Row: {
+          activo: boolean
+          categoria_id: string | null
+          created_at: string
+          id: string
+          persona_id: string
+          rol: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          categoria_id?: string | null
+          created_at?: string
+          id?: string
+          persona_id: string
+          rol: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          categoria_id?: string | null
+          created_at?: string
+          id?: string
+          persona_id?: string
+          rol?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_roles_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_roles_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transacciones: {
         Row: {
           categoria: string
