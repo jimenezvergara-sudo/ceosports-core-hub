@@ -188,6 +188,7 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
             <Select value={form.proyecto_id} onValueChange={(v) => set("proyecto_id", v)}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar proyecto" /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="gastos_corrientes">Gastos Corrientes</SelectItem>
                 {proyectos.map((p) => (
                   <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
                 ))}
