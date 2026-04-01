@@ -186,18 +186,20 @@ export default function Transacciones() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
                     Cargando...
                   </td>
                 </tr>
               ) : txs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                    No hay transacciones registradas. Usa el botón "Nueva Transacción" para comenzar.
+                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                    No hay transacciones registradas.
                   </td>
                 </tr>
               ) : (
-                txs.map((tx) => (
+                txs.map((tx) => {
+                  const origen = ORIGEN_LABELS[tx.origen_tipo || "manual"] || ORIGEN_LABELS.manual;
+                  return (
                   <tr
                     key={tx.id}
                     onClick={() => setSelectedTx(tx)}
@@ -220,41 +222,32 @@ export default function Transacciones() {
                       </div>
                     </td>
                     <td className="p-3">
+                      <Badge className={`text-xs ${origen.color}`}>
+                        {origen.label}
+                      </Badge>
+                    </td>
+                    <td className="p-3">
                       <Badge
-                        variant={
-                          tx.tipo === "Ingreso" ? "outline" : "destructive"
-                        }
+                        variant={tx.tipo === "Ingreso" ? "outline" : "destructive"}
                         className="text-xs"
                       >
                         {tx.tipo}
                       </Badge>
                     </td>
-                    <td
-                      className={`p-3 text-right font-mono font-medium ${
-                        tx.tipo === "Ingreso"
-                          ? "text-success"
-                          : "text-destructive"
-                      }`}
-                    >
-                      {tx.tipo === "Ingreso" ? "+" : "-"}$
-                      {tx.monto.toLocaleString("es-CL")}
+                    <td className={`p-3 text-right font-mono font-medium ${tx.tipo === "Ingreso" ? "text-success" : "text-destructive"}`}>
+                      {tx.tipo === "Ingreso" ? "+" : "-"}${tx.monto.toLocaleString("es-CL")}
                     </td>
                     <td className="p-3">
                       <Badge
-                        variant={
-                          tx.estado === "Pagado"
-                            ? "outline"
-                            : tx.estado === "Anulado"
-                            ? "destructive"
-                            : "secondary"
-                        }
+                        variant={tx.estado === "Pagado" ? "outline" : tx.estado === "Anulado" ? "destructive" : "secondary"}
                         className="text-xs"
                       >
                         {tx.estado}
                       </Badge>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
