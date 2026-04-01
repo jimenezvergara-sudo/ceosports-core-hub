@@ -27,8 +27,17 @@ interface Transaccion {
   notas: string | null;
   categoria_deportiva: string | null;
   persona_id: string | null;
+  origen_tipo: string | null;
+  origen_id: string | null;
   created_at: string;
 }
+
+const ORIGEN_LABELS: Record<string, { label: string; color: string }> = {
+  compra: { label: "Compra", color: "bg-accent text-accent-foreground" },
+  cuota: { label: "Cuota", color: "bg-success/10 text-success" },
+  pago_entrenador: { label: "Pago Entrenador", color: "bg-warning/10 text-warning-foreground" },
+  manual: { label: "Manual", color: "bg-muted text-muted-foreground" },
+};
 
 export default function Transacciones() {
   const [txs, setTxs] = useState<Transaccion[]>([]);

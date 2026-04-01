@@ -127,7 +127,8 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
       notas: notas || null,
       categoria_deportiva: catDeportiva || null,
       persona_id: personaId || null,
-    });
+      origen_tipo: "manual",
+    } as any);
 
     setLoading(false);
 
