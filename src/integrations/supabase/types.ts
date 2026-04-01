@@ -172,6 +172,77 @@ export type Database = {
         }
         Relationships: []
       }
+      club_usuarios: {
+        Row: {
+          activo: boolean
+          club_id: string
+          created_at: string
+          id: string
+          rol_sistema: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activo?: boolean
+          club_id: string
+          created_at?: string
+          id?: string
+          rol_sistema?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activo?: boolean
+          club_id?: string
+          created_at?: string
+          id?: string
+          rol_sistema?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_usuarios_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clubs: {
+        Row: {
+          activo: boolean
+          ciudad: string | null
+          created_at: string
+          deporte: string
+          id: string
+          logo_url: string | null
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          ciudad?: string | null
+          created_at?: string
+          deporte?: string
+          id?: string
+          logo_url?: string | null
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          ciudad?: string | null
+          created_at?: string
+          deporte?: string
+          id?: string
+          logo_url?: string | null
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cuota_configuraciones: {
         Row: {
           activa: boolean
@@ -587,6 +658,47 @@ export type Database = {
           },
         ]
       }
+      permisos_modulo: {
+        Row: {
+          club_id: string
+          created_at: string
+          id: string
+          modulo: string
+          puede_editar: boolean
+          puede_eliminar: boolean
+          puede_ver: boolean
+          rol_staff: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          id?: string
+          modulo: string
+          puede_editar?: boolean
+          puede_eliminar?: boolean
+          puede_ver?: boolean
+          rol_staff: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          id?: string
+          modulo?: string
+          puede_editar?: boolean
+          puede_eliminar?: boolean
+          puede_ver?: boolean
+          rol_staff?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permisos_modulo_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       persona_categoria: {
         Row: {
           categoria_id: string
@@ -700,6 +812,30 @@ export type Database = {
           rut?: string | null
           telefono?: string | null
           tipo_persona?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
           updated_at?: string
         }
         Relationships: []
@@ -1078,7 +1214,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_club_role: {
+        Args: { _club_id: string; _user_id: string }
+        Returns: string
+      }
+      user_belongs_to_club: {
+        Args: { _club_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
