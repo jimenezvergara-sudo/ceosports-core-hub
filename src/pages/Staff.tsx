@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { ShieldCheck, Plus, Pencil, Trash2, Users } from "lucide-react";
+import { useState } from "react";
+import { ShieldCheck, Plus, Pencil, Trash2 } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
