@@ -26,6 +26,7 @@ const navItems = [
   { to: "/staff", icon: ShieldCheck, label: "Staff" },
   { to: "/organizacion", icon: Building2, label: "Organización" },
   { to: "/compras", icon: ShoppingCart, label: "Compras" },
+  { to: "/proveedores", icon: Truck, label: "Proveedores" },
   { to: "/cuotas", icon: Receipt, label: "Cuotas" },
 ];
 
