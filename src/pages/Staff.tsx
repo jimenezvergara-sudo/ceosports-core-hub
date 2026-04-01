@@ -35,21 +35,10 @@ const ROLES_OPERATIVO = [
 
 const ROLES_BASE = [...ROLES_DIRECTIVA, ...ROLES_TECNICO, ...ROLES_OPERATIVO];
 
-interface ApoderadoDisplay {
-  id: string;
-  nombre: string;
-  apellido: string;
-  rut: string | null;
-  tipo_relacion: string;
-  jugador_nombre: string;
-}
-
 export default function Staff() {
   const { roles, loading, refetch } = useStaffRoles();
   const { personas } = usePersonas();
   const { categorias } = useCategorias();
-  const [apoderados, setApoderados] = useState<ApoderadoDisplay[]>([]);
-  const [loadingApoderados, setLoadingApoderados] = useState(true);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     persona_id: "",
@@ -59,46 +48,8 @@ export default function Staff() {
     activo: true,
   });
 
-  const fetchApoderados = useCallback(async () => {
-    setLoadingApoderados(true);
-    const { data: rels } = await supabase
-      .from("persona_relaciones")
-      .select("*");
-    if (!rels || rels.length === 0) { setApoderados([]); setLoadingApoderados(false); return; }
-
-    const allIds = new Set<string>();
-    (rels as any[]).forEach((r) => { allIds.add(r.persona_id); allIds.add(r.relacionado_id); });
-    const { data: personasData } = await supabase
-      .from("personas")
-      .select("id, nombre, apellido, rut, tipo_persona")
-      .in("id", Array.from(allIds));
-    const pMap = new Map<string, any>();
-    (personasData as any[])?.forEach((p) => pMap.set(p.id, p));
-
-    const result: ApoderadoDisplay[] = [];
-    (rels as any[]).forEach((r) => {
-      const apoderado = pMap.get(r.relacionado_id);
-      const jugador = pMap.get(r.persona_id);
-      if (apoderado && jugador) {
-        // Check if already added for this apoderado
-        const existing = result.find((a) => a.id === apoderado.id && a.tipo_relacion === r.tipo_relacion && a.jugador_nombre === `${jugador.apellido}, ${jugador.nombre}`);
-        if (!existing) {
-          result.push({
-            id: apoderado.id,
-            nombre: apoderado.nombre,
-            apellido: apoderado.apellido,
-            rut: apoderado.rut,
-            tipo_relacion: r.tipo_relacion,
-            jugador_nombre: `${jugador.apellido}, ${jugador.nombre}`,
-          });
-        }
-      }
-    });
-    setApoderados(result);
-    setLoadingApoderados(false);
-  }, []);
-
-  useEffect(() => { fetchApoderados(); }, [fetchApoderados]);
+  const isRolConCategoria = (rol: string) =>
+    [...ROLES_TECNICO, "Coordinador"].includes(rol) || (!ROLES_BASE.includes(rol) && rol.toLowerCase().includes("delegado"));
 
   const isRolConCategoria = (rol: string) =>
     [...ROLES_TECNICO, "Coordinador"].includes(rol) || (!ROLES_BASE.includes(rol) && rol.toLowerCase().includes("delegado"));
