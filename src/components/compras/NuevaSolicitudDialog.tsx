@@ -100,11 +100,11 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
       // Relational FK columns
       solicitante_id: form.solicitante_id || null,
       categoria_id: form.categoria_id || null,
-      proyecto_id: form.proyecto_id || null,
+      proyecto_id: form.proyecto_id === "gastos_corrientes" ? null : (form.proyecto_id || null),
       // Legacy TEXT columns for backward compat
       solicitante: solicitantePersona ? `${solicitantePersona.nombre} ${solicitantePersona.apellido}` : "",
       categoria_equipo: categoriaObj ? categoriaObj.nombre : null,
-      proyecto_asociado: proyectos.find(p => p.id === form.proyecto_id)?.nombre || null,
+      proyecto_asociado: form.proyecto_id === "gastos_corrientes" ? "Gastos Corrientes" : (proyectos.find(p => p.id === form.proyecto_id)?.nombre || null),
     } as any);
 
     if (error) {
