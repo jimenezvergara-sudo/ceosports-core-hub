@@ -27,8 +27,17 @@ interface Transaccion {
   notas: string | null;
   categoria_deportiva: string | null;
   persona_id: string | null;
+  origen_tipo: string | null;
+  origen_id: string | null;
   created_at: string;
 }
+
+const ORIGEN_LABELS: Record<string, { label: string; color: string }> = {
+  compra: { label: "Compra", color: "bg-accent text-accent-foreground" },
+  cuota: { label: "Cuota", color: "bg-success/10 text-success" },
+  pago_entrenador: { label: "Pago Entrenador", color: "bg-warning/10 text-warning-foreground" },
+  manual: { label: "Manual", color: "bg-muted text-muted-foreground" },
+};
 
 export default function Transacciones() {
   const [txs, setTxs] = useState<Transaccion[]>([]);
@@ -161,6 +170,9 @@ export default function Transacciones() {
                   Ítem
                 </th>
                 <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">
+                  Origen
+                </th>
+                <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">
                   Tipo
                 </th>
                 <th className="text-right p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">
@@ -174,18 +186,20 @@ export default function Transacciones() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
                     Cargando...
                   </td>
                 </tr>
               ) : txs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                    No hay transacciones registradas. Usa el botón "Nueva Transacción" para comenzar.
+                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                    No hay transacciones registradas.
                   </td>
                 </tr>
               ) : (
-                txs.map((tx) => (
+                txs.map((tx) => {
+                  const origen = ORIGEN_LABELS[tx.origen_tipo || "manual"] || ORIGEN_LABELS.manual;
+                  return (
                   <tr
                     key={tx.id}
                     onClick={() => setSelectedTx(tx)}
@@ -208,41 +222,32 @@ export default function Transacciones() {
                       </div>
                     </td>
                     <td className="p-3">
+                      <Badge className={`text-xs ${origen.color}`}>
+                        {origen.label}
+                      </Badge>
+                    </td>
+                    <td className="p-3">
                       <Badge
-                        variant={
-                          tx.tipo === "Ingreso" ? "outline" : "destructive"
-                        }
+                        variant={tx.tipo === "Ingreso" ? "outline" : "destructive"}
                         className="text-xs"
                       >
                         {tx.tipo}
                       </Badge>
                     </td>
-                    <td
-                      className={`p-3 text-right font-mono font-medium ${
-                        tx.tipo === "Ingreso"
-                          ? "text-success"
-                          : "text-destructive"
-                      }`}
-                    >
-                      {tx.tipo === "Ingreso" ? "+" : "-"}$
-                      {tx.monto.toLocaleString("es-CL")}
+                    <td className={`p-3 text-right font-mono font-medium ${tx.tipo === "Ingreso" ? "text-success" : "text-destructive"}`}>
+                      {tx.tipo === "Ingreso" ? "+" : "-"}${tx.monto.toLocaleString("es-CL")}
                     </td>
                     <td className="p-3">
                       <Badge
-                        variant={
-                          tx.estado === "Pagado"
-                            ? "outline"
-                            : tx.estado === "Anulado"
-                            ? "destructive"
-                            : "secondary"
-                        }
+                        variant={tx.estado === "Pagado" ? "outline" : tx.estado === "Anulado" ? "destructive" : "secondary"}
                         className="text-xs"
                       >
                         {tx.estado}
                       </Badge>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>

@@ -23,8 +23,17 @@ interface Transaccion {
   notas: string | null;
   categoria_deportiva: string | null;
   persona_id: string | null;
+  origen_tipo: string | null;
+  origen_id: string | null;
   created_at: string;
 }
+
+const ORIGEN_LABELS: Record<string, string> = {
+  compra: "Compra",
+  cuota: "Cuota",
+  pago_entrenador: "Pago Entrenador",
+  manual: "Registro Manual",
+};
 
 interface Props {
   transaccion: Transaccion | null;
@@ -82,6 +91,7 @@ export default function TransaccionDetailSheet({ transaccion, open, onOpenChange
           <DetailRow label="Descripción" value={transaccion.descripcion} />
           <DetailRow label="Ítem" value={catData?.label ?? transaccion.categoria} />
           <DetailRow label="Sub Ítem" value={subData?.label ?? transaccion.subcategoria} />
+          <DetailRow label="Origen" value={ORIGEN_LABELS[transaccion.origen_tipo || "manual"] || "Manual"} />
 
           <Separator />
 
