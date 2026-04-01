@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 export interface PersonaRow {
   id: string;
@@ -27,17 +28,20 @@ export interface ProyectoRow {
 export function usePersonas() {
   const [personas, setPersonas] = useState<PersonaRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const { clubId } = useAuth();
 
   useEffect(() => {
-    supabase
+    if (!clubId) { setLoading(false); return; }
+    let query = supabase
       .from("personas")
       .select("id, nombre, apellido, rut, tipo_persona, estado")
-      .order("apellido")
-      .then(({ data }) => {
-        setPersonas((data as unknown as PersonaRow[]) ?? []);
-        setLoading(false);
-      });
-  }, []);
+      .order("apellido");
+    query = query.eq("club_id", clubId);
+    query.then(({ data }) => {
+      setPersonas((data as unknown as PersonaRow[]) ?? []);
+      setLoading(false);
+    });
+  }, [clubId]);
 
   return { personas, loading };
 }
@@ -45,17 +49,20 @@ export function usePersonas() {
 export function useCategorias() {
   const [categorias, setCategorias] = useState<CategoriaRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const { clubId } = useAuth();
 
   useEffect(() => {
+    if (!clubId) { setLoading(false); return; }
     supabase
       .from("categorias")
       .select("id, nombre, rama")
+      .eq("club_id", clubId)
       .order("nombre")
       .then(({ data }) => {
         setCategorias((data as unknown as CategoriaRow[]) ?? []);
         setLoading(false);
       });
-  }, []);
+  }, [clubId]);
 
   return { categorias, loading };
 }
@@ -63,17 +70,20 @@ export function useCategorias() {
 export function useProyectos() {
   const [proyectos, setProyectos] = useState<ProyectoRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const { clubId } = useAuth();
 
   useEffect(() => {
+    if (!clubId) { setLoading(false); return; }
     supabase
       .from("proyectos")
       .select("id, nombre, tipo, presupuesto, estado")
+      .eq("club_id", clubId)
       .order("nombre")
       .then(({ data }) => {
         setProyectos((data as unknown as ProyectoRow[]) ?? []);
         setLoading(false);
       });
-  }, []);
+  }, [clubId]);
 
   return { proyectos, loading };
 }
@@ -84,7 +94,6 @@ export interface StaffRoleRow {
   rol: string;
   categoria_id: string | null;
   activo: boolean;
-  // joined
   persona_nombre?: string;
   persona_apellido?: string;
   persona_rut?: string | null;
@@ -94,12 +103,15 @@ export interface StaffRoleRow {
 export function useStaffRoles() {
   const [roles, setRoles] = useState<StaffRoleRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const { clubId } = useAuth();
 
   const fetch = async () => {
+    if (!clubId) { setLoading(false); return; }
     setLoading(true);
     const { data } = await supabase
       .from("staff_roles" as any)
       .select("id, persona_id, rol, categoria_id, activo, personas!staff_roles_persona_id_fkey(nombre, apellido, rut), categorias!staff_roles_categoria_id_fkey(nombre)")
+      .eq("club_id", clubId)
       .order("rol");
 
     const mapped = ((data as any[]) ?? []).map((r: any) => ({
@@ -117,7 +129,7 @@ export function useStaffRoles() {
     setLoading(false);
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { fetch(); }, [clubId]);
 
   return { roles, loading, refetch: fetch };
 }
