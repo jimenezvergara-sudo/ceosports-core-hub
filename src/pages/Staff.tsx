@@ -100,12 +100,6 @@ export default function Staff() {
     (r) => !directiva.includes(r) && !tecnicos.includes(r) && !operativos.includes(r)
   );
 
-  // Group apoderados by person
-  const apoderadosGrouped = apoderados.reduce<Record<string, ApoderadoDisplay[]>>((acc, a) => {
-    if (!acc[a.id]) acc[a.id] = [];
-    acc[a.id].push(a);
-    return acc;
-  }, {});
 
   const renderSection = (title: string, items: typeof roles) => (
     <div className="space-y-3">
