@@ -12,6 +12,7 @@ import Documentos from "@/pages/Documentos";
 import Staff from "@/pages/Staff";
 import Organizacion from "@/pages/Organizacion";
 import Compras from "@/pages/Compras";
+import Proveedores from "@/pages/Proveedores";
 import Cuotas from "@/pages/Cuotas";
 import NotFound from "@/pages/NotFound";
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/staff" element={<Staff />} />
             <Route path="/organizacion" element={<Organizacion />} />
             <Route path="/compras" element={<Compras />} />
+            <Route path="/proveedores" element={<Proveedores />} />
             <Route path="/cuotas" element={<Cuotas />} />
           </Route>
           <Route path="*" element={<NotFound />} />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +36,13 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
   const { proyectos } = useProyectos();
   const { roles: staffRoles } = useStaffRoles();
 
+  // Proveedores
+  const [proveedores, setProveedores] = useState<{ id: string; nombre: string; tipo_servicio: string }[]>([]);
+  useEffect(() => {
+    supabase.from("proveedores").select("id, nombre, tipo_servicio").eq("activo", true).order("nombre")
+      .then(({ data }) => setProveedores((data as any[]) ?? []));
+  }, []);
+
   // Build solicitante options from active staff
   const solicitanteOptions = staffRoles
     .filter((r) => r.activo)
@@ -54,7 +61,7 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
     monto_estimado: 0,
     prioridad: "media",
     fecha_requerida: "",
-    proveedor_sugerido: "",
+    proveedor_id: "",
     justificacion: "",
     solicitante_id: "",
     categoria_id: "",
@@ -68,7 +75,7 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
     setForm({
       titulo: "", descripcion: "", tipo_gasto: "",
       cantidad: 1, monto_estimado: 0, prioridad: "media",
-      fecha_requerida: "", proveedor_sugerido: "", justificacion: "",
+      fecha_requerida: "", proveedor_id: "", justificacion: "",
       solicitante_id: "", categoria_id: "", proyecto_id: "",
     });
 
@@ -94,7 +101,8 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
       monto_estimado: form.monto_estimado,
       prioridad: form.prioridad,
       fecha_requerida: form.fecha_requerida || null,
-      proveedor_sugerido: form.proveedor_sugerido || null,
+      proveedor_sugerido: proveedores.find(p => p.id === form.proveedor_id)?.nombre || null,
+      proveedor_id: form.proveedor_id || null,
       justificacion: form.justificacion || null,
       estado,
       // Relational FK columns
@@ -225,7 +233,19 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
 
           <div className="sm:col-span-2">
             <Label className="text-xs">Proveedor Sugerido</Label>
-            <Input value={form.proveedor_sugerido} onChange={(e) => set("proveedor_sugerido", e.target.value)} placeholder="Opcional" className="mt-1" />
+            <Select value={form.proveedor_id} onValueChange={(v) => set("proveedor_id", v)}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar proveedor" /></SelectTrigger>
+              <SelectContent>
+                {proveedores
+                  .filter((p) => !form.tipo_gasto || p.tipo_servicio === form.tipo_gasto || p.tipo_servicio === "General")
+                  .map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.nombre} — {p.tipo_servicio}</SelectItem>
+                  ))}
+                {proveedores.filter((p) => !form.tipo_gasto || p.tipo_servicio === form.tipo_gasto || p.tipo_servicio === "General").length === 0 && (
+                  <SelectItem value="__empty" disabled>Sin proveedores para este tipo</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="sm:col-span-2">
