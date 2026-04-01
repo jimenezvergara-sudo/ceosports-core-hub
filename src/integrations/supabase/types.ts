@@ -17,6 +17,7 @@ export type Database = {
       aprobaciones_compra: {
         Row: {
           aprobado_por: string
+          aprobado_por_id: string | null
           centro_costo: string | null
           created_at: string
           decision: string
@@ -25,11 +26,14 @@ export type Database = {
           monto_aprobado: number | null
           observaciones: string | null
           proyecto_asociado: string | null
+          proyecto_id: string | null
           responsable_compra: string | null
+          responsable_compra_id: string | null
           solicitud_id: string
         }
         Insert: {
           aprobado_por: string
+          aprobado_por_id?: string | null
           centro_costo?: string | null
           created_at?: string
           decision: string
@@ -38,11 +42,14 @@ export type Database = {
           monto_aprobado?: number | null
           observaciones?: string | null
           proyecto_asociado?: string | null
+          proyecto_id?: string | null
           responsable_compra?: string | null
+          responsable_compra_id?: string | null
           solicitud_id: string
         }
         Update: {
           aprobado_por?: string
+          aprobado_por_id?: string | null
           centro_costo?: string | null
           created_at?: string
           decision?: string
@@ -51,10 +58,33 @@ export type Database = {
           monto_aprobado?: number | null
           observaciones?: string | null
           proyecto_asociado?: string | null
+          proyecto_id?: string | null
           responsable_compra?: string | null
+          responsable_compra_id?: string | null
           solicitud_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "aprobaciones_compra_aprobado_por_id_fkey"
+            columns: ["aprobado_por_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aprobaciones_compra_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aprobaciones_compra_responsable_compra_id_fkey"
+            columns: ["responsable_compra_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "aprobaciones_compra_solicitud_id_fkey"
             columns: ["solicitud_id"]
@@ -63,6 +93,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      categorias: {
+        Row: {
+          created_at: string
+          id: string
+          nombre: string
+          rama: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre: string
+          rama?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre?: string
+          rama?: string
+        }
+        Relationships: []
       }
       documentos: {
         Row: {
@@ -110,6 +161,7 @@ export type Database = {
         Row: {
           comprobante_path: string | null
           created_at: string
+          ejecutado_por_id: string | null
           fecha_compra: string
           id: string
           medio_pago: string
@@ -122,6 +174,7 @@ export type Database = {
         Insert: {
           comprobante_path?: string | null
           created_at?: string
+          ejecutado_por_id?: string | null
           fecha_compra?: string
           id?: string
           medio_pago: string
@@ -134,6 +187,7 @@ export type Database = {
         Update: {
           comprobante_path?: string | null
           created_at?: string
+          ejecutado_por_id?: string | null
           fecha_compra?: string
           id?: string
           medio_pago?: string
@@ -144,6 +198,13 @@ export type Database = {
           solicitud_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ejecuciones_compra_ejecutado_por_id_fkey"
+            columns: ["ejecutado_por_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ejecuciones_compra_solicitud_id_fkey"
             columns: ["solicitud_id"]
@@ -160,6 +221,7 @@ export type Database = {
           detalle: string | null
           id: string
           responsable: string
+          responsable_id: string | null
           solicitud_id: string
         }
         Insert: {
@@ -168,6 +230,7 @@ export type Database = {
           detalle?: string | null
           id?: string
           responsable: string
+          responsable_id?: string | null
           solicitud_id: string
         }
         Update: {
@@ -176,9 +239,17 @@ export type Database = {
           detalle?: string | null
           id?: string
           responsable?: string
+          responsable_id?: string | null
           solicitud_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "historial_compra_responsable_id_fkey"
+            columns: ["responsable_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "historial_compra_solicitud_id_fkey"
             columns: ["solicitud_id"]
@@ -187,6 +258,120 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      persona_categoria: {
+        Row: {
+          categoria_id: string
+          created_at: string
+          id: string
+          persona_id: string
+        }
+        Insert: {
+          categoria_id: string
+          created_at?: string
+          id?: string
+          persona_id: string
+        }
+        Update: {
+          categoria_id?: string
+          created_at?: string
+          id?: string
+          persona_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "persona_categoria_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "persona_categoria_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personas: {
+        Row: {
+          apellido: string
+          created_at: string
+          email: string | null
+          estado: string
+          fecha_nacimiento: string | null
+          id: string
+          nombre: string
+          rut: string | null
+          telefono: string | null
+          tipo_persona: string
+          updated_at: string
+        }
+        Insert: {
+          apellido: string
+          created_at?: string
+          email?: string | null
+          estado?: string
+          fecha_nacimiento?: string | null
+          id?: string
+          nombre: string
+          rut?: string | null
+          telefono?: string | null
+          tipo_persona?: string
+          updated_at?: string
+        }
+        Update: {
+          apellido?: string
+          created_at?: string
+          email?: string | null
+          estado?: string
+          fecha_nacimiento?: string | null
+          id?: string
+          nombre?: string
+          rut?: string | null
+          telefono?: string | null
+          tipo_persona?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      proyectos: {
+        Row: {
+          created_at: string
+          estado: string
+          fecha_fin: string | null
+          fecha_inicio: string | null
+          id: string
+          nombre: string
+          presupuesto: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estado?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          nombre: string
+          presupuesto?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estado?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          nombre?: string
+          presupuesto?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       rendiciones_compra: {
         Row: {
@@ -197,6 +382,7 @@ export type Database = {
           id: string
           monto_rendido: number
           observaciones_tesoreria: string | null
+          revisado_por_id: string | null
           solicitud_id: string
         }
         Insert: {
@@ -207,6 +393,7 @@ export type Database = {
           id?: string
           monto_rendido: number
           observaciones_tesoreria?: string | null
+          revisado_por_id?: string | null
           solicitud_id: string
         }
         Update: {
@@ -217,9 +404,17 @@ export type Database = {
           id?: string
           monto_rendido?: number
           observaciones_tesoreria?: string | null
+          revisado_por_id?: string | null
           solicitud_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rendiciones_compra_revisado_por_id_fkey"
+            columns: ["revisado_por_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rendiciones_compra_solicitud_id_fkey"
             columns: ["solicitud_id"]
@@ -234,6 +429,7 @@ export type Database = {
           adjunto_path: string | null
           cantidad: number
           categoria_equipo: string | null
+          categoria_id: string | null
           created_at: string
           descripcion: string
           estado: string
@@ -244,7 +440,9 @@ export type Database = {
           prioridad: string
           proveedor_sugerido: string | null
           proyecto_asociado: string | null
+          proyecto_id: string | null
           solicitante: string
+          solicitante_id: string | null
           tipo_gasto: string
           titulo: string
           updated_at: string
@@ -253,6 +451,7 @@ export type Database = {
           adjunto_path?: string | null
           cantidad?: number
           categoria_equipo?: string | null
+          categoria_id?: string | null
           created_at?: string
           descripcion: string
           estado?: string
@@ -263,7 +462,9 @@ export type Database = {
           prioridad?: string
           proveedor_sugerido?: string | null
           proyecto_asociado?: string | null
+          proyecto_id?: string | null
           solicitante: string
+          solicitante_id?: string | null
           tipo_gasto: string
           titulo: string
           updated_at?: string
@@ -272,6 +473,7 @@ export type Database = {
           adjunto_path?: string | null
           cantidad?: number
           categoria_equipo?: string | null
+          categoria_id?: string | null
           created_at?: string
           descripcion?: string
           estado?: string
@@ -282,17 +484,42 @@ export type Database = {
           prioridad?: string
           proveedor_sugerido?: string | null
           proyecto_asociado?: string | null
+          proyecto_id?: string | null
           solicitante?: string
+          solicitante_id?: string | null
           tipo_gasto?: string
           titulo?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "solicitudes_compra_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_compra_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_compra_solicitante_id_fkey"
+            columns: ["solicitante_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transacciones: {
         Row: {
           categoria: string
           categoria_deportiva: string | null
+          categoria_ref_id: string | null
           created_at: string
           descripcion: string
           estado: string
@@ -301,7 +528,11 @@ export type Database = {
           metodo_pago: string | null
           monto: number
           notas: string | null
+          origen_id: string | null
+          origen_tipo: string | null
           persona_id: string | null
+          persona_ref_id: string | null
+          proyecto_id: string | null
           referencia: string | null
           subcategoria: string | null
           tipo: string
@@ -310,6 +541,7 @@ export type Database = {
         Insert: {
           categoria: string
           categoria_deportiva?: string | null
+          categoria_ref_id?: string | null
           created_at?: string
           descripcion: string
           estado?: string
@@ -318,7 +550,11 @@ export type Database = {
           metodo_pago?: string | null
           monto: number
           notas?: string | null
+          origen_id?: string | null
+          origen_tipo?: string | null
           persona_id?: string | null
+          persona_ref_id?: string | null
+          proyecto_id?: string | null
           referencia?: string | null
           subcategoria?: string | null
           tipo: string
@@ -327,6 +563,7 @@ export type Database = {
         Update: {
           categoria?: string
           categoria_deportiva?: string | null
+          categoria_ref_id?: string | null
           created_at?: string
           descripcion?: string
           estado?: string
@@ -335,13 +572,39 @@ export type Database = {
           metodo_pago?: string | null
           monto?: number
           notas?: string | null
+          origen_id?: string | null
+          origen_tipo?: string | null
           persona_id?: string | null
+          persona_ref_id?: string | null
+          proyecto_id?: string | null
           referencia?: string | null
           subcategoria?: string | null
           tipo?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transacciones_categoria_ref_id_fkey"
+            columns: ["categoria_ref_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transacciones_persona_ref_id_fkey"
+            columns: ["persona_ref_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transacciones_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
