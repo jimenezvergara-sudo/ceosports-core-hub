@@ -258,7 +258,7 @@ export default function GenerarCuotasDialog({ onGenerated }: Props) {
                 <Label>Categoría</Label>
                 <Select value={categoriaId} onValueChange={setCategoriaId}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
-                  <SelectContent>
+                <SelectContent position="popper" className="z-[9999]">
                     <SelectItem value="todas">Todas las categorías</SelectItem>
                     {categorias.map((c) => (
                       <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
