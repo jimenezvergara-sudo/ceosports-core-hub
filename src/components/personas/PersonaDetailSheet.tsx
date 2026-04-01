@@ -498,7 +498,7 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
                       <InfoField label="Teléfono" value={ap.telefono} />
                       <InfoField label="Email" value={ap.email} />
                       <InfoField label="Dirección" value={ap.direccion} />
-                      <InfoField label="Profesión" value={ap.profesion} />
+                      <InfoField label="Profesión / Ocupación" value={ap.profesion} />
                     </div>
                   );
                 })()
