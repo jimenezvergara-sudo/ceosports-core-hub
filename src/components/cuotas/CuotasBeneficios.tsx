@@ -196,31 +196,32 @@ export default function CuotasBeneficios() {
           <DialogHeader><DialogTitle>Nuevo Beneficio</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Jugador</Label>
-              <Select value={form.persona_id} onValueChange={(v) => setForm({ ...form, persona_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar jugador" /></SelectTrigger>
-                <SelectContent>
-                  {personas.filter((p) => p.tipo_persona === "jugador").map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
-                  ))}
+              <Label>Categoría</Label>
+              <Select value={form.categoria_id || "todas"} onValueChange={(v) => setForm({ ...form, categoria_id: v === "todas" ? "" : v, persona_id: "" })}>
+                <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
+                <SelectContent position="popper" className="z-[9999]">
+                  <SelectItem value="todas">Todas</SelectItem>
+                  {categorias.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Categoría (opcional)</Label>
-              <Select value={form.categoria_id} onValueChange={(v) => setForm({ ...form, categoria_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
-                <SelectContent>
-                  {categorias.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+              <Label>Jugador</Label>
+              <Select value={form.persona_id} onValueChange={(v) => setForm({ ...form, persona_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar jugador" /></SelectTrigger>
+                <SelectContent position="popper" className="z-[9999]">
+                  {jugadoresFiltrados.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Tipo</Label>
-                <Select value={form.tipo_beneficio} onValueChange={(v) => setForm({ ...form, tipo_beneficio: v })}>
+                <Select value={form.tipo_beneficio} onValueChange={handleTipoChange}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" className="z-[9999]">
                     <SelectItem value="beca">Beca</SelectItem>
                     <SelectItem value="descuento">Descuento</SelectItem>
                     <SelectItem value="exencion">Exención</SelectItem>
@@ -229,9 +230,9 @@ export default function CuotasBeneficios() {
               </div>
               <div>
                 <Label>Tipo valor</Label>
-                <Select value={form.valor_tipo} onValueChange={(v) => setForm({ ...form, valor_tipo: v })}>
+                <Select value={form.valor_tipo} onValueChange={(v) => setForm({ ...form, valor_tipo: v })} disabled={form.tipo_beneficio === "exencion"}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" className="z-[9999]">
                     <SelectItem value="porcentaje">Porcentaje</SelectItem>
                     <SelectItem value="monto">Monto fijo</SelectItem>
                   </SelectContent>
@@ -240,7 +241,12 @@ export default function CuotasBeneficios() {
             </div>
             <div>
               <Label>Valor ({form.valor_tipo === "porcentaje" ? "%" : "$"})</Label>
-              <Input type="number" value={form.valor || ""} onChange={(e) => setForm({ ...form, valor: Number(e.target.value) })} />
+              <Input
+                type="number"
+                value={form.tipo_beneficio === "exencion" ? 0 : (form.valor || "")}
+                onChange={(e) => setForm({ ...form, valor: Number(e.target.value) })}
+                disabled={form.tipo_beneficio === "exencion"}
+              />
             </div>
             <div>
               <Label>Motivo</Label>
