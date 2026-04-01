@@ -43,6 +43,7 @@ export default function CuotasBeneficios() {
   const { personas } = usePersonas();
   const { categorias } = useCategorias();
   const [open, setOpen] = useState(false);
+  const [jugadoresFiltrados, setJugadoresFiltrados] = useState<typeof personas>([]);
 
   const [form, setForm] = useState({
     persona_id: "",
@@ -55,6 +56,31 @@ export default function CuotasBeneficios() {
     fecha_fin: "",
     activo: true,
   });
+
+  // When categoria changes, fetch jugadores in that category
+  useEffect(() => {
+    if (!form.categoria_id) {
+      setJugadoresFiltrados(personas.filter((p) => p.tipo_persona === "jugador"));
+      return;
+    }
+    const fetchJugadores = async () => {
+      const { data: pcRows } = await supabase
+        .from("persona_categoria")
+        .select("persona_id")
+        .eq("categoria_id", form.categoria_id);
+      const ids = new Set((pcRows as any[])?.map((r) => r.persona_id) ?? []);
+      setJugadoresFiltrados(personas.filter((p) => p.tipo_persona === "jugador" && ids.has(p.id)));
+    };
+    fetchJugadores();
+  }, [form.categoria_id, personas]);
+
+  const handleTipoChange = (tipo: string) => {
+    if (tipo === "exencion") {
+      setForm({ ...form, tipo_beneficio: tipo, valor_tipo: "monto", valor: 0 });
+    } else {
+      setForm({ ...form, tipo_beneficio: tipo });
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -71,16 +97,20 @@ export default function CuotasBeneficios() {
   categorias.forEach((c) => { catMap[c.id] = c.nombre; });
 
   const save = async () => {
-    if (!form.persona_id || !form.valor) {
-      toast.error("Jugador y valor son obligatorios");
+    if (!form.persona_id) {
+      toast.error("Jugador es obligatorio");
+      return;
+    }
+    if (form.tipo_beneficio !== "exencion" && !form.valor) {
+      toast.error("Valor es obligatorio");
       return;
     }
     await supabase.from("beneficios_cuota").insert({
       persona_id: form.persona_id,
       categoria_id: form.categoria_id || null,
       tipo_beneficio: form.tipo_beneficio,
-      valor: form.valor,
-      valor_tipo: form.valor_tipo,
+      valor: form.tipo_beneficio === "exencion" ? 0 : form.valor,
+      valor_tipo: form.tipo_beneficio === "exencion" ? "monto" : form.valor_tipo,
       motivo: form.motivo || null,
       fecha_inicio: form.fecha_inicio || null,
       fecha_fin: form.fecha_fin || null,
@@ -166,31 +196,32 @@ export default function CuotasBeneficios() {
           <DialogHeader><DialogTitle>Nuevo Beneficio</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Jugador</Label>
-              <Select value={form.persona_id} onValueChange={(v) => setForm({ ...form, persona_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar jugador" /></SelectTrigger>
-                <SelectContent>
-                  {personas.filter((p) => p.tipo_persona === "jugador").map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
-                  ))}
+              <Label>Categoría</Label>
+              <Select value={form.categoria_id || "todas"} onValueChange={(v) => setForm({ ...form, categoria_id: v === "todas" ? "" : v, persona_id: "" })}>
+                <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
+                <SelectContent position="popper" className="z-[9999]">
+                  <SelectItem value="todas">Todas</SelectItem>
+                  {categorias.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Categoría (opcional)</Label>
-              <Select value={form.categoria_id} onValueChange={(v) => setForm({ ...form, categoria_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
-                <SelectContent>
-                  {categorias.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+              <Label>Jugador</Label>
+              <Select value={form.persona_id} onValueChange={(v) => setForm({ ...form, persona_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar jugador" /></SelectTrigger>
+                <SelectContent position="popper" className="z-[9999]">
+                  {jugadoresFiltrados.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{personaLabel(p)}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Tipo</Label>
-                <Select value={form.tipo_beneficio} onValueChange={(v) => setForm({ ...form, tipo_beneficio: v })}>
+                <Select value={form.tipo_beneficio} onValueChange={handleTipoChange}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" className="z-[9999]">
                     <SelectItem value="beca">Beca</SelectItem>
                     <SelectItem value="descuento">Descuento</SelectItem>
                     <SelectItem value="exencion">Exención</SelectItem>
@@ -199,9 +230,9 @@ export default function CuotasBeneficios() {
               </div>
               <div>
                 <Label>Tipo valor</Label>
-                <Select value={form.valor_tipo} onValueChange={(v) => setForm({ ...form, valor_tipo: v })}>
+                <Select value={form.valor_tipo} onValueChange={(v) => setForm({ ...form, valor_tipo: v })} disabled={form.tipo_beneficio === "exencion"}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" className="z-[9999]">
                     <SelectItem value="porcentaje">Porcentaje</SelectItem>
                     <SelectItem value="monto">Monto fijo</SelectItem>
                   </SelectContent>
@@ -210,7 +241,12 @@ export default function CuotasBeneficios() {
             </div>
             <div>
               <Label>Valor ({form.valor_tipo === "porcentaje" ? "%" : "$"})</Label>
-              <Input type="number" value={form.valor || ""} onChange={(e) => setForm({ ...form, valor: Number(e.target.value) })} />
+              <Input
+                type="number"
+                value={form.tipo_beneficio === "exencion" ? 0 : (form.valor || "")}
+                onChange={(e) => setForm({ ...form, valor: Number(e.target.value) })}
+                disabled={form.tipo_beneficio === "exencion"}
+              />
             </div>
             <div>
               <Label>Motivo</Label>
