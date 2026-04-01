@@ -233,7 +233,19 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
 
           <div className="sm:col-span-2">
             <Label className="text-xs">Proveedor Sugerido</Label>
-            <Input value={form.proveedor_sugerido} onChange={(e) => set("proveedor_sugerido", e.target.value)} placeholder="Opcional" className="mt-1" />
+            <Select value={form.proveedor_id} onValueChange={(v) => set("proveedor_id", v)}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar proveedor" /></SelectTrigger>
+              <SelectContent>
+                {proveedores
+                  .filter((p) => !form.tipo_gasto || p.tipo_servicio === form.tipo_gasto || p.tipo_servicio === "General")
+                  .map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.nombre} — {p.tipo_servicio}</SelectItem>
+                  ))}
+                {proveedores.filter((p) => !form.tipo_gasto || p.tipo_servicio === form.tipo_gasto || p.tipo_servicio === "General").length === 0 && (
+                  <SelectItem value="__empty" disabled>Sin proveedores para este tipo</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="sm:col-span-2">
