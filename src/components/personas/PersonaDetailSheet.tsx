@@ -506,6 +506,11 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
             </div>
           </TabsContent>
 
+          {/* ─── RELACIONES ─── */}
+          <TabsContent value="relaciones">
+            <RelacionesTab personaId={draft.id} tipoPersona={draft.tipo.toLowerCase().includes("jugador") ? "jugador" : "apoderado"} />
+          </TabsContent>
+
           {/* ─── SALUD ─── */}
           <TabsContent value="salud" className="space-y-4 mt-4">
             <div className="glass rounded-lg p-4">
