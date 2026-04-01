@@ -21,7 +21,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TIPOS_GASTO, PRIORIDADES } from "@/data/comprasConstants";
-import { usePersonas, useCategorias, useProyectos, personaLabel } from "@/hooks/use-relational-data";
+import { usePersonas, useCategorias, useProyectos, useStaffRoles, personaLabel } from "@/hooks/use-relational-data";
 
 interface Props {
   onCreated: () => void;
