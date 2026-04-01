@@ -38,13 +38,41 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
 
   const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
-  const handleSubmit = () => {
-    if (!form.nombre.trim() || !form.apellido.trim() || !form.rut.trim() || !form.fechaNacimiento) {
-      toast.error("Completa los campos obligatorios: Nombre, Apellido, RUT y Fecha de Nacimiento");
+  const handleSubmit = async () => {
+    if (!form.nombre.trim() || !form.apellido.trim() || !form.rut.trim()) {
+      toast.error("Completa los campos obligatorios: Nombre, Apellido y RUT");
+      return;
+    }
+    if (form.tipo !== "Staff" && !form.fechaNacimiento) {
+      toast.error("Fecha de nacimiento es obligatoria para jugadores y socios");
       return;
     }
     if (necesitaTutor && !form.apoderadoNombre.trim()) {
       toast.error("Las categorías Escuelita, U9 y U11 requieren un Apoderado/Tutor");
+      return;
+    }
+
+    // Save to Supabase DB
+    const tipoPersonaMap: Record<string, string> = {
+      Jugador: "jugador", Jugadora: "jugador", Socio: "socio", Socia: "socio", Staff: "staff",
+    };
+    const { data: dbPersona, error: dbError } = await supabase
+      .from("personas")
+      .insert({
+        nombre: form.nombre.trim(),
+        apellido: form.apellido.trim(),
+        rut: form.rut.trim(),
+        fecha_nacimiento: form.fechaNacimiento || null,
+        tipo_persona: tipoPersonaMap[form.tipo] || "jugador",
+        estado: "activo",
+        email: null,
+        telefono: null,
+      } as any)
+      .select("id")
+      .single();
+
+    if (dbError) {
+      toast.error("Error al guardar en la base de datos: " + dbError.message);
       return;
     }
 
@@ -53,13 +81,13 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
     const apoderadoData = apoderadoSource === "padre" ? { ...padreData } : apoderadoSource === "madre" ? { ...madreData } : { nombre: form.apoderadoNombre, apellido: form.apoderadoApellido, rut: form.apoderadoRut, telefono: form.apoderadoTelefono, email: form.apoderadoEmail, direccion: form.apoderadoDireccion, profesion: form.apoderadoProfesion };
 
     const persona: Persona = {
-      id: crypto.randomUUID(),
+      id: (dbPersona as any)?.id ?? crypto.randomUUID(),
       nombre: form.nombre.trim(),
       apellido: form.apellido.trim(),
       rut: form.rut.trim(),
       fechaNacimiento: form.fechaNacimiento,
-      edad: edad!,
-      categoria: categoria!,
+      edad: edad ?? 0,
+      categoria: categoria ?? "Adulto",
       rama: form.rama,
       tipo: form.tipo,
       estado: "Activo",
