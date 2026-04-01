@@ -10,7 +10,7 @@ import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2,
 import RelacionesTab from "@/components/personas/RelacionesTab";
 import type { Persona, DocumentoPersona, Familiar } from "@/types/persona";
 import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documentosPorVencer, requiereTutor, calcularEdad, calcularCategoria } from "@/types/persona";
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCategorias } from "@/hooks/use-relational-data";
 
