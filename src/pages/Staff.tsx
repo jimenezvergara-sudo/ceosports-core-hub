@@ -51,8 +51,6 @@ export default function Staff() {
   const isRolConCategoria = (rol: string) =>
     [...ROLES_TECNICO, "Coordinador"].includes(rol) || (!ROLES_BASE.includes(rol) && rol.toLowerCase().includes("delegado"));
 
-  const isRolConCategoria = (rol: string) =>
-    [...ROLES_TECNICO, "Coordinador"].includes(rol) || (!ROLES_BASE.includes(rol) && rol.toLowerCase().includes("delegado"));
 
   const openNew = () => {
     setForm({ persona_id: "", rol: "", rolCustom: "", categoria_id: "", activo: true });
