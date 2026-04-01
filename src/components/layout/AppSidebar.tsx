@@ -8,6 +8,7 @@ import {
   FileText,
   ShieldCheck,
   Building2,
+  ShoppingCart,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
