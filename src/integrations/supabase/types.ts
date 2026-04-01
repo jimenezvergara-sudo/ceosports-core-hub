@@ -407,6 +407,54 @@ export type Database = {
           },
         ]
       }
+      evaluaciones_proveedor: {
+        Row: {
+          comentario: string | null
+          created_at: string
+          id: string
+          proveedor_id: string
+          puntaje_calidad: number
+          puntaje_plazo: number
+          puntaje_precio: number
+          solicitud_id: string | null
+        }
+        Insert: {
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          proveedor_id: string
+          puntaje_calidad?: number
+          puntaje_plazo?: number
+          puntaje_precio?: number
+          solicitud_id?: string | null
+        }
+        Update: {
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          proveedor_id?: string
+          puntaje_calidad?: number
+          puntaje_plazo?: number
+          puntaje_precio?: number
+          solicitud_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluaciones_proveedor_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluaciones_proveedor_solicitud_id_fkey"
+            columns: ["solicitud_id"]
+            isOneToOne: false
+            referencedRelation: "solicitudes_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historial_compra: {
         Row: {
           accion: string
@@ -623,6 +671,51 @@ export type Database = {
         }
         Relationships: []
       }
+      proveedores: {
+        Row: {
+          activo: boolean
+          created_at: string
+          direccion: string | null
+          email: string | null
+          id: string
+          nombre: string
+          observaciones: string | null
+          rut: string | null
+          sitio_web: string | null
+          telefono: string | null
+          tipo_servicio: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          direccion?: string | null
+          email?: string | null
+          id?: string
+          nombre: string
+          observaciones?: string | null
+          rut?: string | null
+          sitio_web?: string | null
+          telefono?: string | null
+          tipo_servicio?: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          direccion?: string | null
+          email?: string | null
+          id?: string
+          nombre?: string
+          observaciones?: string | null
+          rut?: string | null
+          sitio_web?: string | null
+          telefono?: string | null
+          tipo_servicio?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       proyectos: {
         Row: {
           created_at: string
@@ -724,6 +817,7 @@ export type Database = {
           justificacion: string | null
           monto_estimado: number
           prioridad: string
+          proveedor_id: string | null
           proveedor_sugerido: string | null
           proyecto_asociado: string | null
           proyecto_id: string | null
@@ -746,6 +840,7 @@ export type Database = {
           justificacion?: string | null
           monto_estimado: number
           prioridad?: string
+          proveedor_id?: string | null
           proveedor_sugerido?: string | null
           proyecto_asociado?: string | null
           proyecto_id?: string | null
@@ -768,6 +863,7 @@ export type Database = {
           justificacion?: string | null
           monto_estimado?: number
           prioridad?: string
+          proveedor_id?: string | null
           proveedor_sugerido?: string | null
           proyecto_asociado?: string | null
           proyecto_id?: string | null
@@ -783,6 +879,13 @@ export type Database = {
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_compra_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
             referencedColumns: ["id"]
           },
           {
