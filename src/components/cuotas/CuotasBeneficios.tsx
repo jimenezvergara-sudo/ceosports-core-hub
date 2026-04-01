@@ -43,6 +43,7 @@ export default function CuotasBeneficios() {
   const { personas } = usePersonas();
   const { categorias } = useCategorias();
   const [open, setOpen] = useState(false);
+  const [jugadoresFiltrados, setJugadoresFiltrados] = useState<typeof personas>([]);
 
   const [form, setForm] = useState({
     persona_id: "",
@@ -55,6 +56,31 @@ export default function CuotasBeneficios() {
     fecha_fin: "",
     activo: true,
   });
+
+  // When categoria changes, fetch jugadores in that category
+  useEffect(() => {
+    if (!form.categoria_id) {
+      setJugadoresFiltrados(personas.filter((p) => p.tipo_persona === "jugador"));
+      return;
+    }
+    const fetchJugadores = async () => {
+      const { data: pcRows } = await supabase
+        .from("persona_categoria")
+        .select("persona_id")
+        .eq("categoria_id", form.categoria_id);
+      const ids = new Set((pcRows as any[])?.map((r) => r.persona_id) ?? []);
+      setJugadoresFiltrados(personas.filter((p) => p.tipo_persona === "jugador" && ids.has(p.id)));
+    };
+    fetchJugadores();
+  }, [form.categoria_id, personas]);
+
+  const handleTipoChange = (tipo: string) => {
+    if (tipo === "exencion") {
+      setForm({ ...form, tipo_beneficio: tipo, valor_tipo: "monto", valor: 0 });
+    } else {
+      setForm({ ...form, tipo_beneficio: tipo });
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
