@@ -17,19 +17,53 @@ import { supabase } from "@/integrations/supabase/client";
 const categorias = ["Todas", "Escuelita", "U9", "U11", "U13", "U15", "U18", "Adulto"];
 
 function DocStatusIcons({ persona }: { persona: Persona }) {
+  const [dbDocs, setDbDocs] = useState<{ etiqueta: string; fecha_vencimiento: string | null }[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const fetchDocs = async () => {
+      // Try fetching from DB using persona.id (UUID)
+      const { data } = await supabase
+        .from("documentos")
+        .select("etiqueta, fecha_vencimiento")
+        .eq("persona_id", persona.id);
+      if (data && data.length > 0) {
+        setDbDocs(data);
+      }
+      setLoaded(true);
+    };
+    fetchDocs();
+  }, [persona.id]);
+
+  // Use DB docs if available, otherwise fall back to local mock docs
+  const getDocStatus = (etiqueta: string) => {
+    if (dbDocs.length > 0) {
+      const doc = dbDocs.find((d) => d.etiqueta === etiqueta);
+      if (!doc) return "missing";
+      if (etiqueta === "Certificado Médico" && doc.fecha_vencimiento) {
+        return new Date(doc.fecha_vencimiento) < new Date() ? "expired" : "ok";
+      }
+      return "ok";
+    }
+    // Fallback to local data
+    const doc = persona.documentos.find((d) => d.etiqueta === etiqueta);
+    if (!doc) return "missing";
+    if (doc.etiqueta === "Certificado Médico" && documentoVencido(doc)) return "expired";
+    return "ok";
+  };
+
   return (
     <TooltipProvider>
       <div className="flex items-center gap-1.5">
         {DOCUMENTOS_OBLIGATORIOS.map((etiqueta) => {
-          const doc = persona.documentos.find((d) => d.etiqueta === etiqueta);
-          const vencido = doc?.etiqueta === "Certificado Médico" && doc && documentoVencido(doc);
+          const status = getDocStatus(etiqueta);
           return (
             <Tooltip key={etiqueta}>
               <TooltipTrigger asChild>
                 <span className="cursor-default">
-                  {!doc ? (
+                  {status === "missing" ? (
                     <XCircle className="w-4 h-4 text-destructive/70" />
-                  ) : vencido ? (
+                  ) : status === "expired" ? (
                     <AlertTriangle className="w-4 h-4 text-warning" />
                   ) : (
                     <CheckCircle2 className="w-4 h-4 text-success/70" />
@@ -37,7 +71,7 @@ function DocStatusIcons({ persona }: { persona: Persona }) {
                 </span>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
-                {etiqueta}: {!doc ? "No cargado" : vencido ? "Vencido" : "OK"}
+                {etiqueta}: {status === "missing" ? "No cargado" : status === "expired" ? "Vencido" : "OK"}
               </TooltipContent>
             </Tooltip>
           );
