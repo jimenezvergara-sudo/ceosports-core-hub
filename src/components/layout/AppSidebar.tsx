@@ -10,6 +10,7 @@ import {
   Building2,
   ShoppingCart,
   Receipt,
+  Truck,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
