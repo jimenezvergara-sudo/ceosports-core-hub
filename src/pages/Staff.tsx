@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ShieldCheck, Plus, Pencil, Trash2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ShieldCheck, Plus, Pencil, Trash2, Users } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -35,10 +35,21 @@ const ROLES_OPERATIVO = [
 
 const ROLES_BASE = [...ROLES_DIRECTIVA, ...ROLES_TECNICO, ...ROLES_OPERATIVO];
 
+interface ApoderadoDisplay {
+  id: string;
+  nombre: string;
+  apellido: string;
+  rut: string | null;
+  tipo_relacion: string;
+  jugador_nombre: string;
+}
+
 export default function Staff() {
   const { roles, loading, refetch } = useStaffRoles();
   const { personas } = usePersonas();
   const { categorias } = useCategorias();
+  const [apoderados, setApoderados] = useState<ApoderadoDisplay[]>([]);
+  const [loadingApoderados, setLoadingApoderados] = useState(true);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     persona_id: "",
@@ -47,6 +58,47 @@ export default function Staff() {
     categoria_id: "",
     activo: true,
   });
+
+  const fetchApoderados = useCallback(async () => {
+    setLoadingApoderados(true);
+    const { data: rels } = await supabase
+      .from("persona_relaciones")
+      .select("*");
+    if (!rels || rels.length === 0) { setApoderados([]); setLoadingApoderados(false); return; }
+
+    const allIds = new Set<string>();
+    (rels as any[]).forEach((r) => { allIds.add(r.persona_id); allIds.add(r.relacionado_id); });
+    const { data: personasData } = await supabase
+      .from("personas")
+      .select("id, nombre, apellido, rut, tipo_persona")
+      .in("id", Array.from(allIds));
+    const pMap = new Map<string, any>();
+    (personasData as any[])?.forEach((p) => pMap.set(p.id, p));
+
+    const result: ApoderadoDisplay[] = [];
+    (rels as any[]).forEach((r) => {
+      const apoderado = pMap.get(r.relacionado_id);
+      const jugador = pMap.get(r.persona_id);
+      if (apoderado && jugador) {
+        // Check if already added for this apoderado
+        const existing = result.find((a) => a.id === apoderado.id && a.tipo_relacion === r.tipo_relacion && a.jugador_nombre === `${jugador.apellido}, ${jugador.nombre}`);
+        if (!existing) {
+          result.push({
+            id: apoderado.id,
+            nombre: apoderado.nombre,
+            apellido: apoderado.apellido,
+            rut: apoderado.rut,
+            tipo_relacion: r.tipo_relacion,
+            jugador_nombre: `${jugador.apellido}, ${jugador.nombre}`,
+          });
+        }
+      }
+    });
+    setApoderados(result);
+    setLoadingApoderados(false);
+  }, []);
+
+  useEffect(() => { fetchApoderados(); }, [fetchApoderados]);
 
   const isRolConCategoria = (rol: string) =>
     [...ROLES_TECNICO, "Coordinador"].includes(rol) || (!ROLES_BASE.includes(rol) && rol.toLowerCase().includes("delegado"));
@@ -98,6 +150,13 @@ export default function Staff() {
   const otros = roles.filter(
     (r) => !directiva.includes(r) && !tecnicos.includes(r) && !operativos.includes(r)
   );
+
+  // Group apoderados by person
+  const apoderadosGrouped = apoderados.reduce<Record<string, ApoderadoDisplay[]>>((acc, a) => {
+    if (!acc[a.id]) acc[a.id] = [];
+    acc[a.id].push(a);
+    return acc;
+  }, {});
 
   const renderSection = (title: string, items: typeof roles) => (
     <div className="space-y-3">
@@ -170,6 +229,56 @@ export default function Staff() {
           {renderSection("Cuerpo Técnico", tecnicos)}
           {renderSection("Operativos", operativos)}
           {otros.length > 0 && renderSection("Otros", otros)}
+
+          {/* Apoderados section */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Apoderados / Familiares</h3>
+            {loadingApoderados ? (
+              <p className="text-sm text-muted-foreground bg-card border border-border rounded-lg p-4">Cargando...</p>
+            ) : Object.keys(apoderadosGrouped).length === 0 ? (
+              <p className="text-sm text-muted-foreground bg-card border border-border rounded-lg p-4">Sin apoderados registrados</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {Object.entries(apoderadosGrouped).map(([personaId, items], i) => {
+                  const first = items[0];
+                  const tipoLabels: Record<string, string> = { padre: "Padre", madre: "Madre", apoderado: "Apoderado", tutor: "Tutor" };
+                  return (
+                    <motion.div
+                      key={personaId}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.03 * i }}
+                      className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex flex-wrap gap-1">
+                          {items.map((item, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-xs">
+                              {tipoLabels[item.tipo_relacion] || item.tipo_relacion}
+                            </Badge>
+                          ))}
+                        </div>
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <p className="text-foreground font-semibold text-sm">
+                        {first.apellido}, {first.nombre}
+                      </p>
+                      {first.rut && (
+                        <p className="text-[10px] font-mono text-muted-foreground mt-0.5">{first.rut}</p>
+                      )}
+                      <div className="mt-2 space-y-0.5">
+                        {items.map((item, idx) => (
+                          <p key={idx} className="text-xs text-muted-foreground">
+                            {tipoLabels[item.tipo_relacion] || item.tipo_relacion} de {item.jugador_nombre}
+                          </p>
+                        ))}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
