@@ -78,6 +78,50 @@ export function useProyectos() {
   return { proyectos, loading };
 }
 
+export interface StaffRoleRow {
+  id: string;
+  persona_id: string;
+  rol: string;
+  categoria_id: string | null;
+  activo: boolean;
+  // joined
+  persona_nombre?: string;
+  persona_apellido?: string;
+  persona_rut?: string | null;
+  categoria_nombre?: string | null;
+}
+
+export function useStaffRoles() {
+  const [roles, setRoles] = useState<StaffRoleRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetch = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("staff_roles" as any)
+      .select("id, persona_id, rol, categoria_id, activo, personas!staff_roles_persona_id_fkey(nombre, apellido, rut), categorias!staff_roles_categoria_id_fkey(nombre)")
+      .order("rol");
+
+    const mapped = ((data as any[]) ?? []).map((r: any) => ({
+      id: r.id,
+      persona_id: r.persona_id,
+      rol: r.rol,
+      categoria_id: r.categoria_id,
+      activo: r.activo,
+      persona_nombre: r.personas?.nombre,
+      persona_apellido: r.personas?.apellido,
+      persona_rut: r.personas?.rut,
+      categoria_nombre: r.categorias?.nombre,
+    }));
+    setRoles(mapped);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetch(); }, []);
+
+  return { roles, loading, refetch: fetch };
+}
+
 export function personaLabel(p: PersonaRow): string {
   return `${p.apellido}, ${p.nombre}${p.rut ? ` — ${p.rut}` : ""}`;
 }
