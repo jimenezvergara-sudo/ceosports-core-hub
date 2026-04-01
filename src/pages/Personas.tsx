@@ -97,9 +97,6 @@ export default function Personas() {
   const [sortDir, setSortDir] = useState<SortDir>(null);
   const { categorias: dbCategorias } = useCategorias();
   const categoriasFilter = ["Todas", ...dbCategorias.map((c) => c.nombre)];
-  const [busqueda, setBusqueda] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir>(null);
 
   const handleSort = (key: SortKey) => {
     if (sortKey !== key) {
