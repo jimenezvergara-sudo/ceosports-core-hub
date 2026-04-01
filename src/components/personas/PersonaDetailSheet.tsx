@@ -423,6 +423,9 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
                 )}
               </div>
             </div>
+            {/* ─── CATEGORÍAS ASIGNADAS ─── */}
+            <CategoriaAssignment personaId={draft.id} />
+
             {necesitaTutor && (
               <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-warning mt-0.5 shrink-0" />
