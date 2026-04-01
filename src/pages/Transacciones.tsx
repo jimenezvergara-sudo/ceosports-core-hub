@@ -170,6 +170,9 @@ export default function Transacciones() {
                   Ítem
                 </th>
                 <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">
+                  Origen
+                </th>
+                <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">
                   Tipo
                 </th>
                 <th className="text-right p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">
