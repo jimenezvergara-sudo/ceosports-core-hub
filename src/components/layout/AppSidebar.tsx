@@ -25,6 +25,7 @@ const navItems = [
   { to: "/staff", icon: ShieldCheck, label: "Staff" },
   { to: "/organizacion", icon: Building2, label: "Organización" },
   { to: "/compras", icon: ShoppingCart, label: "Compras" },
+  { to: "/cuotas", icon: Receipt, label: "Cuotas" },
 ];
 
 export default function AppSidebar() {
