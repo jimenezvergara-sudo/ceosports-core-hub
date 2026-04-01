@@ -91,6 +91,7 @@ export default function TransaccionDetailSheet({ transaccion, open, onOpenChange
           <DetailRow label="Descripción" value={transaccion.descripcion} />
           <DetailRow label="Ítem" value={catData?.label ?? transaccion.categoria} />
           <DetailRow label="Sub Ítem" value={subData?.label ?? transaccion.subcategoria} />
+          <DetailRow label="Origen" value={ORIGEN_LABELS[transaccion.origen_tipo || "manual"] || "Manual"} />
 
           <Separator />
 
