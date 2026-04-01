@@ -500,6 +500,39 @@ export type Database = {
           },
         ]
       }
+      niveles_aprobacion: {
+        Row: {
+          activo: boolean
+          created_at: string
+          descripcion: string | null
+          id: string
+          monto_maximo: number | null
+          monto_minimo: number
+          roles_autorizados: string[]
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          monto_maximo?: number | null
+          monto_minimo?: number
+          roles_autorizados: string[]
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          monto_maximo?: number | null
+          monto_minimo?: number
+          roles_autorizados?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pagos_cuotas: {
         Row: {
           comprobante_path: string | null
