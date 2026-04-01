@@ -23,8 +23,17 @@ interface Transaccion {
   notas: string | null;
   categoria_deportiva: string | null;
   persona_id: string | null;
+  origen_tipo: string | null;
+  origen_id: string | null;
   created_at: string;
 }
+
+const ORIGEN_LABELS: Record<string, string> = {
+  compra: "Compra",
+  cuota: "Cuota",
+  pago_entrenador: "Pago Entrenador",
+  manual: "Registro Manual",
+};
 
 interface Props {
   transaccion: Transaccion | null;
