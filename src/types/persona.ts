@@ -26,7 +26,7 @@ export interface Persona {
   edad: number;
   categoria: string;
   rama: "Fem" | "Masc" | "Mixto";
-  tipo: "Jugador" | "Jugadora" | "Socio" | "Socia";
+  tipo: "Jugador" | "Jugadora" | "Socio" | "Socia" | "Staff";
   estado: "Activo" | "Moroso" | "Inactivo";
   talla: string;
   tallaUniforme: string;
