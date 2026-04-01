@@ -12,6 +12,7 @@ import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
 import NuevaPersonaDialog from "@/components/personas/NuevaPersonaDialog";
 import ImportMasivaDialog from "@/components/personas/ImportMasivaDialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
 
 const categorias = ["Todas", "Escuelita", "U9", "U11", "U13", "U15", "U18", "Adulto"];
 
