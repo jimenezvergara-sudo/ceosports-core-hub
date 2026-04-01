@@ -36,6 +36,13 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
   const { proyectos } = useProyectos();
   const { roles: staffRoles } = useStaffRoles();
 
+  // Proveedores
+  const [proveedores, setProveedores] = useState<{ id: string; nombre: string; tipo_servicio: string }[]>([]);
+  useEffect(() => {
+    supabase.from("proveedores").select("id, nombre, tipo_servicio").eq("activo", true).order("nombre")
+      .then(({ data }) => setProveedores((data as any[]) ?? []));
+  }, []);
+
   // Build solicitante options from active staff
   const solicitanteOptions = staffRoles
     .filter((r) => r.activo)
