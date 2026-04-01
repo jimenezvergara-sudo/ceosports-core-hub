@@ -97,16 +97,20 @@ export default function CuotasBeneficios() {
   categorias.forEach((c) => { catMap[c.id] = c.nombre; });
 
   const save = async () => {
-    if (!form.persona_id || !form.valor) {
-      toast.error("Jugador y valor son obligatorios");
+    if (!form.persona_id) {
+      toast.error("Jugador es obligatorio");
+      return;
+    }
+    if (form.tipo_beneficio !== "exencion" && !form.valor) {
+      toast.error("Valor es obligatorio");
       return;
     }
     await supabase.from("beneficios_cuota").insert({
       persona_id: form.persona_id,
       categoria_id: form.categoria_id || null,
       tipo_beneficio: form.tipo_beneficio,
-      valor: form.valor,
-      valor_tipo: form.valor_tipo,
+      valor: form.tipo_beneficio === "exencion" ? 0 : form.valor,
+      valor_tipo: form.tipo_beneficio === "exencion" ? "monto" : form.valor_tipo,
       motivo: form.motivo || null,
       fecha_inicio: form.fecha_inicio || null,
       fecha_fin: form.fecha_fin || null,
