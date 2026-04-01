@@ -196,8 +196,8 @@ export default function Personas() {
             onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {categorias.map((cat) => (
+        <div className="flex gap-1.5 flex-wrap items-center">
+          {categoriasFilter.map((cat) => (
             <button
               key={cat}
               onClick={() => setFiltroCategoria(cat)}
@@ -210,6 +210,13 @@ export default function Personas() {
               {cat}
             </button>
           ))}
+          <button
+            onClick={() => setCategoriasOpen(true)}
+            className="px-2 py-1.5 text-xs rounded-md border border-dashed border-border text-muted-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
+            title="Administrar categorías"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
