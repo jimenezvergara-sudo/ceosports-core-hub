@@ -10,6 +10,7 @@ import { User, Users, HeartPulse, Save } from "lucide-react";
 import { calcularEdad, calcularCategoria, requiereTutor } from "@/types/persona";
 import type { Persona } from "@/types/persona";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   open: boolean;
