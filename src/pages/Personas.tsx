@@ -310,6 +310,7 @@ export default function Personas() {
       />
       <NuevaPersonaDialog open={nuevaOpen} onOpenChange={setNuevaOpen} onSave={handleNuevaPersona} />
       <ImportMasivaDialog open={importOpen} onOpenChange={setImportOpen} onImport={handleImport} existingRuts={personas.map((p) => p.rut)} />
+      <CategoriasManager open={categoriasOpen} onOpenChange={setCategoriasOpen} />
     </PageShell>
   );
 }
