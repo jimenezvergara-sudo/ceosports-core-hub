@@ -23,6 +23,7 @@ const navItems = [
   { to: "/documentos", icon: FileText, label: "Documentos" },
   { to: "/staff", icon: ShieldCheck, label: "Staff" },
   { to: "/organizacion", icon: Building2, label: "Organización" },
+  { to: "/compras", icon: ShoppingCart, label: "Compras" },
 ];
 
 export default function AppSidebar() {
