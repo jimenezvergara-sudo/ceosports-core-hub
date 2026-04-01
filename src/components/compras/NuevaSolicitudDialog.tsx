@@ -48,6 +48,13 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
   const set = (k: string, v: string | number) =>
     setForm((p) => ({ ...p, [k]: v }));
 
+  const resetForm = () =>
+    setForm({
+      titulo: "", descripcion: "", categoria_equipo: "", tipo_gasto: "",
+      proyecto_asociado: "", cantidad: 1, monto_estimado: 0, prioridad: "media",
+      fecha_requerida: "", proveedor_sugerido: "", justificacion: "", solicitante: "",
+    });
+
   const handleSubmit = async (estado: "borrador" | "enviada") => {
     if (!form.titulo.trim() || !form.descripcion.trim() || !form.tipo_gasto || !form.solicitante.trim()) {
       toast.error("Completa los campos obligatorios: título, descripción, tipo de gasto y solicitante.");
@@ -68,15 +75,9 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
     if (error) {
       toast.error("Error al crear solicitud");
     } else {
-      // Log history
-      // We'd need the ID but insert doesn't return it easily via 'as any'
       toast.success(estado === "enviada" ? "Solicitud enviada" : "Borrador guardado");
       setOpen(false);
-      setForm({
-        titulo: "", descripcion: "", categoria_equipo: "", tipo_gasto: "",
-        proyecto_asociado: "", cantidad: 1, monto_estimado: 0, prioridad: "media",
-        fecha_requerida: "", proveedor_sugerido: "", justificacion: "", solicitante: "",
-      });
+      resetForm();
       onCreated();
     }
     setLoading(false);
@@ -85,35 +86,37 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="w-4 h-4" /> Nueva Solicitud
+        <Button className="gap-2 h-10 sm:h-9">
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">Nueva Solicitud</span>
+          <span className="sm:hidden">Nueva</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle>Nueva Solicitud de Compra</DialogTitle>
+          <DialogTitle className="text-lg">Nueva Solicitud de Compra</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div className="md:col-span-2">
-            <Label>Título *</Label>
-            <Input value={form.titulo} onChange={(e) => set("titulo", e.target.value)} placeholder="Ej: Balones de fútbol para Sub-14" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4">
+          <div className="sm:col-span-2">
+            <Label className="text-xs">Título *</Label>
+            <Input value={form.titulo} onChange={(e) => set("titulo", e.target.value)} placeholder="Ej: Balones de fútbol para Sub-14" className="mt-1" />
           </div>
 
-          <div className="md:col-span-2">
-            <Label>Descripción *</Label>
-            <Textarea value={form.descripcion} onChange={(e) => set("descripcion", e.target.value)} placeholder="Detalle de lo que se necesita comprar" rows={3} />
-          </div>
-
-          <div>
-            <Label>Solicitante *</Label>
-            <Input value={form.solicitante} onChange={(e) => set("solicitante", e.target.value)} placeholder="Nombre del solicitante" />
+          <div className="sm:col-span-2">
+            <Label className="text-xs">Descripción *</Label>
+            <Textarea value={form.descripcion} onChange={(e) => set("descripcion", e.target.value)} placeholder="Detalle de lo que se necesita" rows={3} className="mt-1" />
           </div>
 
           <div>
-            <Label>Tipo de Gasto *</Label>
+            <Label className="text-xs">Solicitante *</Label>
+            <Input value={form.solicitante} onChange={(e) => set("solicitante", e.target.value)} placeholder="Nombre" className="mt-1" />
+          </div>
+
+          <div>
+            <Label className="text-xs">Tipo de Gasto *</Label>
             <Select value={form.tipo_gasto} onValueChange={(v) => set("tipo_gasto", v)}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
               <SelectContent>
                 {TIPOS_GASTO.map((t) => (
                   <SelectItem key={t} value={t}>{t}</SelectItem>
@@ -123,29 +126,29 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
           </div>
 
           <div>
-            <Label>Categoría / Equipo</Label>
-            <Input value={form.categoria_equipo} onChange={(e) => set("categoria_equipo", e.target.value)} placeholder="Ej: Sub-14" />
+            <Label className="text-xs">Categoría / Equipo</Label>
+            <Input value={form.categoria_equipo} onChange={(e) => set("categoria_equipo", e.target.value)} placeholder="Ej: Sub-14" className="mt-1" />
           </div>
 
           <div>
-            <Label>Proyecto Asociado</Label>
-            <Input value={form.proyecto_asociado} onChange={(e) => set("proyecto_asociado", e.target.value)} placeholder="Opcional" />
+            <Label className="text-xs">Proyecto Asociado</Label>
+            <Input value={form.proyecto_asociado} onChange={(e) => set("proyecto_asociado", e.target.value)} placeholder="Opcional" className="mt-1" />
           </div>
 
           <div>
-            <Label>Cantidad</Label>
-            <Input type="number" min={1} value={form.cantidad} onChange={(e) => set("cantidad", Number(e.target.value))} />
+            <Label className="text-xs">Cantidad</Label>
+            <Input type="number" min={1} value={form.cantidad} onChange={(e) => set("cantidad", Number(e.target.value))} className="mt-1" />
           </div>
 
           <div>
-            <Label>Monto Estimado *</Label>
-            <Input type="number" min={0} value={form.monto_estimado} onChange={(e) => set("monto_estimado", Number(e.target.value))} placeholder="$" />
+            <Label className="text-xs">Monto Estimado * ($)</Label>
+            <Input type="number" min={0} value={form.monto_estimado} onChange={(e) => set("monto_estimado", Number(e.target.value))} className="mt-1" />
           </div>
 
           <div>
-            <Label>Prioridad</Label>
+            <Label className="text-xs">Prioridad</Label>
             <Select value={form.prioridad} onValueChange={(v) => set("prioridad", v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {PRIORIDADES.map((p) => (
                   <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
@@ -155,26 +158,26 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
           </div>
 
           <div>
-            <Label>Fecha Requerida</Label>
-            <Input type="date" value={form.fecha_requerida} onChange={(e) => set("fecha_requerida", e.target.value)} />
+            <Label className="text-xs">Fecha Requerida</Label>
+            <Input type="date" value={form.fecha_requerida} onChange={(e) => set("fecha_requerida", e.target.value)} className="mt-1" />
           </div>
 
-          <div>
-            <Label>Proveedor Sugerido</Label>
-            <Input value={form.proveedor_sugerido} onChange={(e) => set("proveedor_sugerido", e.target.value)} placeholder="Opcional" />
+          <div className="sm:col-span-2">
+            <Label className="text-xs">Proveedor Sugerido</Label>
+            <Input value={form.proveedor_sugerido} onChange={(e) => set("proveedor_sugerido", e.target.value)} placeholder="Opcional" className="mt-1" />
           </div>
 
-          <div className="md:col-span-2">
-            <Label>Justificación</Label>
-            <Textarea value={form.justificacion} onChange={(e) => set("justificacion", e.target.value)} placeholder="¿Por qué es necesaria esta compra?" rows={2} />
+          <div className="sm:col-span-2">
+            <Label className="text-xs">Justificación</Label>
+            <Textarea value={form.justificacion} onChange={(e) => set("justificacion", e.target.value)} placeholder="¿Por qué es necesaria esta compra?" rows={2} className="mt-1" />
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outline" disabled={loading} onClick={() => handleSubmit("borrador")}>
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-6">
+          <Button variant="outline" disabled={loading} onClick={() => handleSubmit("borrador")} className="h-11 sm:h-9">
             Guardar Borrador
           </Button>
-          <Button disabled={loading} onClick={() => handleSubmit("enviada")}>
+          <Button disabled={loading} onClick={() => handleSubmit("enviada")} className="h-11 sm:h-9">
             Enviar Solicitud
           </Button>
         </div>

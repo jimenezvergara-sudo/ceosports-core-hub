@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { AlertTriangle, CheckCircle2, XCircle, Clock, FileText } from "lucide-react";
+import { AlertTriangle, CheckCircle2, XCircle, Clock, FileText, Upload } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ESTADO_COLOR, MEDIOS_PAGO } from "@/data/comprasConstants";
@@ -63,6 +62,7 @@ interface Ejecucion {
   fecha_compra: string;
   medio_pago: string;
   numero_comprobante: string | null;
+  comprobante_path: string | null;
   observaciones: string | null;
 }
 
@@ -96,10 +96,10 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
   const [rendicion, setRendicion] = useState<Rendicion | null>(null);
   const [historial, setHistorial] = useState<HistorialItem[]>([]);
   const [tab, setTab] = useState<"detalle" | "aprobar" | "ejecutar" | "rendir">("detalle");
+  const [uploading, setUploading] = useState(false);
 
-  // Forms
   const [apForm, setApForm] = useState({ aprobado_por: "", decision: "aprobada", monto_aprobado: 0, centro_costo: "", proyecto_asociado: "", responsable_compra: "", observaciones: "" });
-  const [ejForm, setEjForm] = useState({ proveedor_real: "", monto_real: 0, fecha_compra: "", medio_pago: "", numero_comprobante: "", observaciones: "" });
+  const [ejForm, setEjForm] = useState({ proveedor_real: "", monto_real: 0, fecha_compra: "", medio_pago: "", numero_comprobante: "", comprobante_path: "", observaciones: "" });
   const [reForm, setReForm] = useState({ monto_rendido: 0, observaciones_tesoreria: "", estado_revision: "rendida" });
 
   useEffect(() => {
@@ -133,56 +133,56 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
     await logHistory(solicitud.id, `Estado cambiado a ${nuevoEstado}`, responsable);
   };
 
-  // Handle approval
-  const handleAprobar = async () => {
-    if (!solicitud || !apForm.aprobado_por.trim()) { toast.error("Ingresa quién aprueba"); return; }
-    const decision = apForm.decision;
-    await supabase.from("aprobaciones_compra" as any).insert({ solicitud_id: solicitud.id, ...apForm, monto_aprobado: apForm.monto_aprobado || null } as any);
-    await updateEstado(decision === "aprobada" ? "aprobada" : "rechazada", apForm.aprobado_por);
-    toast.success(decision === "aprobada" ? "Solicitud aprobada" : "Solicitud rechazada");
-    onUpdated();
-    fetchRelated(solicitud.id);
-    setTab("detalle");
+  const handleFileUpload = async (file: File): Promise<string | null> => {
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `comprobantes/${solicitud!.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("documentos").upload(path, file);
+    setUploading(false);
+    if (error) {
+      toast.error("Error al subir comprobante");
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from("documentos").getPublicUrl(path);
+    return urlData.publicUrl;
   };
 
-  // Handle execution
+  const handleAprobar = async () => {
+    if (!solicitud || !apForm.aprobado_por.trim()) { toast.error("Ingresa quién aprueba"); return; }
+    await supabase.from("aprobaciones_compra" as any).insert({ solicitud_id: solicitud.id, ...apForm, monto_aprobado: apForm.monto_aprobado || null } as any);
+    await updateEstado(apForm.decision === "aprobada" ? "aprobada" : "rechazada", apForm.aprobado_por);
+    toast.success(apForm.decision === "aprobada" ? "Solicitud aprobada" : "Solicitud rechazada");
+    onUpdated(); fetchRelated(solicitud.id); setTab("detalle");
+  };
+
   const handleEjecutar = async () => {
     if (!solicitud || !ejForm.proveedor_real.trim() || !ejForm.medio_pago) { toast.error("Completa proveedor y medio de pago"); return; }
     if (ejForm.monto_real <= 0) { toast.error("El monto real debe ser mayor a 0"); return; }
-
-    // Check 10% rule
     const montoAprobado = aprobacion?.monto_aprobado || solicitud.monto_estimado;
     if (ejForm.monto_real > montoAprobado * 1.1) {
       const ok = confirm(`⚠️ El monto real ($${ejForm.monto_real.toLocaleString()}) supera en más de 10% al aprobado ($${montoAprobado.toLocaleString()}). ¿Continuar?`);
       if (!ok) return;
     }
-
-    await supabase.from("ejecuciones_compra" as any).insert({ solicitud_id: solicitud.id, ...ejForm, fecha_compra: ejForm.fecha_compra || new Date().toISOString().split("T")[0] } as any);
+    await supabase.from("ejecuciones_compra" as any).insert({
+      solicitud_id: solicitud.id, ...ejForm,
+      fecha_compra: ejForm.fecha_compra || new Date().toISOString().split("T")[0],
+      comprobante_path: ejForm.comprobante_path || null,
+    } as any);
     await updateEstado("comprada", "Sistema");
-    toast.success("Compra registrada");
-    onUpdated();
-    fetchRelated(solicitud.id);
-    setTab("detalle");
+    toast.success("Compra registrada"); onUpdated(); fetchRelated(solicitud.id); setTab("detalle");
   };
 
-  // Handle rendicion
   const handleRendir = async () => {
     if (!solicitud) return;
     const montoAprobado = aprobacion?.monto_aprobado || solicitud.monto_estimado;
     const diferencia = reForm.monto_rendido - montoAprobado;
     await supabase.from("rendiciones_compra" as any).insert({
-      solicitud_id: solicitud.id,
-      monto_rendido: reForm.monto_rendido,
-      diferencia,
-      estado_revision: reForm.estado_revision,
-      observaciones_tesoreria: reForm.observaciones_tesoreria || null,
+      solicitud_id: solicitud.id, monto_rendido: reForm.monto_rendido, diferencia,
+      estado_revision: reForm.estado_revision, observaciones_tesoreria: reForm.observaciones_tesoreria || null,
       fecha_cierre: reForm.estado_revision === "cerrada" ? new Date().toISOString() : null,
     } as any);
     await updateEstado(reForm.estado_revision, "Tesorería");
-    toast.success("Rendición registrada");
-    onUpdated();
-    fetchRelated(solicitud.id);
-    setTab("detalle");
+    toast.success("Rendición registrada"); onUpdated(); fetchRelated(solicitud.id); setTab("detalle");
   };
 
   if (!solicitud) return null;
@@ -192,48 +192,47 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
   const canExecute = estado === "aprobada";
   const canRender = ["comprada", "observada"].includes(estado);
 
+  const tabs = [
+    { key: "detalle" as const, label: "Detalle", show: true },
+    { key: "aprobar" as const, label: "Aprobar", show: canApprove },
+    { key: "ejecutar" as const, label: "Ejecutar", show: canExecute },
+    { key: "rendir" as const, label: "Rendir", show: canRender },
+  ].filter((t) => t.show);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-xl overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="text-lg">{solicitud.titulo}</SheetTitle>
-          <div className="flex items-center gap-2 mt-1">
-            <Badge className={`text-xs capitalize ${ESTADO_COLOR[estado] || "bg-muted text-muted-foreground"}`}>
-              {estado}
-            </Badge>
-            <Badge variant="outline" className="text-xs capitalize">{solicitud.prioridad}</Badge>
-          </div>
-        </SheetHeader>
+      <SheetContent className="sm:max-w-xl w-full p-0 flex flex-col h-full">
+        {/* Header */}
+        <div className="p-4 sm:p-6 pb-0">
+          <SheetHeader>
+            <SheetTitle className="text-base sm:text-lg leading-tight pr-6">{solicitud.titulo}</SheetTitle>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <Badge className={`text-[10px] sm:text-xs capitalize ${ESTADO_COLOR[estado] || "bg-muted text-muted-foreground"}`}>{estado}</Badge>
+              <Badge variant="outline" className="text-[10px] sm:text-xs capitalize">{solicitud.prioridad}</Badge>
+            </div>
+          </SheetHeader>
 
-        {/* Action tabs */}
-        <div className="flex gap-1 mt-4 border-b border-border">
-          <button onClick={() => setTab("detalle")} className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${tab === "detalle" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-            Detalle
-          </button>
-          {canApprove && (
-            <button onClick={() => setTab("aprobar")} className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${tab === "aprobar" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-              Aprobar
-            </button>
-          )}
-          {canExecute && (
-            <button onClick={() => setTab("ejecutar")} className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${tab === "ejecutar" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-              Ejecutar
-            </button>
-          )}
-          {canRender && (
-            <button onClick={() => setTab("rendir")} className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${tab === "rendir" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-              Rendir
-            </button>
-          )}
+          {/* Tabs */}
+          <div className="flex gap-0 mt-4 border-b border-border -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${tab === t.key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-4 space-y-4">
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {tab === "detalle" && (
             <>
-              {/* Solicitud info */}
               <Section title="Solicitud">
                 <Field label="Descripción" value={solicitud.descripcion} />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2">
                   <Field label="Tipo de Gasto" value={solicitud.tipo_gasto} />
                   <Field label="Categoría/Equipo" value={solicitud.categoria_equipo} />
                   <Field label="Proyecto" value={solicitud.proyecto_asociado} />
@@ -247,97 +246,83 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
                 <Field label="Creada" value={format(new Date(solicitud.created_at), "dd/MM/yyyy HH:mm", { locale: es })} />
               </Section>
 
-              {/* Aprobación */}
               {aprobacion && (
                 <Section title="Aprobación" icon={aprobacion.decision === "aprobada" ? <CheckCircle2 className="w-4 h-4 text-success" /> : <XCircle className="w-4 h-4 text-destructive" />}>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2">
                     <Field label="Decisión" value={aprobacion.decision} />
                     <Field label="Aprobado por" value={aprobacion.aprobado_por} />
                     <Field label="Monto Aprobado" value={aprobacion.monto_aprobado ? `$${aprobacion.monto_aprobado.toLocaleString("es-CL")}` : null} />
                     <Field label="Centro de Costo" value={aprobacion.centro_costo} />
-                    <Field label="Responsable Compra" value={aprobacion.responsable_compra} />
+                    <Field label="Responsable" value={aprobacion.responsable_compra} />
                     <Field label="Fecha" value={format(new Date(aprobacion.fecha_aprobacion), "dd/MM/yyyy HH:mm", { locale: es })} />
                   </div>
                   {aprobacion.observaciones && <Field label="Observaciones" value={aprobacion.observaciones} />}
                 </Section>
               )}
 
-              {/* Ejecución */}
               {ejecucion && (
-                <Section title="Ejecución de Compra" icon={<FileText className="w-4 h-4 text-primary" />}>
-                  <div className="grid grid-cols-2 gap-3">
+                <Section title="Ejecución" icon={<FileText className="w-4 h-4 text-primary" />}>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2">
                     <Field label="Proveedor" value={ejecucion.proveedor_real} />
                     <Field label="Monto Real" value={`$${ejecucion.monto_real.toLocaleString("es-CL")}`} />
                     <Field label="Fecha Compra" value={format(new Date(ejecucion.fecha_compra), "dd/MM/yyyy")} />
                     <Field label="Medio de Pago" value={ejecucion.medio_pago} />
                     <Field label="N° Comprobante" value={ejecucion.numero_comprobante} />
                   </div>
-                  {/* Alert if over 10% */}
                   {aprobacion?.monto_aprobado && ejecucion.monto_real > aprobacion.monto_aprobado * 1.1 && (
-                    <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-md text-sm text-destructive">
+                    <div className="flex items-center gap-2 p-2.5 bg-destructive/10 rounded-md text-xs sm:text-sm text-destructive">
                       <AlertTriangle className="w-4 h-4 shrink-0" />
                       Monto real supera en más de 10% al aprobado
+                    </div>
+                  )}
+                  {ejecucion.comprobante_path && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Comprobante</p>
+                      <a href={ejecucion.comprobante_path} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">Ver comprobante</a>
                     </div>
                   )}
                   {ejecucion.observaciones && <Field label="Observaciones" value={ejecucion.observaciones} />}
                 </Section>
               )}
 
-              {/* Rendición */}
               {rendicion && (
                 <Section title="Rendición">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2">
                     <Field label="Monto Rendido" value={`$${rendicion.monto_rendido.toLocaleString("es-CL")}`} />
                     <Field label="Diferencia" value={`$${rendicion.diferencia.toLocaleString("es-CL")}`} />
-                    <Field label="Estado Revisión" value={rendicion.estado_revision} />
-                    <Field label="Fecha Cierre" value={rendicion.fecha_cierre ? format(new Date(rendicion.fecha_cierre), "dd/MM/yyyy HH:mm", { locale: es }) : null} />
+                    <Field label="Estado" value={rendicion.estado_revision} />
+                    <Field label="Cierre" value={rendicion.fecha_cierre ? format(new Date(rendicion.fecha_cierre), "dd/MM/yyyy HH:mm", { locale: es }) : null} />
                   </div>
-                  {rendicion.observaciones_tesoreria && <Field label="Observaciones Tesorería" value={rendicion.observaciones_tesoreria} />}
+                  {rendicion.observaciones_tesoreria && <Field label="Obs. Tesorería" value={rendicion.observaciones_tesoreria} />}
                 </Section>
               )}
 
-              {/* Historial */}
               {historial.length > 0 && (
                 <Section title="Historial" icon={<Clock className="w-4 h-4 text-muted-foreground" />}>
                   <div className="space-y-2">
                     {historial.map((h) => (
-                      <div key={h.id} className="flex items-start gap-2 text-sm">
+                      <div key={h.id} className="flex items-start gap-2 text-xs sm:text-sm">
                         <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                        <div>
+                        <div className="min-w-0">
                           <span className="font-medium">{h.accion}</span>
                           <span className="text-muted-foreground"> — {h.responsable}</span>
                           {h.detalle && <p className="text-muted-foreground text-xs">{h.detalle}</p>}
-                          <p className="text-muted-foreground text-xs">{format(new Date(h.created_at), "dd/MM/yyyy HH:mm", { locale: es })}</p>
+                          <p className="text-muted-foreground text-[10px]">{format(new Date(h.created_at), "dd/MM/yyyy HH:mm", { locale: es })}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </Section>
               )}
-
-              {/* Quick actions */}
-              {estado === "borrador" && (
-                <Button className="w-full" onClick={async () => { await updateEstado("enviada", solicitud.solicitante); toast.success("Solicitud enviada"); onUpdated(); fetchRelated(solicitud.id); }}>
-                  Enviar Solicitud
-                </Button>
-              )}
-              {estado === "enviada" && (
-                <Button variant="outline" className="w-full" onClick={async () => { await updateEstado("en revisión", "Sistema"); toast.success("En revisión"); onUpdated(); fetchRelated(solicitud.id); }}>
-                  Marcar En Revisión
-                </Button>
-              )}
             </>
           )}
 
-          {/* Approve form */}
           {tab === "aprobar" && (
-            <div className="space-y-4">
-              <div>
-                <Label>Aprobado por *</Label>
+            <FormSection>
+              <FormField label="Aprobado por *">
                 <Input value={apForm.aprobado_por} onChange={(e) => setApForm(f => ({ ...f, aprobado_por: e.target.value }))} />
-              </div>
-              <div>
-                <Label>Decisión</Label>
+              </FormField>
+              <FormField label="Decisión">
                 <Select value={apForm.decision} onValueChange={(v) => setApForm(f => ({ ...f, decision: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -345,46 +330,34 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
                     <SelectItem value="rechazada">Rechazar</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label>Monto Aprobado</Label>
+              </FormField>
+              <FormField label="Monto Aprobado ($)">
                 <Input type="number" value={apForm.monto_aprobado} onChange={(e) => setApForm(f => ({ ...f, monto_aprobado: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <Label>Centro de Costo</Label>
+              </FormField>
+              <FormField label="Centro de Costo">
                 <Input value={apForm.centro_costo} onChange={(e) => setApForm(f => ({ ...f, centro_costo: e.target.value }))} />
-              </div>
-              <div>
-                <Label>Responsable de Compra</Label>
+              </FormField>
+              <FormField label="Responsable de Compra">
                 <Input value={apForm.responsable_compra} onChange={(e) => setApForm(f => ({ ...f, responsable_compra: e.target.value }))} />
-              </div>
-              <div>
-                <Label>Observaciones</Label>
+              </FormField>
+              <FormField label="Observaciones">
                 <Textarea value={apForm.observaciones} onChange={(e) => setApForm(f => ({ ...f, observaciones: e.target.value }))} rows={2} />
-              </div>
-              <Button className="w-full" onClick={handleAprobar}>
-                {apForm.decision === "aprobada" ? "Aprobar Solicitud" : "Rechazar Solicitud"}
-              </Button>
-            </div>
+              </FormField>
+            </FormSection>
           )}
 
-          {/* Execute form */}
           {tab === "ejecutar" && (
-            <div className="space-y-4">
-              <div>
-                <Label>Proveedor Real *</Label>
+            <FormSection>
+              <FormField label="Proveedor Real *">
                 <Input value={ejForm.proveedor_real} onChange={(e) => setEjForm(f => ({ ...f, proveedor_real: e.target.value }))} />
-              </div>
-              <div>
-                <Label>Monto Real *</Label>
+              </FormField>
+              <FormField label="Monto Real * ($)">
                 <Input type="number" value={ejForm.monto_real} onChange={(e) => setEjForm(f => ({ ...f, monto_real: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <Label>Fecha de Compra</Label>
+              </FormField>
+              <FormField label="Fecha de Compra">
                 <Input type="date" value={ejForm.fecha_compra} onChange={(e) => setEjForm(f => ({ ...f, fecha_compra: e.target.value }))} />
-              </div>
-              <div>
-                <Label>Medio de Pago *</Label>
+              </FormField>
+              <FormField label="Medio de Pago *">
                 <Select value={ejForm.medio_pago} onValueChange={(v) => setEjForm(f => ({ ...f, medio_pago: v }))}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                   <SelectContent>
@@ -393,28 +366,42 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label>N° Boleta/Factura</Label>
+              </FormField>
+              <FormField label="N° Boleta/Factura">
                 <Input value={ejForm.numero_comprobante} onChange={(e) => setEjForm(f => ({ ...f, numero_comprobante: e.target.value }))} />
-              </div>
-              <div>
-                <Label>Observaciones</Label>
+              </FormField>
+              <FormField label="Comprobante (foto/PDF)">
+                <label className="flex items-center gap-2 p-3 border border-dashed border-border rounded-md cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors">
+                  <Upload className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    {uploading ? "Subiendo..." : ejForm.comprobante_path ? "Comprobante cargado ✓" : "Toca para adjuntar"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const url = await handleFileUpload(file);
+                        if (url) setEjForm(f => ({ ...f, comprobante_path: url }));
+                      }
+                    }}
+                  />
+                </label>
+              </FormField>
+              <FormField label="Observaciones">
                 <Textarea value={ejForm.observaciones} onChange={(e) => setEjForm(f => ({ ...f, observaciones: e.target.value }))} rows={2} />
-              </div>
-              <Button className="w-full" onClick={handleEjecutar}>Registrar Compra</Button>
-            </div>
+              </FormField>
+            </FormSection>
           )}
 
-          {/* Rendicion form */}
           {tab === "rendir" && (
-            <div className="space-y-4">
-              <div>
-                <Label>Monto Rendido</Label>
+            <FormSection>
+              <FormField label="Monto Rendido ($)">
                 <Input type="number" value={reForm.monto_rendido} onChange={(e) => setReForm(f => ({ ...f, monto_rendido: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <Label>Estado de Revisión</Label>
+              </FormField>
+              <FormField label="Estado de Revisión">
                 <Select value={reForm.estado_revision} onValueChange={(v) => setReForm(f => ({ ...f, estado_revision: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -423,13 +410,40 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
                     <SelectItem value="cerrada">Cerrada</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label>Observaciones de Tesorería</Label>
+              </FormField>
+              <FormField label="Observaciones de Tesorería">
                 <Textarea value={reForm.observaciones_tesoreria} onChange={(e) => setReForm(f => ({ ...f, observaciones_tesoreria: e.target.value }))} rows={3} />
-              </div>
-              <Button className="w-full" onClick={handleRendir}>Registrar Rendición</Button>
-            </div>
+              </FormField>
+            </FormSection>
+          )}
+        </div>
+
+        {/* Sticky bottom actions */}
+        <div className="border-t border-border p-4 sm:p-6 bg-card">
+          {tab === "detalle" && estado === "borrador" && (
+            <Button className="w-full h-12 sm:h-10 text-sm" onClick={async () => { await updateEstado("enviada", solicitud.solicitante); toast.success("Solicitud enviada"); onUpdated(); fetchRelated(solicitud.id); }}>
+              Enviar Solicitud
+            </Button>
+          )}
+          {tab === "detalle" && estado === "enviada" && (
+            <Button variant="outline" className="w-full h-12 sm:h-10 text-sm" onClick={async () => { await updateEstado("en revisión", "Sistema"); toast.success("En revisión"); onUpdated(); fetchRelated(solicitud.id); }}>
+              Marcar En Revisión
+            </Button>
+          )}
+          {tab === "aprobar" && (
+            <Button className="w-full h-12 sm:h-10 text-sm" onClick={handleAprobar}>
+              {apForm.decision === "aprobada" ? "Aprobar Solicitud" : "Rechazar Solicitud"}
+            </Button>
+          )}
+          {tab === "ejecutar" && (
+            <Button className="w-full h-12 sm:h-10 text-sm" disabled={uploading} onClick={handleEjecutar}>
+              Registrar Compra
+            </Button>
+          )}
+          {tab === "rendir" && (
+            <Button className="w-full h-12 sm:h-10 text-sm" onClick={handleRendir}>
+              Registrar Rendición
+            </Button>
           )}
         </div>
       </SheetContent>
@@ -437,13 +451,12 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
   );
 }
 
-// Helper components
 function Section({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
         {icon}
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <h3 className="text-xs sm:text-sm font-semibold text-foreground uppercase tracking-wider">{title}</h3>
       </div>
       <div className="bg-muted/30 rounded-md p-3 space-y-2">{children}</div>
     </div>
@@ -454,8 +467,21 @@ function Field({ label, value }: { label: string; value: string | null | undefin
   if (!value) return null;
   return (
     <div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-sm text-foreground">{value}</p>
+      <p className="text-[10px] sm:text-xs text-muted-foreground">{label}</p>
+      <p className="text-xs sm:text-sm text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function FormSection({ children }: { children: React.ReactNode }) {
+  return <div className="space-y-3">{children}</div>;
+}
+
+function FormField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <Label className="text-xs">{label}</Label>
+      <div className="mt-1">{children}</div>
     </div>
   );
 }
