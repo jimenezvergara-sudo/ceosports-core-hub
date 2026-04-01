@@ -39,7 +39,7 @@ export default function NuevaSolicitudDialog({ onCreated }: Props) {
   // Proveedores
   const [proveedores, setProveedores] = useState<{ id: string; nombre: string; tipo_servicio: string }[]>([]);
   useEffect(() => {
-    supabase.from("proveedores").select("id, nombre, tipo_servicio").eq("activo", true).order("nombre")
+    supabase.from("proveedores" as any).select("id, nombre, tipo_servicio").eq("activo", true).order("nombre")
       .then(({ data }) => setProveedores((data as any[]) ?? []));
   }, []);
 

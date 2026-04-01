@@ -63,11 +63,11 @@ export default function Proveedores() {
 
   const fetchProveedores = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("proveedores").select("*").order("nombre");
+    const { data } = await supabase.from("proveedores" as any).select("*").order("nombre");
     const provs = (data as any[] ?? []) as Proveedor[];
 
     // Fetch evaluations averages
-    const { data: evals } = await supabase.from("evaluaciones_proveedor").select("*");
+    const { data: evals } = await supabase.from("evaluaciones_proveedor" as any).select("*");
     const evalsByProv: Record<string, any[]> = {};
     (evals as any[] ?? []).forEach((e) => {
       if (!evalsByProv[e.proveedor_id]) evalsByProv[e.proveedor_id] = [];
@@ -121,11 +121,11 @@ export default function Proveedores() {
     };
 
     if (editing) {
-      const { error } = await supabase.from("proveedores").update(payload as any).eq("id", editing.id);
+      const { error } = await supabase.from("proveedores" as any).update(payload as any).eq("id", editing.id);
       if (error) { toast.error(error.message); return; }
       toast.success("Proveedor actualizado");
     } else {
-      const { error } = await supabase.from("proveedores").insert(payload as any);
+      const { error } = await supabase.from("proveedores" as any).insert(payload as any);
       if (error) { toast.error(error.message); return; }
       toast.success("Proveedor creado");
     }
@@ -134,7 +134,7 @@ export default function Proveedores() {
   };
 
   const remove = async (id: string) => {
-    await supabase.from("proveedores").delete().eq("id", id);
+    await supabase.from("proveedores" as any).delete().eq("id", id);
     toast.success("Proveedor eliminado");
     fetchProveedores();
   };
@@ -147,7 +147,7 @@ export default function Proveedores() {
 
   const saveEval = async () => {
     if (!evalTarget) return;
-    const { error } = await supabase.from("evaluaciones_proveedor").insert({
+    const { error } = await supabase.from("evaluaciones_proveedor" as any).insert({
       proveedor_id: evalTarget.id,
       puntaje_plazo: evalForm.puntaje_plazo,
       puntaje_calidad: evalForm.puntaje_calidad,
