@@ -39,7 +39,7 @@ const ROLES_BASE = [...ROLES_DIRECTIVA, ...ROLES_TECNICO, ...ROLES_OPERATIVO];
 export default function Staff() {
   const { roles, loading, refetch } = useStaffRoles();
   const { personas } = usePersonas({ includeLegacyWithoutClub: true });
-  const { categorias } = useCategorias();
+  const { categorias } = useCategorias({ includeLegacyWithoutClub: true });
   const { clubId } = useAuth();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({

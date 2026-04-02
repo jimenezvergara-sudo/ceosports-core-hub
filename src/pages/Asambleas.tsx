@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { BookOpen, Plus, Upload, Download, Trash2, Users, FileText, ClipboardList, UserCheck } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { BookOpen, Plus, Upload, Download, Trash2, Users, FileText, ClipboardList, UserCheck, Pencil, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -14,19 +14,20 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { usePersonas, personaLabel } from "@/hooks/use-relational-data";
+import { usePersonas, personaLabel } from "@/hooks/use-relational-data"; 
 
 /* ─── types ─── */
 interface Asamblea {
-  id: string; tipo: string; titulo: string; fecha: string; hora_inicio: string | null;
+  id: string; club_id?: string | null; tipo: string; titulo: string; fecha: string; hora_inicio: string | null;
   hora_fin: string | null; lugar: string | null; descripcion: string | null;
   quorum_requerido: number; quorum_presente: number; estado: string;
   acta_storage_path: string | null; acta_nombre_archivo: string | null; observaciones: string | null;
+  tabla_contenido: string | null; tabla_storage_path: string | null; tabla_nombre_archivo: string | null;
 }
 interface Acuerdo {
   id: string; asamblea_id: string; numero: number; descripcion: string;
   responsable_id: string | null; fecha_limite: string | null; estado: string;
-  prioridad: string; observaciones: string | null;
+  prioridad: string; observaciones: string | null; notas_avance: string | null;
   persona_nombre?: string; persona_apellido?: string;
 }
 interface Asistente {
@@ -40,19 +41,23 @@ interface Socio {
   persona_nombre?: string; persona_apellido?: string; persona_rut?: string | null;
 }
 
+const ACUERDO_ESTADOS = [
+  { value: "pendiente", label: "Pendiente", color: "bg-muted text-muted-foreground border-border" },
+  { value: "en_proceso", label: "En proceso", color: "bg-blue-600/20 text-blue-500 border-blue-600/30" },
+  { value: "atrasada", label: "Atrasada", color: "bg-amber-600/20 text-amber-500 border-amber-600/30" },
+  { value: "terminada", label: "Terminada", color: "bg-emerald-600/20 text-emerald-400 border-emerald-600/30" },
+  { value: "desechada", label: "Desechada", color: "bg-red-600/20 text-red-400 border-red-600/30" },
+];
+
 /* ─── helper ─── */
 const estadoBadge = (e: string) => {
-  switch (e) {
-    case "cumplido": return <Badge className="bg-emerald-600/20 text-emerald-400 border-emerald-600/30 text-[10px]">Cumplido</Badge>;
-    case "en_progreso": return <Badge className="bg-amber-600/20 text-amber-400 border-amber-600/30 text-[10px]">En progreso</Badge>;
-    case "vencido": return <Badge variant="destructive" className="text-[10px]">Vencido</Badge>;
-    default: return <Badge variant="secondary" className="text-[10px]">Pendiente</Badge>;
-  }
+  const found = ACUERDO_ESTADOS.find((s) => s.value === e);
+  return <Badge className={`${found?.color ?? "bg-muted text-muted-foreground border-border"} text-[10px]`}>{found?.label ?? e}</Badge>;
 };
 
 export default function Asambleas() {
   const { clubId } = useAuth();
-  const { personas } = usePersonas();
+  const { personas } = usePersonas({ includeLegacyWithoutClub: true });
   const [asambleas, setAsambleas] = useState<Asamblea[]>([]);
   const [socios, setSocios] = useState<Socio[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,11 +67,15 @@ export default function Asambleas() {
 
   // Dialogs
   const [openNew, setOpenNew] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const [openAcuerdo, setOpenAcuerdo] = useState(false);
   const [openSocio, setOpenSocio] = useState(false);
+  const [expandedAcuerdo, setExpandedAcuerdo] = useState<string | null>(null);
+  const [editingAvance, setEditingAvance] = useState<string | null>(null);
+  const [avanceText, setAvanceText] = useState("");
 
   // Forms
-  const [formAsam, setFormAsam] = useState({ titulo: "", tipo: "ordinaria", fecha: "", hora_inicio: "", hora_fin: "", lugar: "", descripcion: "", quorum_requerido: "0" });
+  const [formAsam, setFormAsam] = useState({ titulo: "", tipo: "ordinaria", fecha: "", hora_inicio: "", hora_fin: "", lugar: "", descripcion: "", quorum_requerido: "0", tabla_contenido: "" });
   const [formAcuerdo, setFormAcuerdo] = useState({ descripcion: "", responsable_id: "", fecha_limite: "", prioridad: "media" });
   const [formSocio, setFormSocio] = useState({ persona_id: "", tipo_socio: "activo", fecha_ingreso: new Date().toISOString().slice(0, 10), observaciones: "" });
 
@@ -113,12 +122,72 @@ export default function Asambleas() {
       hora_inicio: formAsam.hora_inicio || null, hora_fin: formAsam.hora_fin || null,
       lugar: formAsam.lugar || null, descripcion: formAsam.descripcion || null,
       quorum_requerido: parseInt(formAsam.quorum_requerido) || 0,
+      tabla_contenido: formAsam.tabla_contenido || null,
     } as any);
     if (error) { toast.error(error.message); return; }
     toast.success("Asamblea registrada");
     setOpenNew(false);
-    setFormAsam({ titulo: "", tipo: "ordinaria", fecha: "", hora_inicio: "", hora_fin: "", lugar: "", descripcion: "", quorum_requerido: "0" });
+    setFormAsam({ titulo: "", tipo: "ordinaria", fecha: "", hora_inicio: "", hora_fin: "", lugar: "", descripcion: "", quorum_requerido: "0", tabla_contenido: "" });
     fetchAsambleas();
+  };
+
+  const openEditDialog = () => {
+    if (!selected) return;
+    setFormAsam({
+      titulo: selected.titulo, tipo: selected.tipo, fecha: selected.fecha,
+      hora_inicio: selected.hora_inicio?.slice(0, 5) || "", hora_fin: selected.hora_fin?.slice(0, 5) || "",
+      lugar: selected.lugar || "", descripcion: selected.descripcion || "",
+      quorum_requerido: String(selected.quorum_requerido || 0),
+      tabla_contenido: selected.tabla_contenido || "",
+    });
+    setOpenEdit(true);
+  };
+
+  const updateAsamblea = async () => {
+    if (!selected || !formAsam.titulo || !formAsam.fecha) { toast.error("Título y fecha son obligatorios"); return; }
+    const payload = {
+      titulo: formAsam.titulo, tipo: formAsam.tipo, fecha: formAsam.fecha,
+      hora_inicio: formAsam.hora_inicio || null, hora_fin: formAsam.hora_fin || null,
+      lugar: formAsam.lugar || null, descripcion: formAsam.descripcion || null,
+      quorum_requerido: parseInt(formAsam.quorum_requerido) || 0,
+      tabla_contenido: formAsam.tabla_contenido || null,
+    };
+    const { error } = await supabase.from("asambleas").update(payload as any).eq("id", selected.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Asamblea actualizada");
+    setOpenEdit(false);
+    const updated = { ...selected, ...payload };
+    setSelected(updated);
+    fetchAsambleas();
+  };
+
+  const uploadTabla = async (file: File) => {
+    if (!selected || !clubId) return;
+    const path = `${clubId}/tablas/${selected.id}/${file.name}`;
+    const { error: upErr } = await supabase.storage.from("club-documentos").upload(path, file, { upsert: true });
+    if (upErr) { toast.error(upErr.message); return; }
+    await supabase.from("asambleas").update({ tabla_storage_path: path, tabla_nombre_archivo: file.name } as any).eq("id", selected.id);
+    toast.success("Tabla/agenda cargada");
+    setSelected({ ...selected, tabla_storage_path: path, tabla_nombre_archivo: file.name });
+    fetchAsambleas();
+  };
+
+  const downloadTabla = async () => {
+    if (!selected?.tabla_storage_path) return;
+    const { data } = await supabase.storage.from("club-documentos").download(selected.tabla_storage_path);
+    if (data) {
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url; a.download = selected.tabla_nombre_archivo || "tabla.pdf"; a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const saveAvance = async (acuerdoId: string) => {
+    await supabase.from("asamblea_acuerdos").update({ notas_avance: avanceText } as any).eq("id", acuerdoId);
+    toast.success("Avance guardado");
+    setEditingAvance(null);
+    if (selected) fetchDetail(selected);
   };
 
   const saveAcuerdo = async () => {
@@ -271,6 +340,11 @@ export default function Asambleas() {
                         </p>
                       </div>
                       <div className="flex gap-1">
+                        {selected.estado === "programada" && (
+                          <Button variant="outline" size="icon" className="h-7 w-7" onClick={openEditDialog}>
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
                         <Select value={selected.estado} onValueChange={async (v) => {
                           await supabase.from("asambleas").update({ estado: v } as any).eq("id", selected.id);
                           setSelected({ ...selected, estado: v });
@@ -290,6 +364,31 @@ export default function Asambleas() {
                     </div>
 
                     {selected.descripcion && <p className="text-sm text-muted-foreground">{selected.descripcion}</p>}
+
+                    {/* Tabla / Agenda */}
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5"><ClipboardList className="w-4 h-4" /> Tabla / Agenda</h4>
+                      {selected.tabla_contenido && (
+                        <div className="bg-muted/50 rounded-lg p-3 text-sm text-foreground whitespace-pre-wrap">{selected.tabla_contenido}</div>
+                      )}
+                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                        <FileText className="w-4 h-4 text-secondary shrink-0" />
+                        {selected.tabla_storage_path ? (
+                          <>
+                            <span className="text-xs text-foreground flex-1 truncate">{selected.tabla_nombre_archivo}</span>
+                            <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={downloadTabla}><Download className="w-3 h-3" /> Descargar</Button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-xs text-muted-foreground flex-1">Sin archivo de tabla adjunto</span>
+                            <label className="cursor-pointer">
+                              <Button variant="outline" size="sm" className="h-7 text-xs gap-1 pointer-events-none"><Upload className="w-3 h-3" /> Cargar Tabla</Button>
+                              <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx" onChange={(e) => e.target.files?.[0] && uploadTabla(e.target.files[0])} />
+                            </label>
+                          </>
+                        )}
+                      </div>
+                    </div>
 
                     {/* Acta */}
                     <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
@@ -367,15 +466,35 @@ export default function Asambleas() {
                                 <Badge variant="outline" className="text-[9px]">{ac.prioridad}</Badge>
                               </div>
                               <div className="flex gap-1 mt-1">
-                                {["pendiente", "en_progreso", "cumplido", "vencido"].map((e) => (
+                                {ACUERDO_ESTADOS.map(({ value: e, label }) => (
                                   <button
                                     key={e}
                                     onClick={() => updateAcuerdoEstado(ac.id, e)}
                                     className={`text-[9px] px-2 py-0.5 rounded-full border transition-colors ${ac.estado === e ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
                                   >
-                                    {e === "pendiente" ? "Pendiente" : e === "en_progreso" ? "En progreso" : e === "cumplido" ? "Cumplido" : "Vencido"}
+                                    {label}
                                   </button>
                                 ))}
+                              </div>
+                              {/* Progress notes */}
+                              <div className="mt-2 pt-2 border-t border-border/50 space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Avance</span>
+                                  <Button variant="ghost" size="sm" className="h-5 text-[10px] gap-1" onClick={() => { setEditingAvance(editingAvance === ac.id ? null : ac.id); setAvanceText(ac.notas_avance || ""); }}>
+                                    <Pencil className="w-2.5 h-2.5" /> {ac.notas_avance ? "Editar" : "Agregar"}
+                                  </Button>
+                                </div>
+                                {editingAvance === ac.id ? (
+                                  <div className="space-y-1">
+                                    <Textarea value={avanceText} onChange={(e) => setAvanceText(e.target.value)} rows={3} className="text-xs" placeholder="Describe el avance, acciones realizadas..." />
+                                    <div className="flex gap-1">
+                                      <Button size="sm" className="h-6 text-[10px]" onClick={() => saveAvance(ac.id)}>Guardar</Button>
+                                      <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => setEditingAvance(null)}>Cancelar</Button>
+                                    </div>
+                                  </div>
+                                ) : ac.notas_avance ? (
+                                  <p className="text-xs text-foreground whitespace-pre-wrap bg-muted/30 rounded p-2">{ac.notas_avance}</p>
+                                ) : null}
                               </div>
                             </div>
                           ))}
@@ -485,10 +604,65 @@ export default function Asambleas() {
             <div className="space-y-1"><Label className="text-xs">Descripción</Label>
               <Textarea value={formAsam.descripcion} onChange={(e) => setFormAsam({ ...formAsam, descripcion: e.target.value })} rows={2} />
             </div>
+            <div className="space-y-1"><Label className="text-xs">Tabla / Agenda</Label>
+              <Textarea value={formAsam.tabla_contenido} onChange={(e) => setFormAsam({ ...formAsam, tabla_contenido: e.target.value })} rows={3} placeholder="Puntos de la tabla de la asamblea..." />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenNew(false)}>Cancelar</Button>
             <Button onClick={saveAsamblea}>Registrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ DIALOG EDITAR ASAMBLEA ═══ */}
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Editar Asamblea</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label className="text-xs">Título *</Label>
+                <Input value={formAsam.titulo} onChange={(e) => setFormAsam({ ...formAsam, titulo: e.target.value })} />
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Tipo</Label>
+                <Select value={formAsam.tipo} onValueChange={(v) => setFormAsam({ ...formAsam, tipo: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ordinaria">Ordinaria</SelectItem>
+                    <SelectItem value="extraordinaria">Extraordinaria</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1"><Label className="text-xs">Fecha *</Label>
+                <Input type="date" value={formAsam.fecha} onChange={(e) => setFormAsam({ ...formAsam, fecha: e.target.value })} />
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Hora inicio</Label>
+                <Input type="time" value={formAsam.hora_inicio} onChange={(e) => setFormAsam({ ...formAsam, hora_inicio: e.target.value })} />
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Hora fin</Label>
+                <Input type="time" value={formAsam.hora_fin} onChange={(e) => setFormAsam({ ...formAsam, hora_fin: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label className="text-xs">Lugar</Label>
+                <Input value={formAsam.lugar} onChange={(e) => setFormAsam({ ...formAsam, lugar: e.target.value })} />
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Quórum requerido</Label>
+                <Input type="number" value={formAsam.quorum_requerido} onChange={(e) => setFormAsam({ ...formAsam, quorum_requerido: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1"><Label className="text-xs">Descripción</Label>
+              <Textarea value={formAsam.descripcion} onChange={(e) => setFormAsam({ ...formAsam, descripcion: e.target.value })} rows={2} />
+            </div>
+            <div className="space-y-1"><Label className="text-xs">Tabla / Agenda</Label>
+              <Textarea value={formAsam.tabla_contenido} onChange={(e) => setFormAsam({ ...formAsam, tabla_contenido: e.target.value })} rows={4} placeholder="Puntos de la tabla de la asamblea..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenEdit(false)}>Cancelar</Button>
+            <Button onClick={updateAsamblea}>Guardar Cambios</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

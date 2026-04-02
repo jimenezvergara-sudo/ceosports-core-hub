@@ -113,6 +113,7 @@ export type Database = {
           estado: string
           fecha_limite: string | null
           id: string
+          notas_avance: string | null
           numero: number
           observaciones: string | null
           prioridad: string
@@ -127,6 +128,7 @@ export type Database = {
           estado?: string
           fecha_limite?: string | null
           id?: string
+          notas_avance?: string | null
           numero?: number
           observaciones?: string | null
           prioridad?: string
@@ -141,6 +143,7 @@ export type Database = {
           estado?: string
           fecha_limite?: string | null
           id?: string
+          notas_avance?: string | null
           numero?: number
           observaciones?: string | null
           prioridad?: string
@@ -245,6 +248,9 @@ export type Database = {
           observaciones: string | null
           quorum_presente: number | null
           quorum_requerido: number | null
+          tabla_contenido: string | null
+          tabla_nombre_archivo: string | null
+          tabla_storage_path: string | null
           tipo: string
           titulo: string
           updated_at: string
@@ -264,6 +270,9 @@ export type Database = {
           observaciones?: string | null
           quorum_presente?: number | null
           quorum_requerido?: number | null
+          tabla_contenido?: string | null
+          tabla_nombre_archivo?: string | null
+          tabla_storage_path?: string | null
           tipo?: string
           titulo: string
           updated_at?: string
@@ -283,6 +292,9 @@ export type Database = {
           observaciones?: string | null
           quorum_presente?: number | null
           quorum_requerido?: number | null
+          tabla_contenido?: string | null
+          tabla_nombre_archivo?: string | null
+          tabla_storage_path?: string | null
           tipo?: string
           titulo?: string
           updated_at?: string

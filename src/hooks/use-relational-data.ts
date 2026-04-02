@@ -53,23 +53,29 @@ export function usePersonas(options: UsePersonasOptions = {}) {
   return { personas, loading };
 }
 
-export function useCategorias() {
+interface UseCategoriaOptions {
+  includeLegacyWithoutClub?: boolean;
+}
+
+export function useCategorias(options: UseCategoriaOptions = {}) {
   const [categorias, setCategorias] = useState<CategoriaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const { clubId } = useAuth();
+  const { includeLegacyWithoutClub = false } = options;
 
   useEffect(() => {
     if (!clubId) { setLoading(false); return; }
-    supabase
+    let query = supabase
       .from("categorias")
-      .select("id, nombre, rama")
-      .eq("club_id", clubId)
-      .order("nombre")
-      .then(({ data }) => {
-        setCategorias((data as unknown as CategoriaRow[]) ?? []);
-        setLoading(false);
-      });
-  }, [clubId]);
+      .select("id, nombre, rama");
+    query = includeLegacyWithoutClub
+      ? query.or(`club_id.eq.${clubId},club_id.is.null`)
+      : query.eq("club_id", clubId);
+    query.order("nombre").then(({ data }) => {
+      setCategorias((data as unknown as CategoriaRow[]) ?? []);
+      setLoading(false);
+    });
+  }, [clubId, includeLegacyWithoutClub]);
 
   return { categorias, loading };
 }
