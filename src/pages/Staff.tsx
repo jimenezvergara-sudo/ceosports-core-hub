@@ -196,6 +196,7 @@ export default function Staff() {
       ) : (
         <div className="space-y-8">
           {renderSection("Directiva", directiva)}
+          {renderSection("Delegados", delegados)}
           {renderSection("Cuerpo Técnico", tecnicos)}
           {renderSection("Operativos", operativos)}
           {otros.length > 0 && renderSection("Otros", otros)}
