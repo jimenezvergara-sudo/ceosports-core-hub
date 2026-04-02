@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import ceoLogotipo from "@/assets/ceo-logotipo.png";
 
 export default function Login() {
   const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
@@ -60,11 +61,13 @@ export default function Login() {
     : "Inicia sesión en tu plataforma";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary">CEO Sports</CardTitle>
-          <CardDescription>{title}</CardDescription>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
+      <Card className="w-full max-w-md shadow-xl border-0 bg-card/95 backdrop-blur-sm">
+        <CardHeader className="text-center pb-2">
+          <div className="flex justify-center mb-4">
+            <img src={ceoLogotipo} alt="CEO Sports" className="h-24 w-auto object-contain" />
+          </div>
+          <CardDescription className="text-base">{title}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

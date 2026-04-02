@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
+import ceoIsotipo from "@/assets/ceo-isotipo.png";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -46,13 +47,11 @@ export default function AppSidebar() {
     >
       {/* Club header */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
-        <div className="w-9 h-9 rounded-md bg-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0 tracking-tight">
-          {clubActual?.nombre?.substring(0, 2).toUpperCase() || "CS"}
-        </div>
+        <img src={ceoIsotipo} alt="CEO Sports" className="w-9 h-9 shrink-0 object-contain" />
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="overflow-hidden min-w-0">
             <h1 className="text-white font-bold text-sm leading-tight tracking-tight truncate">{clubActual?.nombre || "CEO Sports"}</h1>
-            <p className="text-sidebar-foreground text-[10px] leading-tight tracking-wide uppercase truncate">{clubActual?.deporte || "ERP Deportivo"}</p>
+            <p className="text-sidebar-foreground text-[10px] leading-tight tracking-wide uppercase truncate">{clubActual?.deporte || "Gestión Deportiva"}</p>
           </motion.div>
         )}
       </div>
