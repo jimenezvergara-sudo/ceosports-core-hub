@@ -340,6 +340,11 @@ export default function Asambleas() {
                         </p>
                       </div>
                       <div className="flex gap-1">
+                        {selected.estado === "programada" && (
+                          <Button variant="outline" size="icon" className="h-7 w-7" onClick={openEditDialog}>
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
                         <Select value={selected.estado} onValueChange={async (v) => {
                           await supabase.from("asambleas").update({ estado: v } as any).eq("id", selected.id);
                           setSelected({ ...selected, estado: v });
@@ -359,6 +364,31 @@ export default function Asambleas() {
                     </div>
 
                     {selected.descripcion && <p className="text-sm text-muted-foreground">{selected.descripcion}</p>}
+
+                    {/* Tabla / Agenda */}
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5"><ClipboardList className="w-4 h-4" /> Tabla / Agenda</h4>
+                      {selected.tabla_contenido && (
+                        <div className="bg-muted/50 rounded-lg p-3 text-sm text-foreground whitespace-pre-wrap">{selected.tabla_contenido}</div>
+                      )}
+                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                        <FileText className="w-4 h-4 text-secondary shrink-0" />
+                        {selected.tabla_storage_path ? (
+                          <>
+                            <span className="text-xs text-foreground flex-1 truncate">{selected.tabla_nombre_archivo}</span>
+                            <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={downloadTabla}><Download className="w-3 h-3" /> Descargar</Button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-xs text-muted-foreground flex-1">Sin archivo de tabla adjunto</span>
+                            <label className="cursor-pointer">
+                              <Button variant="outline" size="sm" className="h-7 text-xs gap-1 pointer-events-none"><Upload className="w-3 h-3" /> Cargar Tabla</Button>
+                              <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx" onChange={(e) => e.target.files?.[0] && uploadTabla(e.target.files[0])} />
+                            </label>
+                          </>
+                        )}
+                      </div>
+                    </div>
 
                     {/* Acta */}
                     <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
