@@ -31,6 +31,7 @@ const ROLES_TECNICO = [
 const ROLES_OPERATIVO = [
   "Coordinador",
   "Encargado de Finanzas",
+  "Encargado de Traslados",
   "Estadístico",
 ];
 
