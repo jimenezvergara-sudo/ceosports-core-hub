@@ -12,6 +12,7 @@ import {
   Receipt,
   Truck,
   BookOpen,
+  Dumbbell,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -33,6 +34,7 @@ const navItems = [
   { to: "/compras", icon: ShoppingCart, label: "Compras" },
   { to: "/proveedores", icon: Truck, label: "Proveedores" },
   { to: "/cuotas", icon: Receipt, label: "Cuotas" },
+  { to: "/deportistas", icon: Dumbbell, label: "Deportistas" },
   { to: "/asambleas", icon: BookOpen, label: "Asambleas" },
 ];
 

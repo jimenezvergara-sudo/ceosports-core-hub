@@ -309,6 +309,58 @@ export type Database = {
           },
         ]
       }
+      asistencia_entrenamiento: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          estado: string
+          id: string
+          observaciones: string | null
+          persona_id: string
+          sesion_id: string
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          observaciones?: string | null
+          persona_id: string
+          sesion_id: string
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          observaciones?: string | null
+          persona_id?: string
+          sesion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asistencia_entrenamiento_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asistencia_entrenamiento_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asistencia_entrenamiento_sesion_id_fkey"
+            columns: ["sesion_id"]
+            isOneToOne: false
+            referencedRelation: "sesiones_entrenamiento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beneficios_cuota: {
         Row: {
           activo: boolean
@@ -1061,6 +1113,66 @@ export type Database = {
           },
         ]
       }
+      mediciones_biometricas: {
+        Row: {
+          alcance: number | null
+          club_id: string | null
+          created_at: string
+          envergadura: number | null
+          fecha_medicion: string
+          id: string
+          observaciones: string | null
+          persona_id: string
+          peso: number | null
+          talla: number | null
+          talla_madre: number | null
+          talla_padre: number | null
+        }
+        Insert: {
+          alcance?: number | null
+          club_id?: string | null
+          created_at?: string
+          envergadura?: number | null
+          fecha_medicion?: string
+          id?: string
+          observaciones?: string | null
+          persona_id: string
+          peso?: number | null
+          talla?: number | null
+          talla_madre?: number | null
+          talla_padre?: number | null
+        }
+        Update: {
+          alcance?: number | null
+          club_id?: string | null
+          created_at?: string
+          envergadura?: number | null
+          fecha_medicion?: string
+          id?: string
+          observaciones?: string | null
+          persona_id?: string
+          peso?: number | null
+          talla?: number | null
+          talla_madre?: number | null
+          talla_padre?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mediciones_biometricas_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mediciones_biometricas_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       niveles_aprobacion: {
         Row: {
           activo: boolean
@@ -1485,6 +1597,61 @@ export type Database = {
           },
         ]
       }
+      registros_test_deportivo: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          fecha_ejecucion: string
+          id: string
+          observaciones: string | null
+          persona_id: string
+          tipo_test_id: string
+          valor: number
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          fecha_ejecucion?: string
+          id?: string
+          observaciones?: string | null
+          persona_id: string
+          tipo_test_id: string
+          valor: number
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          fecha_ejecucion?: string
+          id?: string
+          observaciones?: string | null
+          persona_id?: string
+          tipo_test_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registros_test_deportivo_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registros_test_deportivo_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registros_test_deportivo_tipo_test_id_fkey"
+            columns: ["tipo_test_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_test_deportivo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rendiciones_compra: {
         Row: {
           club_id: string | null
@@ -1542,6 +1709,57 @@ export type Database = {
             columns: ["solicitud_id"]
             isOneToOne: false
             referencedRelation: "solicitudes_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sesiones_entrenamiento: {
+        Row: {
+          categoria_id: string | null
+          club_id: string | null
+          created_at: string
+          fecha: string
+          hora_fin: string
+          hora_inicio: string
+          id: string
+          notas: string | null
+          updated_at: string
+        }
+        Insert: {
+          categoria_id?: string | null
+          club_id?: string | null
+          created_at?: string
+          fecha: string
+          hora_fin: string
+          hora_inicio: string
+          id?: string
+          notas?: string | null
+          updated_at?: string
+        }
+        Update: {
+          categoria_id?: string | null
+          club_id?: string | null
+          created_at?: string
+          fecha?: string
+          hora_fin?: string
+          hora_inicio?: string
+          id?: string
+          notas?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sesiones_entrenamiento_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sesiones_entrenamiento_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
         ]
@@ -1708,6 +1926,47 @@ export type Database = {
             columns: ["persona_id"]
             isOneToOne: false
             referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tipos_test_deportivo: {
+        Row: {
+          activo: boolean
+          categoria: string
+          club_id: string | null
+          created_at: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          unidad_medida: string
+        }
+        Insert: {
+          activo?: boolean
+          categoria?: string
+          club_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          unidad_medida?: string
+        }
+        Update: {
+          activo?: boolean
+          categoria?: string
+          club_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          unidad_medida?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tipos_test_deportivo_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
         ]
