@@ -203,6 +203,62 @@ export type Database = {
           },
         ]
       }
+      club_documentos: {
+        Row: {
+          club_id: string
+          created_at: string
+          descripcion: string | null
+          etiqueta: string
+          fecha_emision: string | null
+          fecha_vencimiento: string | null
+          id: string
+          nombre: string
+          nombre_archivo: string
+          notas: string | null
+          storage_path: string
+          tipo_mime: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          descripcion?: string | null
+          etiqueta?: string
+          fecha_emision?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          nombre: string
+          nombre_archivo: string
+          notas?: string | null
+          storage_path: string
+          tipo_mime: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          descripcion?: string | null
+          etiqueta?: string
+          fecha_emision?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          nombre?: string
+          nombre_archivo?: string
+          notas?: string | null
+          storage_path?: string
+          tipo_mime?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_documentos_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_usuarios: {
         Row: {
           activo: boolean
@@ -247,9 +303,22 @@ export type Database = {
           ciudad: string | null
           created_at: string
           deporte: string
+          descripcion: string | null
+          direccion: string | null
+          email: string | null
+          fecha_fundacion: string | null
           id: string
           logo_url: string | null
+          municipalidad: string | null
           nombre: string
+          numero_registro: string | null
+          redes_sociales: Json | null
+          region: string | null
+          representante_legal: string | null
+          rut: string | null
+          sitio_web: string | null
+          telefono: string | null
+          tipo_organizacion: string | null
           updated_at: string
         }
         Insert: {
@@ -257,9 +326,22 @@ export type Database = {
           ciudad?: string | null
           created_at?: string
           deporte?: string
+          descripcion?: string | null
+          direccion?: string | null
+          email?: string | null
+          fecha_fundacion?: string | null
           id?: string
           logo_url?: string | null
+          municipalidad?: string | null
           nombre: string
+          numero_registro?: string | null
+          redes_sociales?: Json | null
+          region?: string | null
+          representante_legal?: string | null
+          rut?: string | null
+          sitio_web?: string | null
+          telefono?: string | null
+          tipo_organizacion?: string | null
           updated_at?: string
         }
         Update: {
@@ -267,9 +349,22 @@ export type Database = {
           ciudad?: string | null
           created_at?: string
           deporte?: string
+          descripcion?: string | null
+          direccion?: string | null
+          email?: string | null
+          fecha_fundacion?: string | null
           id?: string
           logo_url?: string | null
+          municipalidad?: string | null
           nombre?: string
+          numero_registro?: string | null
+          redes_sociales?: Json | null
+          region?: string | null
+          representante_legal?: string | null
+          rut?: string | null
+          sitio_web?: string | null
+          telefono?: string | null
+          tipo_organizacion?: string | null
           updated_at?: string
         }
         Relationships: []
