@@ -100,11 +100,13 @@ export default function Staff() {
   };
 
   // Group by role type
-  const directiva = roles.filter((r) => ROLES_DIRECTIVA.includes(r.rol) || r.rol.toLowerCase().startsWith("delegado"));
+  const isDelegado = (rol: string) => rol.toLowerCase().startsWith("delegado");
+  const directiva = roles.filter((r) => ROLES_DIRECTIVA.includes(r.rol));
+  const delegados = roles.filter((r) => isDelegado(r.rol));
   const tecnicos = roles.filter((r) => ROLES_TECNICO.includes(r.rol));
   const operativos = roles.filter((r) => ROLES_OPERATIVO.includes(r.rol));
   const otros = roles.filter(
-    (r) => !directiva.includes(r) && !tecnicos.includes(r) && !operativos.includes(r)
+    (r) => !directiva.includes(r) && !delegados.includes(r) && !tecnicos.includes(r) && !operativos.includes(r)
   );
 
   // Group items by specific role within a section
