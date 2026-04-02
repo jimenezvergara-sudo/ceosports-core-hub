@@ -604,10 +604,65 @@ export default function Asambleas() {
             <div className="space-y-1"><Label className="text-xs">Descripción</Label>
               <Textarea value={formAsam.descripcion} onChange={(e) => setFormAsam({ ...formAsam, descripcion: e.target.value })} rows={2} />
             </div>
+            <div className="space-y-1"><Label className="text-xs">Tabla / Agenda</Label>
+              <Textarea value={formAsam.tabla_contenido} onChange={(e) => setFormAsam({ ...formAsam, tabla_contenido: e.target.value })} rows={3} placeholder="Puntos de la tabla de la asamblea..." />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenNew(false)}>Cancelar</Button>
             <Button onClick={saveAsamblea}>Registrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ DIALOG EDITAR ASAMBLEA ═══ */}
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Editar Asamblea</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label className="text-xs">Título *</Label>
+                <Input value={formAsam.titulo} onChange={(e) => setFormAsam({ ...formAsam, titulo: e.target.value })} />
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Tipo</Label>
+                <Select value={formAsam.tipo} onValueChange={(v) => setFormAsam({ ...formAsam, tipo: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ordinaria">Ordinaria</SelectItem>
+                    <SelectItem value="extraordinaria">Extraordinaria</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1"><Label className="text-xs">Fecha *</Label>
+                <Input type="date" value={formAsam.fecha} onChange={(e) => setFormAsam({ ...formAsam, fecha: e.target.value })} />
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Hora inicio</Label>
+                <Input type="time" value={formAsam.hora_inicio} onChange={(e) => setFormAsam({ ...formAsam, hora_inicio: e.target.value })} />
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Hora fin</Label>
+                <Input type="time" value={formAsam.hora_fin} onChange={(e) => setFormAsam({ ...formAsam, hora_fin: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label className="text-xs">Lugar</Label>
+                <Input value={formAsam.lugar} onChange={(e) => setFormAsam({ ...formAsam, lugar: e.target.value })} />
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Quórum requerido</Label>
+                <Input type="number" value={formAsam.quorum_requerido} onChange={(e) => setFormAsam({ ...formAsam, quorum_requerido: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1"><Label className="text-xs">Descripción</Label>
+              <Textarea value={formAsam.descripcion} onChange={(e) => setFormAsam({ ...formAsam, descripcion: e.target.value })} rows={2} />
+            </div>
+            <div className="space-y-1"><Label className="text-xs">Tabla / Agenda</Label>
+              <Textarea value={formAsam.tabla_contenido} onChange={(e) => setFormAsam({ ...formAsam, tabla_contenido: e.target.value })} rows={4} placeholder="Puntos de la tabla de la asamblea..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenEdit(false)}>Cancelar</Button>
+            <Button onClick={updateAsamblea}>Guardar Cambios</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
