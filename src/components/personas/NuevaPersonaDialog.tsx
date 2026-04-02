@@ -11,6 +11,7 @@ import { calcularEdad, calcularCategoria, requiereTutor } from "@/types/persona"
 import type { Persona } from "@/types/persona";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Props {
   open: boolean;
@@ -21,6 +22,7 @@ interface Props {
 const familiarVacio = { nombre: "", apellido: "", rut: "", telefono: "", email: "", direccion: "", profesion: "" };
 
 export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props) {
+  const { clubId } = useAuth();
   const [form, setForm] = useState({
     nombre: "", apellido: "", rut: "", fechaNacimiento: "", direccion: "",
     rama: "Masc" as "Masc" | "Fem" | "Mixto",
@@ -39,6 +41,11 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
   const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = async () => {
+    if (!clubId) {
+      toast.error("No hay un club seleccionado");
+      return;
+    }
+
     if (!form.nombre.trim() || !form.apellido.trim() || !form.rut.trim()) {
       toast.error("Completa los campos obligatorios: Nombre, Apellido y RUT");
       return;
@@ -59,6 +66,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
     const { data: dbPersona, error: dbError } = await supabase
       .from("personas")
       .insert({
+        club_id: clubId,
         nombre: form.nombre.trim(),
         apellido: form.apellido.trim(),
         rut: form.rut.trim(),
@@ -98,6 +106,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
         const { data: newFam, error: famErr } = await supabase
           .from("personas")
           .insert({
+            club_id: clubId,
             nombre: familiar.nombre.trim() || "Sin nombre",
             apellido: familiar.apellido.trim() || familiar.nombre.trim(),
             rut: familiar.rut.trim() || null,
@@ -113,6 +122,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
       }
       if (familiarId && jugadorId) {
         await supabase.from("persona_relaciones" as any).insert({
+          club_id: clubId,
           persona_id: jugadorId,
           relacionado_id: familiarId,
           tipo_relacion: tipoRelacion,

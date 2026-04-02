@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useStaffRoles, usePersonas, useCategorias, personaLabel } from "@/hooks/use-relational-data";
+import { useAuth } from "@/hooks/use-auth";
 
 const ROLES_DIRECTIVA = [
   "Presidente",
@@ -37,8 +38,9 @@ const ROLES_BASE = [...ROLES_DIRECTIVA, ...ROLES_TECNICO, ...ROLES_OPERATIVO];
 
 export default function Staff() {
   const { roles, loading, refetch } = useStaffRoles();
-  const { personas } = usePersonas();
+  const { personas } = usePersonas({ includeLegacyWithoutClub: true });
   const { categorias } = useCategorias();
+  const { clubId } = useAuth();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     persona_id: "",
@@ -63,8 +65,13 @@ export default function Staff() {
       toast.error("Persona y rol son obligatorios");
       return;
     }
+    if (!clubId) {
+      toast.error("No hay un club seleccionado");
+      return;
+    }
 
     const { error } = await supabase.from("staff_roles" as any).insert({
+      club_id: clubId,
       persona_id: form.persona_id,
       rol: rolFinal,
       categoria_id: form.categoria_id || null,

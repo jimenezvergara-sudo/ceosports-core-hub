@@ -25,23 +25,30 @@ export interface ProyectoRow {
   estado: string;
 }
 
-export function usePersonas() {
+interface UsePersonasOptions {
+  includeLegacyWithoutClub?: boolean;
+}
+
+export function usePersonas(options: UsePersonasOptions = {}) {
   const [personas, setPersonas] = useState<PersonaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const { clubId } = useAuth();
+  const { includeLegacyWithoutClub = false } = options;
 
   useEffect(() => {
     if (!clubId) { setLoading(false); return; }
     let query = supabase
       .from("personas")
-      .select("id, nombre, apellido, rut, tipo_persona, estado")
-      .order("apellido");
-    query = query.eq("club_id", clubId);
+      .select("id, nombre, apellido, rut, tipo_persona, estado");
+    query = includeLegacyWithoutClub
+      ? query.or(`club_id.eq.${clubId},club_id.is.null`)
+      : query.eq("club_id", clubId);
+    query = query.order("apellido");
     query.then(({ data }) => {
       setPersonas((data as unknown as PersonaRow[]) ?? []);
       setLoading(false);
     });
-  }, [clubId]);
+  }, [clubId, includeLegacyWithoutClub]);
 
   return { personas, loading };
 }
