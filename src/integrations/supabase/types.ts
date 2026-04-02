@@ -104,6 +104,199 @@ export type Database = {
           },
         ]
       }
+      asamblea_acuerdos: {
+        Row: {
+          asamblea_id: string
+          club_id: string | null
+          created_at: string
+          descripcion: string
+          estado: string
+          fecha_limite: string | null
+          id: string
+          numero: number
+          observaciones: string | null
+          prioridad: string
+          responsable_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          asamblea_id: string
+          club_id?: string | null
+          created_at?: string
+          descripcion: string
+          estado?: string
+          fecha_limite?: string | null
+          id?: string
+          numero?: number
+          observaciones?: string | null
+          prioridad?: string
+          responsable_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asamblea_id?: string
+          club_id?: string | null
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          fecha_limite?: string | null
+          id?: string
+          numero?: number
+          observaciones?: string | null
+          prioridad?: string
+          responsable_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asamblea_acuerdos_asamblea_id_fkey"
+            columns: ["asamblea_id"]
+            isOneToOne: false
+            referencedRelation: "asambleas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asamblea_acuerdos_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asamblea_acuerdos_responsable_id_fkey"
+            columns: ["responsable_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asamblea_asistencia: {
+        Row: {
+          asamblea_id: string
+          club_id: string | null
+          created_at: string
+          hora_llegada: string | null
+          id: string
+          observaciones: string | null
+          persona_id: string
+          presente: boolean
+          representacion: string | null
+        }
+        Insert: {
+          asamblea_id: string
+          club_id?: string | null
+          created_at?: string
+          hora_llegada?: string | null
+          id?: string
+          observaciones?: string | null
+          persona_id: string
+          presente?: boolean
+          representacion?: string | null
+        }
+        Update: {
+          asamblea_id?: string
+          club_id?: string | null
+          created_at?: string
+          hora_llegada?: string | null
+          id?: string
+          observaciones?: string | null
+          persona_id?: string
+          presente?: boolean
+          representacion?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asamblea_asistencia_asamblea_id_fkey"
+            columns: ["asamblea_id"]
+            isOneToOne: false
+            referencedRelation: "asambleas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asamblea_asistencia_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asamblea_asistencia_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asambleas: {
+        Row: {
+          acta_nombre_archivo: string | null
+          acta_storage_path: string | null
+          club_id: string | null
+          created_at: string
+          descripcion: string | null
+          estado: string
+          fecha: string
+          hora_fin: string | null
+          hora_inicio: string | null
+          id: string
+          lugar: string | null
+          observaciones: string | null
+          quorum_presente: number | null
+          quorum_requerido: number | null
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          acta_nombre_archivo?: string | null
+          acta_storage_path?: string | null
+          club_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          estado?: string
+          fecha: string
+          hora_fin?: string | null
+          hora_inicio?: string | null
+          id?: string
+          lugar?: string | null
+          observaciones?: string | null
+          quorum_presente?: number | null
+          quorum_requerido?: number | null
+          tipo?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          acta_nombre_archivo?: string | null
+          acta_storage_path?: string | null
+          club_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          estado?: string
+          fecha?: string
+          hora_fin?: string | null
+          hora_inicio?: string | null
+          id?: string
+          lugar?: string | null
+          observaciones?: string | null
+          quorum_presente?: number | null
+          quorum_requerido?: number | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asambleas_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beneficios_cuota: {
         Row: {
           activo: boolean
@@ -754,6 +947,63 @@ export type Database = {
             columns: ["solicitud_id"]
             isOneToOne: false
             referencedRelation: "solicitudes_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      libro_socios: {
+        Row: {
+          club_id: string
+          created_at: string
+          estado: string
+          fecha_ingreso: string
+          fecha_retiro: string | null
+          id: string
+          numero_socio: number | null
+          observaciones: string | null
+          persona_id: string
+          tipo_socio: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          estado?: string
+          fecha_ingreso?: string
+          fecha_retiro?: string | null
+          id?: string
+          numero_socio?: number | null
+          observaciones?: string | null
+          persona_id: string
+          tipo_socio?: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          estado?: string
+          fecha_ingreso?: string
+          fecha_retiro?: string | null
+          id?: string
+          numero_socio?: number | null
+          observaciones?: string | null
+          persona_id?: string
+          tipo_socio?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "libro_socios_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "libro_socios_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
             referencedColumns: ["id"]
           },
         ]
