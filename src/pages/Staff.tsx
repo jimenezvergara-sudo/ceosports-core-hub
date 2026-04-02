@@ -89,7 +89,7 @@ export default function Staff() {
   };
 
   const remove = async (id: string) => {
-    await supabase.from("staff_roles" as any).delete().eq("id", id);
+    await supabase.from("staff_roles").delete().eq("id", id);
     toast.success("Rol eliminado");
     refetch();
   };
