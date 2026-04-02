@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   Receipt,
   Truck,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   LogOut,
