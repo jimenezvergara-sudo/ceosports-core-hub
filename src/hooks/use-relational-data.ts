@@ -122,7 +122,7 @@ export function useStaffRoles() {
     if (!clubId) { setLoading(false); return; }
     setLoading(true);
     const { data } = await supabase
-      .from("staff_roles" as any)
+      .from("staff_roles")
       .select("id, persona_id, rol, categoria_id, activo, personas!staff_roles_persona_id_fkey(nombre, apellido, rut), categorias!staff_roles_categoria_id_fkey(nombre)")
       .eq("club_id", clubId)
       .order("rol");
