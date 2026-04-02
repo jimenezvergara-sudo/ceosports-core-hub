@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import ceoLogotipo from "@/assets/ceo-logotipo.png";
 
 export default function Login() {
   const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
