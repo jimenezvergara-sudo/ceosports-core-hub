@@ -36,7 +36,14 @@ function AppRoutes() {
     );
   }
 
-  if (!user) return <Login />;
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<Login />} />
+      </Routes>
+    );
+  }
   if (!clubActual) return <ClubSelector />;
 
   return (
