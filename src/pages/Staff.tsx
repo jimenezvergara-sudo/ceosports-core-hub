@@ -70,13 +70,13 @@ export default function Staff() {
       return;
     }
 
-    const { error } = await supabase.from("staff_roles" as any).insert({
+    const { error } = await supabase.from("staff_roles").insert({
       club_id: clubId,
       persona_id: form.persona_id,
       rol: rolFinal,
       categoria_id: form.categoria_id || null,
       activo: form.activo,
-    } as any);
+    });
 
     if (error) {
       if (error.code === "23505") toast.error("Este rol ya está asignado a esta persona");
