@@ -102,6 +102,7 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
   const { personas } = usePersonas();
   const { proyectos } = useProyectos();
   const { roles: staffRoles } = useStaffRoles();
+  const { centrosCosto } = useCentrosCosto();
   const [nivelesAprobacion, setNivelesAprobacion] = useState<any[]>([]);
 
   useEffect(() => {
