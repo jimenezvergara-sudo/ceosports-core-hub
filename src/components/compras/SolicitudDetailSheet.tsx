@@ -420,9 +420,10 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
                 </Select>
               </FormField>
               <FormField label="Proyecto Asociado">
-                <Select value={apForm.proyecto_id} onValueChange={(v) => setApForm(f => ({ ...f, proyecto_id: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar proyecto" /></SelectTrigger>
+                <Select value={apForm.proyecto_id || "sin_proyecto"} onValueChange={(v) => setApForm(f => ({ ...f, proyecto_id: v === "sin_proyecto" ? "" : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Sin proyecto" /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="sin_proyecto">Sin proyecto</SelectItem>
                     {proyectos.map((p) => (
                       <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
                     ))}
