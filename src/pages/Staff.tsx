@@ -95,7 +95,7 @@ export default function Staff() {
   };
 
   const toggleActivo = async (id: string, activo: boolean) => {
-    await supabase.from("staff_roles" as any).update({ activo } as any).eq("id", id);
+    await supabase.from("staff_roles").update({ activo }).eq("id", id);
     refetch();
   };
 
