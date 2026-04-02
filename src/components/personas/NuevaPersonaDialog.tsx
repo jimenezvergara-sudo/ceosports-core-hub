@@ -183,7 +183,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nueva Persona</DialogTitle>
-          <DialogDescription>Ingresa los datos del jugador, socio o staff. Los campos con * son obligatorios.</DialogDescription>
+          <DialogDescription>Ingresa los datos de la persona. Los campos con * son obligatorios.</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="jugador" className="mt-2">
