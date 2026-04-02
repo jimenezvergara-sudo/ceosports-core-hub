@@ -147,6 +147,36 @@ export function useStaffRoles() {
   return { roles, loading, refetch: fetch };
 }
 
+export interface CentroCostoRow {
+  id: string;
+  nombre: string;
+  codigo: string | null;
+  descripcion: string | null;
+  activo: boolean;
+}
+
+export function useCentrosCosto() {
+  const [centrosCosto, setCentrosCosto] = useState<CentroCostoRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { clubId } = useAuth();
+
+  useEffect(() => {
+    if (!clubId) { setLoading(false); return; }
+    supabase
+      .from("centros_costo" as any)
+      .select("id, nombre, codigo, descripcion, activo")
+      .eq("club_id", clubId)
+      .eq("activo", true)
+      .order("nombre")
+      .then(({ data }) => {
+        setCentrosCosto((data as unknown as CentroCostoRow[]) ?? []);
+        setLoading(false);
+      });
+  }, [clubId]);
+
+  return { centrosCosto, loading };
+}
+
 export function personaLabel(p: PersonaRow): string {
   return `${p.apellido}, ${p.nombre}${p.rut ? ` — ${p.rut}` : ""}`;
 }

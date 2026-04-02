@@ -410,7 +410,14 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
                 <Input type="number" value={apForm.monto_aprobado} onChange={(e) => setApForm(f => ({ ...f, monto_aprobado: Number(e.target.value) }))} />
               </FormField>
               <FormField label="Centro de Costo">
-                <Input value={apForm.centro_costo} onChange={(e) => setApForm(f => ({ ...f, centro_costo: e.target.value }))} />
+                <Select value={apForm.centro_costo} onValueChange={(v) => setApForm(f => ({ ...f, centro_costo: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar centro de costo" /></SelectTrigger>
+                  <SelectContent>
+                    {centrosCosto.map((cc) => (
+                      <SelectItem key={cc.id} value={cc.nombre}>{cc.codigo ? `${cc.codigo} — ` : ""}{cc.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormField>
               <FormField label="Proyecto Asociado">
                 <Select value={apForm.proyecto_id} onValueChange={(v) => setApForm(f => ({ ...f, proyecto_id: v }))}>
