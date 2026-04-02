@@ -6,73 +6,75 @@
 
 @layer base {
   :root {
-    /* Fondo Gris Platino */
-    --background: 216 14% 95%;
-    --foreground: 210 29% 15%;
+    /* Fondo Gris Platino claro */
+    --background: 216 14% 96%;
+    --foreground: 210 100% 10%;
 
-    /* Tarjetas Blanco Papel */
-    --card: 216 33% 97%;
-    --card-foreground: 210 29% 15%;
+    /* Tarjetas Blanco */
+    --card: 0 0% 100%;
+    --card-foreground: 210 100% 10%;
 
     /* Popovers */
     --popover: 0 0% 100%;
-    --popover-foreground: 210 29% 15%;
+    --popover-foreground: 210 100% 10%;
 
-    /* Primary: Azul Diplomático #102A43 */
-    --primary: 210 63% 16%;
+    /* Primary: CEO Sports Blue #002855 */
+    --primary: 210 100% 17%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary */
-    --secondary: 216 14% 91%;
-    --secondary-foreground: 210 29% 25%;
+    /* Secondary: Light Blue #0070C9 */
+    --secondary: 207 100% 39%;
+    --secondary-foreground: 0 0% 100%;
 
     /* Muted */
     --muted: 216 14% 93%;
     --muted-foreground: 210 10% 46%;
 
-    /* Accent: Azul Diplomático lighter */
-    --accent: 210 50% 92%;
-    --accent-foreground: 210 63% 16%;
+    /* Accent: CEO Sports Blue lighter tint */
+    --accent: 207 80% 93%;
+    --accent-foreground: 210 100% 17%;
 
-    /* Destructive / Rojo Lacre #9E1A1A */
-    --destructive: 0 72% 36%;
+    /* Destructive / Danger #DC3545 */
+    --destructive: 354 70% 54%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Certification: Rojo Lacre */
-    --certification: 0 72% 36%;
-    --certification-foreground: 0 0% 100%;
-
-    --success: 142 55% 38%;
+    /* Success #28A745 */
+    --success: 134 61% 41%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 10%;
+    /* Alert/Warning #FFBE3B */
+    --warning: 40 100% 62%;
+    --warning-foreground: 210 100% 10%;
 
-    /* Borders: Gris Archivo */
+    /* Certification (Danger red for sign/save actions) */
+    --certification: 354 70% 54%;
+    --certification-foreground: 0 0% 100%;
+
+    /* Borders */
     --border: 216 14% 85%;
     --input: 216 14% 85%;
-    --ring: 210 63% 16%;
+    --ring: 210 100% 17%;
 
     --radius: 0.5rem;
 
-    /* Sidebar: Azul Diplomático */
-    --sidebar-background: 210 63% 16%;
-    --sidebar-foreground: 210 20% 78%;
+    /* Sidebar: CEO Sports Blue #002855 */
+    --sidebar-background: 210 100% 17%;
+    --sidebar-foreground: 207 40% 80%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 210 63% 16%;
-    --sidebar-accent: 210 55% 22%;
+    --sidebar-primary-foreground: 210 100% 17%;
+    --sidebar-accent: 210 80% 24%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 210 50% 22%;
+    --sidebar-border: 210 70% 22%;
     --sidebar-ring: 0 0% 100%;
 
-    /* KPI Gradients – more muted, corporate */
-    --kpi-gradient-1: linear-gradient(135deg, hsl(210 63% 16%), hsl(210 50% 28%));
-    --kpi-gradient-2: linear-gradient(135deg, hsl(142 55% 38%), hsl(160 50% 42%));
-    --kpi-gradient-3: linear-gradient(135deg, hsl(38 80% 50%), hsl(28 75% 52%));
-    --kpi-gradient-4: linear-gradient(135deg, hsl(0 72% 36%), hsl(0 60% 44%));
+    /* KPI Gradients */
+    --kpi-gradient-1: linear-gradient(135deg, hsl(210 100% 17%), hsl(207 100% 39%));
+    --kpi-gradient-2: linear-gradient(135deg, hsl(134 61% 41%), hsl(160 50% 45%));
+    --kpi-gradient-3: linear-gradient(135deg, hsl(40 100% 55%), hsl(30 95% 50%));
+    --kpi-gradient-4: linear-gradient(135deg, hsl(354 70% 54%), hsl(354 60% 44%));
 
-    --shadow-card: 0 1px 3px 0 hsla(210, 29%, 15%, 0.06), 0 1px 2px -1px hsla(210, 29%, 15%, 0.06);
-    --shadow-glow: 0 0 0 2px hsla(210, 63%, 16%, 0.12);
+    --shadow-card: 0 1px 3px 0 hsla(210, 100%, 17%, 0.06), 0 1px 2px -1px hsla(210, 100%, 17%, 0.06);
+    --shadow-glow: 0 0 0 2px hsla(207, 100%, 39%, 0.15);
   }
 }
 
