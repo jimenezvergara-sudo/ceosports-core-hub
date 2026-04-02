@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
+import ceoIsotipo from "@/assets/ceo-isotipo.png";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
