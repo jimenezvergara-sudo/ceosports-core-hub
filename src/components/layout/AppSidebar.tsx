@@ -12,6 +12,7 @@ import {
   Receipt,
   Truck,
   BookOpen,
+  Dumbbell,
   ChevronLeft,
   ChevronRight,
   LogOut,
