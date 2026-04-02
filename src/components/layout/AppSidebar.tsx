@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   Receipt,
   Truck,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -32,6 +33,7 @@ const navItems = [
   { to: "/compras", icon: ShoppingCart, label: "Compras" },
   { to: "/proveedores", icon: Truck, label: "Proveedores" },
   { to: "/cuotas", icon: Receipt, label: "Cuotas" },
+  { to: "/asambleas", icon: BookOpen, label: "Asambleas" },
 ];
 
 export default function AppSidebar() {
