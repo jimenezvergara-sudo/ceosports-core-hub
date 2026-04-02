@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ESTADO_COLOR, MEDIOS_PAGO } from "@/data/comprasConstants";
 import type { EstadoCompra } from "@/data/comprasConstants";
-import { usePersonas, useProyectos, useStaffRoles, personaLabel } from "@/hooks/use-relational-data";
+import { usePersonas, useProyectos, useStaffRoles, useCentrosCosto, personaLabel } from "@/hooks/use-relational-data";
 
 interface Solicitud {
   id: string;
