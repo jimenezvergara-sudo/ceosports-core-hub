@@ -236,7 +236,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Tipo</Label>
+                <Label className="text-xs">Rol</Label>
                 <Select value={form.tipo} onValueChange={(v) => update("tipo", v)}>
                   <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
