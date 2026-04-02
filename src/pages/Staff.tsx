@@ -107,52 +107,70 @@ export default function Staff() {
     (r) => !directiva.includes(r) && !tecnicos.includes(r) && !operativos.includes(r)
   );
 
+  // Group items by specific role within a section
+  const groupByRole = (items: typeof roles) => {
+    const map = new Map<string, typeof roles>();
+    items.forEach((r) => {
+      const list = map.get(r.rol) || [];
+      list.push(r);
+      map.set(r.rol, list);
+    });
+    return Array.from(map.entries());
+  };
+
+  const renderCard = (r: typeof roles[0], i: number) => (
+    <motion.div
+      key={r.id}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.03 * i }}
+      className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow"
+    >
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-1">
+          <Switch
+            checked={r.activo}
+            onCheckedChange={(v) => toggleActivo(r.id, v)}
+            className="scale-75"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-destructive"
+            onClick={() => remove(r.id)}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
+      <p className="text-foreground font-semibold text-sm">
+        {r.persona_nombre} {r.persona_apellido}
+      </p>
+      {r.categoria_nombre && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Categoría: {r.categoria_nombre}
+        </p>
+      )}
+      {!r.activo && (
+        <Badge variant="destructive" className="text-[10px] mt-2">Inactivo</Badge>
+      )}
+    </motion.div>
+  );
 
   const renderSection = (title: string, items: typeof roles) => (
-    <div className="space-y-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</h3>
+    <div className="space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground border-b border-border pb-2">{title}</h3>
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground bg-card border border-border rounded-lg p-4">Sin asignaciones</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {items.map((r, i) => (
-            <motion.div
-              key={r.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.03 * i }}
-              className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <Badge variant="secondary" className="text-xs">{r.rol}</Badge>
-                <div className="flex items-center gap-1">
-                  <Switch
-                    checked={r.activo}
-                    onCheckedChange={(v) => toggleActivo(r.id, v)}
-                    className="scale-75"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-destructive"
-                    onClick={() => remove(r.id)}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
+        <div className="space-y-4">
+          {groupByRole(items).map(([rol, members]) => (
+            <div key={rol} className="space-y-2">
+              <Badge variant="secondary" className="text-xs">{rol}</Badge>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {members.map((r, i) => renderCard(r, i))}
               </div>
-              <p className="text-foreground font-semibold text-sm">
-                {r.persona_nombre} {r.persona_apellido}
-              </p>
-              {r.categoria_nombre && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Categoría: {r.categoria_nombre}
-                </p>
-              )}
-              {!r.activo && (
-                <Badge variant="destructive" className="text-[10px] mt-2">Inactivo</Badge>
-              )}
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
