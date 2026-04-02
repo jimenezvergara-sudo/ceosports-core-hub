@@ -188,7 +188,7 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
 
         <Tabs defaultValue="jugador" className="mt-2">
           <TabsList className="w-full grid grid-cols-3">
-            <TabsTrigger value="jugador" className="gap-1.5 text-xs"><User className="w-3.5 h-3.5" /> Jugador</TabsTrigger>
+            <TabsTrigger value="jugador" className="gap-1.5 text-xs"><User className="w-3.5 h-3.5" /> Persona</TabsTrigger>
             <TabsTrigger value="familia" className="gap-1.5 text-xs"><Users className="w-3.5 h-3.5" /> Familia</TabsTrigger>
             <TabsTrigger value="salud" className="gap-1.5 text-xs"><HeartPulse className="w-3.5 h-3.5" /> Salud</TabsTrigger>
           </TabsList>
