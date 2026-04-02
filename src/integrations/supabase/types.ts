@@ -408,6 +408,47 @@ export type Database = {
           },
         ]
       }
+      centros_costo: {
+        Row: {
+          activo: boolean
+          club_id: string | null
+          codigo: string | null
+          created_at: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          club_id?: string | null
+          codigo?: string | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          club_id?: string | null
+          codigo?: string | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "centros_costo_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_documentos: {
         Row: {
           club_id: string

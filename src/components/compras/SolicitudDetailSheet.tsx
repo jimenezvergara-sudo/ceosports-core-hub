@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ESTADO_COLOR, MEDIOS_PAGO } from "@/data/comprasConstants";
 import type { EstadoCompra } from "@/data/comprasConstants";
-import { usePersonas, useProyectos, useStaffRoles, personaLabel } from "@/hooks/use-relational-data";
+import { usePersonas, useProyectos, useStaffRoles, useCentrosCosto, personaLabel } from "@/hooks/use-relational-data";
 
 interface Solicitud {
   id: string;
@@ -102,6 +102,7 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
   const { personas } = usePersonas();
   const { proyectos } = useProyectos();
   const { roles: staffRoles } = useStaffRoles();
+  const { centrosCosto } = useCentrosCosto();
   const [nivelesAprobacion, setNivelesAprobacion] = useState<any[]>([]);
 
   useEffect(() => {
@@ -409,7 +410,14 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
                 <Input type="number" value={apForm.monto_aprobado} onChange={(e) => setApForm(f => ({ ...f, monto_aprobado: Number(e.target.value) }))} />
               </FormField>
               <FormField label="Centro de Costo">
-                <Input value={apForm.centro_costo} onChange={(e) => setApForm(f => ({ ...f, centro_costo: e.target.value }))} />
+                <Select value={apForm.centro_costo} onValueChange={(v) => setApForm(f => ({ ...f, centro_costo: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar centro de costo" /></SelectTrigger>
+                  <SelectContent>
+                    {centrosCosto.map((cc) => (
+                      <SelectItem key={cc.id} value={cc.nombre}>{cc.codigo ? `${cc.codigo} — ` : ""}{cc.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormField>
               <FormField label="Proyecto Asociado">
                 <Select value={apForm.proyecto_id} onValueChange={(v) => setApForm(f => ({ ...f, proyecto_id: v }))}>
