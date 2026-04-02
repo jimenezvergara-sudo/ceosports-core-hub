@@ -16,6 +16,7 @@ import Compras from "@/pages/Compras";
 import Proveedores from "@/pages/Proveedores";
 import Cuotas from "@/pages/Cuotas";
 import Login from "@/pages/Login";
+import ResetPassword from "@/pages/ResetPassword";
 import ClubSelector from "@/pages/ClubSelector";
 import NotFound from "@/pages/NotFound";
 
@@ -35,7 +36,14 @@ function AppRoutes() {
     );
   }
 
-  if (!user) return <Login />;
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<Login />} />
+      </Routes>
+    );
+  }
   if (!clubActual) return <ClubSelector />;
 
   return (
