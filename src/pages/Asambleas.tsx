@@ -466,15 +466,35 @@ export default function Asambleas() {
                                 <Badge variant="outline" className="text-[9px]">{ac.prioridad}</Badge>
                               </div>
                               <div className="flex gap-1 mt-1">
-                                {["pendiente", "en_progreso", "cumplido", "vencido"].map((e) => (
+                                {ACUERDO_ESTADOS.map(({ value: e, label }) => (
                                   <button
                                     key={e}
                                     onClick={() => updateAcuerdoEstado(ac.id, e)}
                                     className={`text-[9px] px-2 py-0.5 rounded-full border transition-colors ${ac.estado === e ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
                                   >
-                                    {e === "pendiente" ? "Pendiente" : e === "en_progreso" ? "En progreso" : e === "cumplido" ? "Cumplido" : "Vencido"}
+                                    {label}
                                   </button>
                                 ))}
+                              </div>
+                              {/* Progress notes */}
+                              <div className="mt-2 pt-2 border-t border-border/50 space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Avance</span>
+                                  <Button variant="ghost" size="sm" className="h-5 text-[10px] gap-1" onClick={() => { setEditingAvance(editingAvance === ac.id ? null : ac.id); setAvanceText(ac.notas_avance || ""); }}>
+                                    <Pencil className="w-2.5 h-2.5" /> {ac.notas_avance ? "Editar" : "Agregar"}
+                                  </Button>
+                                </div>
+                                {editingAvance === ac.id ? (
+                                  <div className="space-y-1">
+                                    <Textarea value={avanceText} onChange={(e) => setAvanceText(e.target.value)} rows={3} className="text-xs" placeholder="Describe el avance, acciones realizadas..." />
+                                    <div className="flex gap-1">
+                                      <Button size="sm" className="h-6 text-[10px]" onClick={() => saveAvance(ac.id)}>Guardar</Button>
+                                      <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => setEditingAvance(null)}>Cancelar</Button>
+                                    </div>
+                                  </div>
+                                ) : ac.notas_avance ? (
+                                  <p className="text-xs text-foreground whitespace-pre-wrap bg-muted/30 rounded p-2">{ac.notas_avance}</p>
+                                ) : null}
                               </div>
                             </div>
                           ))}
