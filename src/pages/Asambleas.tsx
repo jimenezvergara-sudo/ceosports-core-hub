@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { BookOpen, Plus, Upload, Download, Trash2, Users, FileText, ClipboardList, UserCheck } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { BookOpen, Plus, Upload, Download, Trash2, Users, FileText, ClipboardList, UserCheck, Pencil, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -14,19 +14,20 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { usePersonas, personaLabel } from "@/hooks/use-relational-data";
+import { usePersonas, personaLabel } from "@/hooks/use-relational-data"; 
 
 /* ─── types ─── */
 interface Asamblea {
-  id: string; tipo: string; titulo: string; fecha: string; hora_inicio: string | null;
+  id: string; club_id?: string | null; tipo: string; titulo: string; fecha: string; hora_inicio: string | null;
   hora_fin: string | null; lugar: string | null; descripcion: string | null;
   quorum_requerido: number; quorum_presente: number; estado: string;
   acta_storage_path: string | null; acta_nombre_archivo: string | null; observaciones: string | null;
+  tabla_contenido: string | null; tabla_storage_path: string | null; tabla_nombre_archivo: string | null;
 }
 interface Acuerdo {
   id: string; asamblea_id: string; numero: number; descripcion: string;
   responsable_id: string | null; fecha_limite: string | null; estado: string;
-  prioridad: string; observaciones: string | null;
+  prioridad: string; observaciones: string | null; notas_avance: string | null;
   persona_nombre?: string; persona_apellido?: string;
 }
 interface Asistente {
@@ -40,19 +41,23 @@ interface Socio {
   persona_nombre?: string; persona_apellido?: string; persona_rut?: string | null;
 }
 
+const ACUERDO_ESTADOS = [
+  { value: "pendiente", label: "Pendiente", color: "bg-muted text-muted-foreground border-border" },
+  { value: "en_proceso", label: "En proceso", color: "bg-blue-600/20 text-blue-500 border-blue-600/30" },
+  { value: "atrasada", label: "Atrasada", color: "bg-amber-600/20 text-amber-500 border-amber-600/30" },
+  { value: "terminada", label: "Terminada", color: "bg-emerald-600/20 text-emerald-400 border-emerald-600/30" },
+  { value: "desechada", label: "Desechada", color: "bg-red-600/20 text-red-400 border-red-600/30" },
+];
+
 /* ─── helper ─── */
 const estadoBadge = (e: string) => {
-  switch (e) {
-    case "cumplido": return <Badge className="bg-emerald-600/20 text-emerald-400 border-emerald-600/30 text-[10px]">Cumplido</Badge>;
-    case "en_progreso": return <Badge className="bg-amber-600/20 text-amber-400 border-amber-600/30 text-[10px]">En progreso</Badge>;
-    case "vencido": return <Badge variant="destructive" className="text-[10px]">Vencido</Badge>;
-    default: return <Badge variant="secondary" className="text-[10px]">Pendiente</Badge>;
-  }
+  const found = ACUERDO_ESTADOS.find((s) => s.value === e);
+  return <Badge className={`${found?.color ?? "bg-muted text-muted-foreground border-border"} text-[10px]`}>{found?.label ?? e}</Badge>;
 };
 
 export default function Asambleas() {
   const { clubId } = useAuth();
-  const { personas } = usePersonas();
+  const { personas } = usePersonas({ includeLegacyWithoutClub: true });
   const [asambleas, setAsambleas] = useState<Asamblea[]>([]);
   const [socios, setSocios] = useState<Socio[]>([]);
   const [loading, setLoading] = useState(true);
