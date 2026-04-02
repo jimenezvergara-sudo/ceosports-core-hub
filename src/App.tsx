@@ -15,6 +15,7 @@ import Organizacion from "@/pages/Organizacion";
 import Compras from "@/pages/Compras";
 import Proveedores from "@/pages/Proveedores";
 import Cuotas from "@/pages/Cuotas";
+import Asambleas from "@/pages/Asambleas";
 import Login from "@/pages/Login";
 import ResetPassword from "@/pages/ResetPassword";
 import ClubSelector from "@/pages/ClubSelector";
