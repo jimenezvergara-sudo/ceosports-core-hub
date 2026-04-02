@@ -60,6 +60,7 @@ function AppRoutes() {
         <Route path="/compras" element={<Compras />} />
         <Route path="/proveedores" element={<Proveedores />} />
         <Route path="/cuotas" element={<Cuotas />} />
+        <Route path="/asambleas" element={<Asambleas />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
