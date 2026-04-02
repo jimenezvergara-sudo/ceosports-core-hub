@@ -67,11 +67,15 @@ export default function Asambleas() {
 
   // Dialogs
   const [openNew, setOpenNew] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const [openAcuerdo, setOpenAcuerdo] = useState(false);
   const [openSocio, setOpenSocio] = useState(false);
+  const [expandedAcuerdo, setExpandedAcuerdo] = useState<string | null>(null);
+  const [editingAvance, setEditingAvance] = useState<string | null>(null);
+  const [avanceText, setAvanceText] = useState("");
 
   // Forms
-  const [formAsam, setFormAsam] = useState({ titulo: "", tipo: "ordinaria", fecha: "", hora_inicio: "", hora_fin: "", lugar: "", descripcion: "", quorum_requerido: "0" });
+  const [formAsam, setFormAsam] = useState({ titulo: "", tipo: "ordinaria", fecha: "", hora_inicio: "", hora_fin: "", lugar: "", descripcion: "", quorum_requerido: "0", tabla_contenido: "" });
   const [formAcuerdo, setFormAcuerdo] = useState({ descripcion: "", responsable_id: "", fecha_limite: "", prioridad: "media" });
   const [formSocio, setFormSocio] = useState({ persona_id: "", tipo_socio: "activo", fecha_ingreso: new Date().toISOString().slice(0, 10), observaciones: "" });
 
@@ -118,12 +122,72 @@ export default function Asambleas() {
       hora_inicio: formAsam.hora_inicio || null, hora_fin: formAsam.hora_fin || null,
       lugar: formAsam.lugar || null, descripcion: formAsam.descripcion || null,
       quorum_requerido: parseInt(formAsam.quorum_requerido) || 0,
+      tabla_contenido: formAsam.tabla_contenido || null,
     } as any);
     if (error) { toast.error(error.message); return; }
     toast.success("Asamblea registrada");
     setOpenNew(false);
-    setFormAsam({ titulo: "", tipo: "ordinaria", fecha: "", hora_inicio: "", hora_fin: "", lugar: "", descripcion: "", quorum_requerido: "0" });
+    setFormAsam({ titulo: "", tipo: "ordinaria", fecha: "", hora_inicio: "", hora_fin: "", lugar: "", descripcion: "", quorum_requerido: "0", tabla_contenido: "" });
     fetchAsambleas();
+  };
+
+  const openEditDialog = () => {
+    if (!selected) return;
+    setFormAsam({
+      titulo: selected.titulo, tipo: selected.tipo, fecha: selected.fecha,
+      hora_inicio: selected.hora_inicio?.slice(0, 5) || "", hora_fin: selected.hora_fin?.slice(0, 5) || "",
+      lugar: selected.lugar || "", descripcion: selected.descripcion || "",
+      quorum_requerido: String(selected.quorum_requerido || 0),
+      tabla_contenido: selected.tabla_contenido || "",
+    });
+    setOpenEdit(true);
+  };
+
+  const updateAsamblea = async () => {
+    if (!selected || !formAsam.titulo || !formAsam.fecha) { toast.error("Título y fecha son obligatorios"); return; }
+    const payload = {
+      titulo: formAsam.titulo, tipo: formAsam.tipo, fecha: formAsam.fecha,
+      hora_inicio: formAsam.hora_inicio || null, hora_fin: formAsam.hora_fin || null,
+      lugar: formAsam.lugar || null, descripcion: formAsam.descripcion || null,
+      quorum_requerido: parseInt(formAsam.quorum_requerido) || 0,
+      tabla_contenido: formAsam.tabla_contenido || null,
+    };
+    const { error } = await supabase.from("asambleas").update(payload as any).eq("id", selected.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Asamblea actualizada");
+    setOpenEdit(false);
+    const updated = { ...selected, ...payload };
+    setSelected(updated);
+    fetchAsambleas();
+  };
+
+  const uploadTabla = async (file: File) => {
+    if (!selected || !clubId) return;
+    const path = `${clubId}/tablas/${selected.id}/${file.name}`;
+    const { error: upErr } = await supabase.storage.from("club-documentos").upload(path, file, { upsert: true });
+    if (upErr) { toast.error(upErr.message); return; }
+    await supabase.from("asambleas").update({ tabla_storage_path: path, tabla_nombre_archivo: file.name } as any).eq("id", selected.id);
+    toast.success("Tabla/agenda cargada");
+    setSelected({ ...selected, tabla_storage_path: path, tabla_nombre_archivo: file.name });
+    fetchAsambleas();
+  };
+
+  const downloadTabla = async () => {
+    if (!selected?.tabla_storage_path) return;
+    const { data } = await supabase.storage.from("club-documentos").download(selected.tabla_storage_path);
+    if (data) {
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url; a.download = selected.tabla_nombre_archivo || "tabla.pdf"; a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const saveAvance = async (acuerdoId: string) => {
+    await supabase.from("asamblea_acuerdos").update({ notas_avance: avanceText } as any).eq("id", acuerdoId);
+    toast.success("Avance guardado");
+    setEditingAvance(null);
+    if (selected) fetchDetail(selected);
   };
 
   const saveAcuerdo = async () => {
