@@ -22,28 +22,33 @@ export default function ClubSelector() {
     if (!nombre.trim()) return;
     setCreating(true);
 
-    // Create club
-    const { data: club, error } = await supabase
-      .from("clubs" as any)
-      .insert({ nombre, deporte, ciudad: ciudad || null } as any)
-      .select()
-      .single();
+    const clubId = crypto.randomUUID();
 
-    if (error || !club) {
+    // Create club with predetermined ID (no .select() to avoid SELECT RLS conflict)
+    const { error } = await supabase
+      .from("clubs" as any)
+      .insert({ id: clubId, nombre, deporte, ciudad: ciudad || null } as any);
+
+    if (error) {
       toast.error("Error al crear el club");
       setCreating(false);
       return;
     }
 
     // Add current user as admin
-    await supabase.from("club_usuarios" as any).insert({
-      club_id: (club as any).id,
+    const { error: memberError } = await supabase.from("club_usuarios" as any).insert({
+      club_id: clubId,
       user_id: user!.id,
       rol_sistema: "admin",
     } as any);
 
+    if (memberError) {
+      toast.error("Club creado pero error al asignar permisos");
+      setCreating(false);
+      return;
+    }
+
     toast.success("Club creado exitosamente");
-    // Reload to pick up new club
     window.location.reload();
   };
 
