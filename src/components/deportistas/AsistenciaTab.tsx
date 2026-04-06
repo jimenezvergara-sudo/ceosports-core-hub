@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Plus, Users, Check, X, AlertCircle, HeartPulse } from "lucide-react";
+import { CalendarIcon, Plus, Users, Check, X, AlertCircle, HeartPulse, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useSesiones, useAsistencia } from "@/hooks/use-deportistas";
-import { useCategorias, usePersonas } from "@/hooks/use-relational-data";
+import { useCategorias } from "@/hooks/use-relational-data";
 import { motion } from "framer-motion";
 
 const ESTADOS = [
@@ -30,7 +30,6 @@ export default function AsistenciaTab() {
   const { clubId } = useAuth();
   const { sesiones, loading, refetch } = useSesiones();
   const { categorias } = useCategorias();
-  const { personas } = usePersonas();
   const [openNew, setOpenNew] = useState(false);
   const [selectedSesion, setSelectedSesion] = useState<string | null>(null);
   const { asistencia, refetch: refetchAsis } = useAsistencia(selectedSesion);
@@ -42,6 +41,13 @@ export default function AsistenciaTab() {
   const [saving, setSaving] = useState(false);
   const [filterCat, setFilterCat] = useState("all");
 
+  // Edit session
+  const [editSesion, setEditSesion] = useState<any>(null);
+  const [editFecha, setEditFecha] = useState<Date | undefined>();
+  const [editHoraInicio, setEditHoraInicio] = useState("");
+  const [editHoraFin, setEditHoraFin] = useState("");
+  const [editNotas, setEditNotas] = useState("");
+
   const crearSesion = async () => {
     if (!fecha || !catId || !clubId) return;
     setSaving(true);
@@ -51,7 +57,6 @@ export default function AsistenciaTab() {
     } as any).select("id").single();
     if (error) { toast.error("Error al crear sesión"); setSaving(false); return; }
 
-    // Get personas in this category
     const { data: pcData } = await supabase.from("persona_categoria" as any)
       .select("persona_id").eq("categoria_id", catId).eq("club_id", clubId);
     const personaIds = ((pcData as any[]) ?? []).map((p: any) => p.persona_id);
@@ -76,6 +81,37 @@ export default function AsistenciaTab() {
     refetchAsis();
   };
 
+  const eliminarSesion = async (id: string) => {
+    if (!confirm("¿Eliminar esta sesión y toda su asistencia?")) return;
+    await supabase.from("asistencia_entrenamiento" as any).delete().eq("sesion_id", id);
+    await supabase.from("sesiones_entrenamiento" as any).delete().eq("id", id);
+    if (selectedSesion === id) setSelectedSesion(null);
+    toast.success("Sesión eliminada");
+    refetch();
+  };
+
+  const abrirEditar = (s: any) => {
+    setEditSesion(s);
+    setEditFecha(new Date(s.fecha + "T12:00:00"));
+    setEditHoraInicio(s.hora_inicio?.slice(0, 5) || "16:00");
+    setEditHoraFin(s.hora_fin?.slice(0, 5) || "18:00");
+    setEditNotas(s.notas || "");
+  };
+
+  const guardarEdicion = async () => {
+    if (!editSesion || !editFecha) return;
+    setSaving(true);
+    await supabase.from("sesiones_entrenamiento" as any).update({
+      fecha: format(editFecha, "yyyy-MM-dd"),
+      hora_inicio: editHoraInicio, hora_fin: editHoraFin,
+      notas: editNotas || null,
+    } as any).eq("id", editSesion.id);
+    toast.success("Sesión actualizada");
+    setSaving(false);
+    setEditSesion(null);
+    refetch();
+  };
+
   const filteredSesiones = filterCat === "all" ? sesiones : sesiones.filter(s => s.categoria_id === filterCat);
 
   return (
@@ -92,23 +128,29 @@ export default function AsistenciaTab() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Session list */}
         <div className="md:col-span-1 space-y-2 max-h-[500px] overflow-y-auto pr-1">
           {loading ? <p className="text-sm text-muted-foreground">Cargando...</p> :
             filteredSesiones.length === 0 ? <p className="text-sm text-muted-foreground">Sin sesiones</p> :
             filteredSesiones.map(s => (
               <motion.div key={s.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                className={cn("p-3 rounded-lg border cursor-pointer transition-colors",
+                className={cn("p-3 rounded-lg border cursor-pointer transition-colors group",
                   selectedSesion === s.id ? "border-primary bg-primary/5" : "hover:bg-muted/50")}
                 onClick={() => setSelectedSesion(s.id)}>
-                <p className="font-medium text-sm">{format(new Date(s.fecha + "T12:00:00"), "dd MMM yyyy", { locale: es })}</p>
-                <p className="text-xs text-muted-foreground">{s.hora_inicio?.slice(0,5)} - {s.hora_fin?.slice(0,5)}</p>
-                <Badge variant="outline" className="mt-1 text-xs">{s.categoria_nombre || "Sin categoría"}</Badge>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{format(new Date(s.fecha + "T12:00:00"), "dd MMM yyyy", { locale: es })}</p>
+                    <p className="text-xs text-muted-foreground">{s.hora_inicio?.slice(0,5)} - {s.hora_fin?.slice(0,5)}</p>
+                    <Badge variant="outline" className="mt-1 text-xs">{s.categoria_nombre || "Sin categoría"}</Badge>
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={(e) => { e.stopPropagation(); abrirEditar(s); }} className="p-1 rounded hover:bg-muted"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                    <button onClick={(e) => { e.stopPropagation(); eliminarSesion(s.id); }} className="p-1 rounded hover:bg-destructive/10"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
+                  </div>
+                </div>
               </motion.div>
             ))}
         </div>
 
-        {/* Attendance marking */}
         <div className="md:col-span-2">
           {selectedSesion ? (
             <div className="border rounded-lg">
@@ -181,6 +223,33 @@ export default function AsistenciaTab() {
             <div><Label>Notas</Label><Input value={notas} onChange={e => setNotas(e.target.value)} placeholder="Opcional" /></div>
           </div>
           <DialogFooter><Button onClick={crearSesion} disabled={saving || !catId || !fecha}>{saving ? "Creando..." : "Crear Sesión"}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit session dialog */}
+      <Dialog open={!!editSesion} onOpenChange={(o) => !o && setEditSesion(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Sesión</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Fecha</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left", !editFecha && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {editFecha ? format(editFecha, "PPP", { locale: es }) : "Seleccionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={editFecha} onSelect={setEditFecha} className="p-3 pointer-events-auto" /></PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Hora inicio</Label><Input type="time" value={editHoraInicio} onChange={e => setEditHoraInicio(e.target.value)} /></div>
+              <div><Label>Hora fin</Label><Input type="time" value={editHoraFin} onChange={e => setEditHoraFin(e.target.value)} /></div>
+            </div>
+            <div><Label>Notas</Label><Input value={editNotas} onChange={e => setEditNotas(e.target.value)} /></div>
+          </div>
+          <DialogFooter><Button onClick={guardarEdicion} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

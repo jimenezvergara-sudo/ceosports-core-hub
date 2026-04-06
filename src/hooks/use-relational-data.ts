@@ -177,6 +177,32 @@ export function useCentrosCosto() {
   return { centrosCosto, loading };
 }
 
+export function usePersonasByCategoria(categoriaId: string | null) {
+  const [personas, setPersonas] = useState<PersonaRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { clubId } = useAuth();
+
+  useEffect(() => {
+    if (!categoriaId || !clubId) { setPersonas([]); setLoading(false); return; }
+    setLoading(true);
+    supabase
+      .from("persona_categoria" as any)
+      .select("persona_id, personas:persona_id(id, nombre, apellido, rut, tipo_persona, estado)")
+      .eq("categoria_id", categoriaId)
+      .eq("club_id", clubId)
+      .then(({ data }) => {
+        const mapped = ((data as any[]) ?? [])
+          .map((pc: any) => pc.personas as PersonaRow)
+          .filter(Boolean)
+          .sort((a: PersonaRow, b: PersonaRow) => a.apellido.localeCompare(b.apellido));
+        setPersonas(mapped);
+        setLoading(false);
+      });
+  }, [categoriaId, clubId]);
+
+  return { personas, loading };
+}
+
 export function personaLabel(p: PersonaRow): string {
   return `${p.apellido}, ${p.nombre}${p.rut ? ` — ${p.rut}` : ""}`;
 }
