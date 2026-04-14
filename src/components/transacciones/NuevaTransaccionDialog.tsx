@@ -259,8 +259,8 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
                   <SelectValue placeholder="Selecciona categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categoriasDeportivas.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  {categoriasDB.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -268,7 +268,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
           )}
 
           {/* Jugadora - solo si el ítem lo permite Y hay categoría seleccionada */}
-          {permiteJugadora && jugadorasFiltradas.length > 0 && (
+          {permiteJugadora && jugadorasDB.length > 0 && (
             <div className="grid gap-1.5">
               <Label>Asignar a Jugadora</Label>
               <Select value={personaId} onValueChange={setPersonaId}>
@@ -276,9 +276,9 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
                   <SelectValue placeholder="Selecciona jugadora" />
                 </SelectTrigger>
                 <SelectContent>
-                  {jugadorasFiltradas.map((p) => (
+                  {jugadorasDB.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.apellido}, {p.nombre} — {p.rut}
+                      {p.apellido}, {p.nombre} — {p.rut || "Sin RUT"}
                     </SelectItem>
                   ))}
                 </SelectContent>
