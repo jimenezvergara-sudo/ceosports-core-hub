@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Plus, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { categoriasTransaccion } from "@/data/categoriasTransaccion";
-import { personasMock } from "@/data/personasMock";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Props {
   onCreated: () => void;
