@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Plus, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { categoriasTransaccion } from "@/data/categoriasTransaccion";
-import { useAuth } from "@/hooks/use-auth";
 
 interface Props {
   onCreated: () => void;
@@ -45,6 +44,41 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   const [personaId, setPersonaId] = useState("");
   const [comprobante, setComprobante] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Real data from Supabase
+  const [categoriasDB, setCategoriasDB] = useState<{ id: string; nombre: string }[]>([]);
+  const [jugadorasDB, setJugadorasDB] = useState<{ id: string; nombre: string; apellido: string; rut: string | null }[]>([]);
+
+  // Load categorías deportivas from DB
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase.from("categorias").select("id, nombre").order("nombre");
+      if (data) setCategoriasDB(data);
+    };
+    load();
+  }, []);
+
+  // Load jugadoras when categoría deportiva changes
+  useEffect(() => {
+    if (!catDeportiva) {
+      setJugadorasDB([]);
+      return;
+    }
+    const load = async () => {
+      const { data } = await supabase
+        .from("persona_categoria")
+        .select("persona_id, personas!persona_categoria_persona_id_fkey(id, nombre, apellido, rut)")
+        .eq("categoria_id", catDeportiva);
+      if (data) {
+        const personas = data
+          .map((d: any) => d.personas)
+          .filter(Boolean)
+          .sort((a: any, b: any) => a.apellido.localeCompare(b.apellido));
+        setJugadorasDB(personas);
+      }
+    };
+    load();
+  }, [catDeportiva]);
 
   // Filter categories by selected tipo
   const categoriasFiltradas = useMemo(
