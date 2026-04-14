@@ -95,17 +95,6 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   const permiteCatDeportiva = categoriaSeleccionada?.permiteCategoriaDeportiva ?? false;
   const permiteJugadora = categoriaSeleccionada?.permiteJugadora ?? false;
 
-  const categoriasDeportivas = useMemo(() => {
-    const cats = new Set(personasMock.map((p) => p.categoria));
-    return Array.from(cats).sort();
-  }, []);
-
-  const jugadorasFiltradas = useMemo(() => {
-    if (!catDeportiva || !permiteJugadora) return [];
-    return personasMock
-      .filter((p) => p.categoria === catDeportiva)
-      .sort((a, b) => a.apellido.localeCompare(b.apellido));
-  }, [catDeportiva, permiteJugadora]);
 
   const handleTipoChange = (v: "Ingreso" | "Egreso") => {
     setTipo(v);
