@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Plus, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { categoriasTransaccion } from "@/data/categoriasTransaccion";
-import { personasMock } from "@/data/personasMock";
 
 interface Props {
   onCreated: () => void;
@@ -46,6 +45,41 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   const [comprobante, setComprobante] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Real data from Supabase
+  const [categoriasDB, setCategoriasDB] = useState<{ id: string; nombre: string }[]>([]);
+  const [jugadorasDB, setJugadorasDB] = useState<{ id: string; nombre: string; apellido: string; rut: string | null }[]>([]);
+
+  // Load categorías deportivas from DB
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase.from("categorias").select("id, nombre").order("nombre");
+      if (data) setCategoriasDB(data);
+    };
+    load();
+  }, []);
+
+  // Load jugadoras when categoría deportiva changes
+  useEffect(() => {
+    if (!catDeportiva) {
+      setJugadorasDB([]);
+      return;
+    }
+    const load = async () => {
+      const { data } = await supabase
+        .from("persona_categoria")
+        .select("persona_id, personas!persona_categoria_persona_id_fkey(id, nombre, apellido, rut)")
+        .eq("categoria_id", catDeportiva);
+      if (data) {
+        const personas = data
+          .map((d: any) => d.personas)
+          .filter(Boolean)
+          .sort((a: any, b: any) => a.apellido.localeCompare(b.apellido));
+        setJugadorasDB(personas);
+      }
+    };
+    load();
+  }, [catDeportiva]);
+
   // Filter categories by selected tipo
   const categoriasFiltradas = useMemo(
     () => categoriasTransaccion.filter((c) => c.tipo === tipo || c.tipo === "Ambos"),
@@ -61,17 +95,6 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
   const permiteCatDeportiva = categoriaSeleccionada?.permiteCategoriaDeportiva ?? false;
   const permiteJugadora = categoriaSeleccionada?.permiteJugadora ?? false;
 
-  const categoriasDeportivas = useMemo(() => {
-    const cats = new Set(personasMock.map((p) => p.categoria));
-    return Array.from(cats).sort();
-  }, []);
-
-  const jugadorasFiltradas = useMemo(() => {
-    if (!catDeportiva || !permiteJugadora) return [];
-    return personasMock
-      .filter((p) => p.categoria === catDeportiva)
-      .sort((a, b) => a.apellido.localeCompare(b.apellido));
-  }, [catDeportiva, permiteJugadora]);
 
   const handleTipoChange = (v: "Ingreso" | "Egreso") => {
     setTipo(v);
@@ -132,6 +155,9 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
       comprobantePath = path;
     }
 
+    // Find categoria name for display field
+    const catNombre = categoriasDB.find(c => c.id === catDeportiva)?.nombre || null;
+
     const { error } = await supabase.from("transacciones").insert({
       tipo,
       categoria,
@@ -143,8 +169,9 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
       metodo_pago: metodoPago || null,
       referencia: referencia || null,
       notas: comprobantePath ? `${notas || ""}\n[Comprobante: ${comprobantePath}]`.trim() : (notas || null),
-      categoria_deportiva: catDeportiva || null,
-      persona_id: personaId || null,
+      categoria_deportiva: catNombre,
+      categoria_ref_id: catDeportiva || null,
+      persona_ref_id: personaId || null,
       origen_tipo: "manual",
     } as any);
 
@@ -236,8 +263,8 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
                   <SelectValue placeholder="Selecciona categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categoriasDeportivas.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  {categoriasDB.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -245,7 +272,7 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
           )}
 
           {/* Jugadora - solo si el ítem lo permite Y hay categoría seleccionada */}
-          {permiteJugadora && jugadorasFiltradas.length > 0 && (
+          {permiteJugadora && jugadorasDB.length > 0 && (
             <div className="grid gap-1.5">
               <Label>Asignar a Jugadora</Label>
               <Select value={personaId} onValueChange={setPersonaId}>
@@ -253,9 +280,9 @@ export default function NuevaTransaccionDialog({ onCreated }: Props) {
                   <SelectValue placeholder="Selecciona jugadora" />
                 </SelectTrigger>
                 <SelectContent>
-                  {jugadorasFiltradas.map((p) => (
+                  {jugadorasDB.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.apellido}, {p.nombre} — {p.rut}
+                      {p.apellido}, {p.nombre} — {p.rut || "Sin RUT"}
                     </SelectItem>
                   ))}
                 </SelectContent>
