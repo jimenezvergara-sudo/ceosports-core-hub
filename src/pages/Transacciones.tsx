@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import NuevaTransaccionDialog from "@/components/transacciones/NuevaTransaccionDialog";
+import PagoCuotaRapidoDialog from "@/components/transacciones/PagoCuotaRapidoDialog";
 import TransaccionDetailSheet from "@/components/transacciones/TransaccionDetailSheet";
 import { categoriasTransaccion } from "@/data/categoriasTransaccion";
 
@@ -187,7 +188,8 @@ export default function Transacciones() {
       description="Registro de ingresos y egresos del club"
       icon={ArrowLeftRight}
       actions={
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <PagoCuotaRapidoDialog onPaid={fetchTxs} />
           <Button variant="outline" className="gap-2" onClick={exportCSV}>
             <Download className="w-4 h-4" />
             Exportar CSV
