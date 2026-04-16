@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { FileText, Plus, Upload, Download, Trash2, FolderOpen, Search, File, FileSpreadsheet, FileImage, Eye } from "lucide-react";
+import { FileText, Upload, Download, Trash2, FolderOpen, Search, File, FileSpreadsheet, FileImage, Eye } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
