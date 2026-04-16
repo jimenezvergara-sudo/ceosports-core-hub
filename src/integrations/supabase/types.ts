@@ -460,6 +460,44 @@ export type Database = {
           },
         ]
       }
+      categorias_documento: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          descripcion: string | null
+          icono: string | null
+          id: string
+          nombre: string
+          orden: number | null
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          icono?: string | null
+          id?: string
+          nombre: string
+          orden?: number | null
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          icono?: string | null
+          id?: string
+          nombre?: string
+          orden?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorias_documento_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       centros_costo: {
         Row: {
           activo: boolean
@@ -503,6 +541,7 @@ export type Database = {
       }
       club_documentos: {
         Row: {
+          categoria_documento_id: string | null
           club_id: string
           created_at: string
           descripcion: string | null
@@ -518,6 +557,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          categoria_documento_id?: string | null
           club_id: string
           created_at?: string
           descripcion?: string | null
@@ -533,6 +573,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          categoria_documento_id?: string | null
           club_id?: string
           created_at?: string
           descripcion?: string | null
@@ -548,6 +589,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "club_documentos_categoria_documento_id_fkey"
+            columns: ["categoria_documento_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_documento"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "club_documentos_club_id_fkey"
             columns: ["club_id"]
