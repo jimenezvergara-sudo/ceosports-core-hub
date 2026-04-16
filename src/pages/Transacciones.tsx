@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import NuevaTransaccionDialog from "@/components/transacciones/NuevaTransaccionDialog";
+import PagoCuotaRapidoDialog from "@/components/transacciones/PagoCuotaRapidoDialog";
 import TransaccionDetailSheet from "@/components/transacciones/TransaccionDetailSheet";
 import { categoriasTransaccion } from "@/data/categoriasTransaccion";
 
