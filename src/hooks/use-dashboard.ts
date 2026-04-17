@@ -79,6 +79,7 @@ export function useDashboard() {
   const [proyectosKpi, setProyectosKpi] = useState({ activos: 0, presupuesto: 0 });
   const [proyectosTop, setProyectosTop] = useState<ProyectoResumen[]>([]);
   const [comprasPendientes, setComprasPendientes] = useState(0);
+  const [comprasPorEstado, setComprasPorEstado] = useState<ComprasPorEstado[]>([]);
   const [comprasRecientes, setComprasRecientes] = useState<CompraReciente[]>([]);
 
   useEffect(() => {
