@@ -1504,6 +1504,129 @@ export type Database = {
           },
         ]
       }
+      persona_detalle: {
+        Row: {
+          alergias: string | null
+          apoderado_apellido: string | null
+          apoderado_direccion: string | null
+          apoderado_email: string | null
+          apoderado_nombre: string | null
+          apoderado_profesion: string | null
+          apoderado_rut: string | null
+          apoderado_telefono: string | null
+          club_id: string | null
+          colegio: string | null
+          created_at: string
+          direccion: string | null
+          id: string
+          madre_apellido: string | null
+          madre_direccion: string | null
+          madre_email: string | null
+          madre_nombre: string | null
+          madre_profesion: string | null
+          madre_rut: string | null
+          madre_telefono: string | null
+          padre_apellido: string | null
+          padre_direccion: string | null
+          padre_email: string | null
+          padre_nombre: string | null
+          padre_profesion: string | null
+          padre_rut: string | null
+          padre_telefono: string | null
+          persona_id: string
+          peso: string | null
+          prevision_salud: string | null
+          talla: string | null
+          talla_uniforme: string | null
+          updated_at: string
+        }
+        Insert: {
+          alergias?: string | null
+          apoderado_apellido?: string | null
+          apoderado_direccion?: string | null
+          apoderado_email?: string | null
+          apoderado_nombre?: string | null
+          apoderado_profesion?: string | null
+          apoderado_rut?: string | null
+          apoderado_telefono?: string | null
+          club_id?: string | null
+          colegio?: string | null
+          created_at?: string
+          direccion?: string | null
+          id?: string
+          madre_apellido?: string | null
+          madre_direccion?: string | null
+          madre_email?: string | null
+          madre_nombre?: string | null
+          madre_profesion?: string | null
+          madre_rut?: string | null
+          madre_telefono?: string | null
+          padre_apellido?: string | null
+          padre_direccion?: string | null
+          padre_email?: string | null
+          padre_nombre?: string | null
+          padre_profesion?: string | null
+          padre_rut?: string | null
+          padre_telefono?: string | null
+          persona_id: string
+          peso?: string | null
+          prevision_salud?: string | null
+          talla?: string | null
+          talla_uniforme?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alergias?: string | null
+          apoderado_apellido?: string | null
+          apoderado_direccion?: string | null
+          apoderado_email?: string | null
+          apoderado_nombre?: string | null
+          apoderado_profesion?: string | null
+          apoderado_rut?: string | null
+          apoderado_telefono?: string | null
+          club_id?: string | null
+          colegio?: string | null
+          created_at?: string
+          direccion?: string | null
+          id?: string
+          madre_apellido?: string | null
+          madre_direccion?: string | null
+          madre_email?: string | null
+          madre_nombre?: string | null
+          madre_profesion?: string | null
+          madre_rut?: string | null
+          madre_telefono?: string | null
+          padre_apellido?: string | null
+          padre_direccion?: string | null
+          padre_email?: string | null
+          padre_nombre?: string | null
+          padre_profesion?: string | null
+          padre_rut?: string | null
+          padre_telefono?: string | null
+          persona_id?: string
+          peso?: string | null
+          prevision_salud?: string | null
+          talla?: string | null
+          talla_uniforme?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "persona_detalle_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "persona_detalle_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: true
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       persona_relaciones: {
         Row: {
           club_id: string | null
