@@ -14,6 +14,34 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useStaffRoles, usePersonas, useCategorias, personaLabel } from "@/hooks/use-relational-data";
 import { useAuth } from "@/hooks/use-auth";
+import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
+import type { Persona } from "@/types/persona";
+import { calcularEdad, calcularCategoria } from "@/types/persona";
+
+const familiarVacio = { nombre: "", apellido: "", rut: "", telefono: "", email: "", direccion: "", profesion: "" };
+
+function dbToPersona(row: any): Persona {
+  const fechaNac = row.fecha_nacimiento || "";
+  const edad = fechaNac ? calcularEdad(fechaNac) : 0;
+  const catAuto = fechaNac ? calcularCategoria(fechaNac) : "—";
+  const tipoMap: Record<string, string> = { jugador: "Jugador", jugadora: "Jugadora", socio: "Socio", socia: "Socia", apoderado: "Apoderado", staff: "Staff" };
+  const estadoMap: Record<string, string> = { activo: "Activo", moroso: "Moroso", inactivo: "Inactivo" };
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    apellido: row.apellido,
+    rut: row.rut || "",
+    fechaNacimiento: fechaNac,
+    edad,
+    categoria: catAuto,
+    rama: "Mixto" as any,
+    tipo: (tipoMap[row.tipo_persona] || row.tipo_persona) as any,
+    estado: (estadoMap[row.estado] || row.estado) as any,
+    talla: "", tallaUniforme: "", peso: "", colegio: "", previsionSalud: "", alergias: "",
+    padre: { ...familiarVacio }, madre: { ...familiarVacio }, apoderado: { ...familiarVacio },
+    documentos: [],
+  };
+}
 
 const ROLES_DIRECTIVA = [
   "Presidente",
@@ -44,6 +72,8 @@ export default function Staff() {
   const { categorias } = useCategorias();
   const { clubId } = useAuth();
   const [open, setOpen] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [form, setForm] = useState({
     persona_id: "",
     rol: "",
@@ -51,6 +81,14 @@ export default function Staff() {
     categoria_id: "",
     activo: true,
   });
+
+  const openPersonaSheet = async (personaId: string) => {
+    const { data } = await supabase.from("personas").select("*").eq("id", personaId).maybeSingle();
+    if (data) {
+      setSelectedPersona(dbToPersona(data));
+      setSheetOpen(true);
+    }
+  };
 
   const isRolConCategoria = (rol: string) =>
     [...ROLES_TECNICO, "Coordinador"].includes(rol) || (!ROLES_BASE.includes(rol) && rol.toLowerCase().includes("delegado"));
@@ -129,7 +167,10 @@ export default function Staff() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.02 * i }}
     >
-      <Card className="h-full border-border/50 hover:border-primary/30 hover:shadow-sm transition-all duration-200">
+      <Card
+        className="h-full border-border/50 hover:border-primary/40 hover:shadow-md transition-all duration-200 cursor-pointer"
+        onClick={() => openPersonaSheet(r.persona_id)}
+      >
         <CardContent className="p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
@@ -142,7 +183,7 @@ export default function Staff() {
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
               <Switch
                 checked={r.activo}
                 onCheckedChange={(v) => toggleActivo(r.id, v)}
@@ -176,7 +217,7 @@ export default function Staff() {
           {groupByRole(items).map(([rol, members]) => (
             <div key={rol} className="space-y-2">
               <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 h-6 bg-muted/50">{rol}</Badge>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
                 {members.map((r, i) => renderCard(r, i))}
               </div>
             </div>
@@ -280,6 +321,12 @@ export default function Staff() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PersonaDetailSheet
+        persona={selectedPersona}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+      />
     </PageShell>
   );
 }
