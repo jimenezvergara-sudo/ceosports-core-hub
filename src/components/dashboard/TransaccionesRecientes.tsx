@@ -6,7 +6,7 @@ interface Props {
   data: TransaccionReciente[];
 }
 
-export default function TransaccionesRecientes({ data }: Props) {
+export default function TransaccionesRecientes({ data = [] }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
