@@ -382,12 +382,38 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
     });
   };
 
-  const handleSave = () => {
-    if (draft) {
-      onSave?.(draft);
-      setEditing(false);
-      toast.success("Datos guardados correctamente");
+  const handleSave = async () => {
+    if (!draft) return;
+    // Update base persona record
+    const tipoPersonaMap: Record<string, string> = {
+      Jugador: "jugador", Jugadora: "jugador", Socio: "socio", Socia: "socio", Staff: "staff", Apoderado: "apoderado",
+    };
+    const estadoMap: Record<string, string> = { Activo: "activo", Moroso: "moroso", Inactivo: "inactivo" };
+    const { error: persErr } = await supabase.from("personas").update({
+      nombre: draft.nombre,
+      apellido: draft.apellido,
+      rut: draft.rut || null,
+      fecha_nacimiento: draft.fechaNacimiento || null,
+      tipo_persona: tipoPersonaMap[draft.tipo] || "jugador",
+      estado: estadoMap[draft.estado] || "activo",
+    } as any).eq("id", draft.id);
+    if (persErr) {
+      toast.error("Error al actualizar persona: " + persErr.message);
+      return;
     }
+    // Persist extended fields
+    const { error: detErr } = await upsertPersonaDetalle(draft.id, (persona as any)?.club_id ?? null, {
+      talla: draft.talla, tallaUniforme: draft.tallaUniforme, peso: draft.peso,
+      colegio: draft.colegio, previsionSalud: draft.previsionSalud, alergias: draft.alergias,
+      padre: draft.padre, madre: draft.madre, apoderado: draft.apoderado,
+    });
+    if (detErr) {
+      toast.error("Error al guardar detalle: " + detErr.message);
+      return;
+    }
+    onSave?.(draft);
+    setEditing(false);
+    toast.success("Datos guardados correctamente");
   };
 
   const handleCancel = () => {
