@@ -217,7 +217,7 @@ export default function Staff() {
           {groupByRole(items).map(([rol, members]) => (
             <div key={rol} className="space-y-2">
               <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 h-6 bg-muted/50">{rol}</Badge>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
                 {members.map((r, i) => renderCard(r, i))}
               </div>
             </div>
