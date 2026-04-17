@@ -1,4 +1,9 @@
-import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload, ArrowUp, ArrowDown, ArrowUpDown, Settings } from "lucide-react";
+import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload, ArrowUp, ArrowDown, ArrowUpDown, Settings, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import PageShell from "@/components/shared/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
