@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShieldCheck, Plus, Pencil, Trash2 } from "lucide-react";
+import { ShieldCheck, Plus, Trash2 } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -124,39 +125,44 @@ export default function Staff() {
   const renderCard = (r: typeof roles[0], i: number) => (
     <motion.div
       key={r.id}
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.03 * i }}
-      className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow"
+      transition={{ delay: 0.02 * i }}
     >
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-1">
-          <Switch
-            checked={r.activo}
-            onCheckedChange={(v) => toggleActivo(r.id, v)}
-            className="scale-75"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-destructive"
-            onClick={() => remove(r.id)}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
-        </div>
-      </div>
-      <p className="text-foreground font-semibold text-sm">
-        {r.persona_nombre} {r.persona_apellido}
-      </p>
-      {r.categoria_nombre && (
-        <p className="text-xs text-muted-foreground mt-1">
-          Categoría: {r.categoria_nombre}
-        </p>
-      )}
-      {!r.activo && (
-        <Badge variant="destructive" className="text-[10px] mt-2">Inactivo</Badge>
-      )}
+      <Card className="h-full border-border/50 hover:border-primary/30 hover:shadow-sm transition-all duration-200">
+        <CardContent className="p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-foreground font-medium text-sm truncate">
+                {r.persona_nombre} {r.persona_apellido}
+              </p>
+              {r.categoria_nombre && (
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                  {r.categoria_nombre}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <Switch
+                checked={r.activo}
+                onCheckedChange={(v) => toggleActivo(r.id, v)}
+                className="scale-75"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-destructive/70 hover:text-destructive"
+                onClick={() => remove(r.id)}
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+          {!r.activo && (
+            <Badge variant="secondary" className="text-[10px] mt-2 px-1.5 py-0 h-5">Inactivo</Badge>
+          )}
+        </CardContent>
+      </Card>
     </motion.div>
   );
 
@@ -169,8 +175,8 @@ export default function Staff() {
         <div className="space-y-4">
           {groupByRole(items).map(([rol, members]) => (
             <div key={rol} className="space-y-2">
-              <Badge variant="secondary" className="text-xs">{rol}</Badge>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 h-6 bg-muted/50">{rol}</Badge>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {members.map((r, i) => renderCard(r, i))}
               </div>
             </div>
