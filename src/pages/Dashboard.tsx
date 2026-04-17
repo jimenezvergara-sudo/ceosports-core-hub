@@ -12,7 +12,7 @@ const fmtCLP = (n: number) =>
 export default function Dashboard() {
   const {
     loading, kpis, morosidad, documentos, transacciones,
-    proyectosKpi, proyectosTop, comprasPendientes, comprasRecientes,
+    proyectosKpi, proyectosTop, comprasPendientes, comprasPorEstado, comprasRecientes,
   } = useDashboard();
 
   return (
@@ -106,22 +106,45 @@ export default function Dashboard() {
         </div>
 
         <div className="glass rounded-xl p-5 shadow-card">
-          <h3 className="text-foreground font-semibold mb-4">Últimas Compras Ejecutadas</h3>
-          {comprasRecientes.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Sin compras registradas</p>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-foreground font-semibold">Compras por Estado</h3>
+            <span className="text-xs text-muted-foreground">{comprasPendientes} pendientes</span>
+          </div>
+          {comprasPorEstado.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Sin solicitudes registradas</p>
           ) : (
-            <div className="space-y-3">
-              {comprasRecientes.map((c) => (
-                <div key={c.id} className="flex items-center justify-between gap-3 py-2 border-b border-border/40 last:border-0">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground truncate">{c.titulo}</p>
-                    <p className="text-xs text-muted-foreground truncate">{c.proveedor} · {c.fecha}</p>
-                  </div>
-                  <span className="text-sm font-semibold text-foreground shrink-0">{fmtCLP(c.monto)}</span>
+            <div className="space-y-2 mb-4">
+              {comprasPorEstado.map((e) => (
+                <div key={e.estado} className="flex items-center justify-between text-sm">
+                  <span className="capitalize text-foreground">{e.estado}</span>
+                  <span className="font-semibold text-foreground">{e.count}</span>
                 </div>
               ))}
             </div>
           )}
+          <div className="border-t border-border/40 pt-3">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+              Compras recientes
+            </h4>
+            {comprasRecientes.length === 0 ? (
+              <p className="text-muted-foreground text-sm">Sin compras registradas</p>
+            ) : (
+              <div className="space-y-2">
+                {comprasRecientes.map((c) => (
+                  <div key={c.id} className="flex items-center justify-between gap-3 py-1.5 border-b border-border/40 last:border-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">{c.titulo}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {c.proveedor} · {c.fecha}
+                        {c.estado && <span className="ml-1 capitalize">· {c.estado}</span>}
+                      </p>
+                    </div>
+                    <span className="text-sm font-semibold text-foreground shrink-0">{fmtCLP(c.monto)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

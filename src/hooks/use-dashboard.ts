@@ -48,6 +48,12 @@ export interface CompraReciente {
   proveedor: string;
   monto: number;
   fecha: string;
+  estado?: string;
+}
+
+export interface ComprasPorEstado {
+  estado: string;
+  count: number;
 }
 
 const fmtFecha = (iso: string) => {
@@ -73,6 +79,7 @@ export function useDashboard() {
   const [proyectosKpi, setProyectosKpi] = useState({ activos: 0, presupuesto: 0 });
   const [proyectosTop, setProyectosTop] = useState<ProyectoResumen[]>([]);
   const [comprasPendientes, setComprasPendientes] = useState(0);
+  const [comprasPorEstado, setComprasPorEstado] = useState<ComprasPorEstado[]>([]);
   const [comprasRecientes, setComprasRecientes] = useState<CompraReciente[]>([]);
 
   useEffect(() => {
@@ -128,10 +135,10 @@ export function useDashboard() {
         .select("proyecto_id,tipo,monto,estado")
         .not("proyecto_id", "is", null)
         .neq("estado", "Anulado");
-      let qComprasPend: any = supabase
+      let qComprasAll: any = supabase
         .from("solicitudes_compra")
-        .select("id", { count: "exact", head: true })
-        .in("estado", ["enviada", "en revisión"]);
+        .select("id,estado,titulo,monto_estimado,proveedor_sugerido,created_at")
+        .order("created_at", { ascending: false });
       let qComprasRec: any = supabase
         .from("ejecuciones_compra")
         .select("id,monto_real,proveedor_real,fecha_compra,solicitud_id,solicitudes_compra:solicitud_id(titulo)")
@@ -148,16 +155,16 @@ export function useDashboard() {
         qTxsRec = qTxsRec.eq("club_id", clubId);
         qProyectos = qProyectos.eq("club_id", clubId);
         qTxProyectos = qTxProyectos.eq("club_id", clubId);
-        qComprasPend = qComprasPend.eq("club_id", clubId);
+        qComprasAll = qComprasAll.eq("club_id", clubId);
         qComprasRec = qComprasRec.eq("club_id", clubId);
       }
 
       const [
         txsMesAct, txsMesPrev, personasRes, cuotasPeriodoRes, clubDocsRes,
-        categoriasRes, txsRecRes, proyectosRes, txProyectosRes, comprasPendRes, comprasRecRes,
+        categoriasRes, txsRecRes, proyectosRes, txProyectosRes, comprasAllRes, comprasRecRes,
       ] = await Promise.all([
         qTxAct, qTxPrev, qPersonas, qCuotas, qDocs, qCats, qTxsRec,
-        qProyectos, qTxProyectos, qComprasPend, qComprasRec,
+        qProyectos, qTxProyectos, qComprasAll, qComprasRec,
       ]);
 
       // CAJA = Balance del mes actual (Ingresos - Egresos, excluyendo Anulado) — igual a módulo Transacciones
@@ -272,15 +279,45 @@ export function useDashboard() {
         .slice(0, 5);
       setProyectosTop(top);
 
-      // COMPRAS
-      setComprasPendientes(comprasPendRes.count ?? 0);
-      const compras: CompraReciente[] = ((comprasRecRes.data as any[]) ?? []).map((e) => ({
-        id: e.id,
-        titulo: e.solicitudes_compra?.titulo ?? "Compra",
-        proveedor: e.proveedor_real,
-        monto: Number(e.monto_real) || 0,
-        fecha: fmtFecha(e.fecha_compra),
-      }));
+      // COMPRAS — desglose por estado y pendientes (todas las que no están cerradas/rechazadas/rendidas)
+      const todasCompras = (comprasAllRes.data as any[]) ?? [];
+      const estadosCount: Record<string, number> = {};
+      todasCompras.forEach((s) => {
+        const e = String(s.estado ?? "").toLowerCase();
+        estadosCount[e] = (estadosCount[e] ?? 0) + 1;
+      });
+      const ESTADOS_PENDIENTES = ["borrador", "enviada", "en revisión", "aprobada", "observada"];
+      const pendientes = todasCompras.filter((s) =>
+        ESTADOS_PENDIENTES.includes(String(s.estado ?? "").toLowerCase())
+      ).length;
+      setComprasPendientes(pendientes);
+      setComprasPorEstado(
+        Object.entries(estadosCount)
+          .map(([estado, count]) => ({ estado, count }))
+          .sort((a, b) => b.count - a.count)
+      );
+
+      // RECIENTES: ejecuciones reales; si no hay, mostrar últimas solicitudes
+      const ejecuciones = (comprasRecRes.data as any[]) ?? [];
+      let compras: CompraReciente[];
+      if (ejecuciones.length > 0) {
+        compras = ejecuciones.map((e) => ({
+          id: e.id,
+          titulo: e.solicitudes_compra?.titulo ?? "Compra",
+          proveedor: e.proveedor_real,
+          monto: Number(e.monto_real) || 0,
+          fecha: fmtFecha(e.fecha_compra),
+        }));
+      } else {
+        compras = todasCompras.slice(0, 5).map((s) => ({
+          id: s.id,
+          titulo: s.titulo ?? "Solicitud",
+          proveedor: s.proveedor_sugerido ?? "Sin proveedor",
+          monto: Number(s.monto_estimado) || 0,
+          fecha: fmtFecha(s.created_at),
+          estado: s.estado,
+        }));
+      }
       setComprasRecientes(compras);
 
       setLoading(false);
@@ -291,6 +328,6 @@ export function useDashboard() {
 
   return {
     loading, kpis, morosidad, documentos, transacciones,
-    proyectosKpi, proyectosTop, comprasPendientes, comprasRecientes,
+    proyectosKpi, proyectosTop, comprasPendientes, comprasPorEstado, comprasRecientes,
   };
 }
