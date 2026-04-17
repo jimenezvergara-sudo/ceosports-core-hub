@@ -1602,36 +1602,45 @@ export type Database = {
         Row: {
           club_id: string | null
           created_at: string
+          descripcion: string | null
           estado: string
           fecha_fin: string | null
           fecha_inicio: string | null
+          fuente_financiamiento: string | null
           id: string
           nombre: string
           presupuesto: number
+          responsable_id: string | null
           tipo: string
           updated_at: string
         }
         Insert: {
           club_id?: string | null
           created_at?: string
+          descripcion?: string | null
           estado?: string
           fecha_fin?: string | null
           fecha_inicio?: string | null
+          fuente_financiamiento?: string | null
           id?: string
           nombre: string
           presupuesto?: number
+          responsable_id?: string | null
           tipo?: string
           updated_at?: string
         }
         Update: {
           club_id?: string | null
           created_at?: string
+          descripcion?: string | null
           estado?: string
           fecha_fin?: string | null
           fecha_inicio?: string | null
+          fuente_financiamiento?: string | null
           id?: string
           nombre?: string
           presupuesto?: number
+          responsable_id?: string | null
           tipo?: string
           updated_at?: string
         }
@@ -1641,6 +1650,13 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proyectos_responsable_id_fkey"
+            columns: ["responsable_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
             referencedColumns: ["id"]
           },
         ]
