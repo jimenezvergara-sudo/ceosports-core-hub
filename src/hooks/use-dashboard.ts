@@ -135,10 +135,10 @@ export function useDashboard() {
         .select("proyecto_id,tipo,monto,estado")
         .not("proyecto_id", "is", null)
         .neq("estado", "Anulado");
-      let qComprasPend: any = supabase
+      let qComprasAll: any = supabase
         .from("solicitudes_compra")
-        .select("id", { count: "exact", head: true })
-        .in("estado", ["enviada", "en revisión"]);
+        .select("id,estado,titulo,monto_estimado,proveedor_sugerido,created_at")
+        .order("created_at", { ascending: false });
       let qComprasRec: any = supabase
         .from("ejecuciones_compra")
         .select("id,monto_real,proveedor_real,fecha_compra,solicitud_id,solicitudes_compra:solicitud_id(titulo)")
