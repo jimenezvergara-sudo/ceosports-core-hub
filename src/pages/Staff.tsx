@@ -167,7 +167,10 @@ export default function Staff() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.02 * i }}
     >
-      <Card className="h-full border-border/50 hover:border-primary/30 hover:shadow-sm transition-all duration-200">
+      <Card
+        className="h-full border-border/50 hover:border-primary/40 hover:shadow-md transition-all duration-200 cursor-pointer"
+        onClick={() => openPersonaSheet(r.persona_id)}
+      >
         <CardContent className="p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
@@ -180,7 +183,7 @@ export default function Staff() {
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
               <Switch
                 checked={r.activo}
                 onCheckedChange={(v) => toggleActivo(r.id, v)}
