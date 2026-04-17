@@ -34,6 +34,22 @@ export interface TransaccionReciente {
   fecha: string;
 }
 
+export interface ProyectoResumen {
+  id: string;
+  nombre: string;
+  presupuesto: number;
+  ejecutado: number;
+  pct: number;
+}
+
+export interface CompraReciente {
+  id: string;
+  titulo: string;
+  proveedor: string;
+  monto: number;
+  fecha: string;
+}
+
 const fmtFecha = (iso: string) => {
   const d = new Date(iso);
   return d.toLocaleDateString("es-CL", { day: "2-digit", month: "short" });
@@ -54,6 +70,10 @@ export function useDashboard() {
   const [morosidad, setMorosidad] = useState<MorosidadPorCategoria[]>([]);
   const [documentos, setDocumentos] = useState<DocumentoVencimiento[]>([]);
   const [transacciones, setTransacciones] = useState<TransaccionReciente[]>([]);
+  const [proyectosKpi, setProyectosKpi] = useState({ activos: 0, presupuesto: 0 });
+  const [proyectosTop, setProyectosTop] = useState<ProyectoResumen[]>([]);
+  const [comprasPendientes, setComprasPendientes] = useState(0);
+  const [comprasRecientes, setComprasRecientes] = useState<CompraReciente[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -100,6 +120,23 @@ export function useDashboard() {
         .neq("estado", "Anulado")
         .order("fecha", { ascending: false })
         .limit(5);
+      let qProyectos: any = supabase
+        .from("proyectos")
+        .select("id,nombre,presupuesto,estado");
+      let qTxProyectos: any = supabase
+        .from("transacciones")
+        .select("proyecto_id,tipo,monto,estado")
+        .not("proyecto_id", "is", null)
+        .neq("estado", "Anulado");
+      let qComprasPend: any = supabase
+        .from("solicitudes_compra")
+        .select("id", { count: "exact", head: true })
+        .in("estado", ["enviada", "en revisión"]);
+      let qComprasRec: any = supabase
+        .from("ejecuciones_compra")
+        .select("id,monto_real,proveedor_real,fecha_compra,solicitud_id,solicitudes_compra:solicitud_id(titulo)")
+        .order("fecha_compra", { ascending: false })
+        .limit(5);
 
       if (clubId) {
         qTxAct = qTxAct.eq("club_id", clubId);
@@ -109,10 +146,19 @@ export function useDashboard() {
         qDocs = qDocs.eq("club_id", clubId);
         qCats = qCats.eq("club_id", clubId);
         qTxsRec = qTxsRec.eq("club_id", clubId);
+        qProyectos = qProyectos.eq("club_id", clubId);
+        qTxProyectos = qTxProyectos.eq("club_id", clubId);
+        qComprasPend = qComprasPend.eq("club_id", clubId);
+        qComprasRec = qComprasRec.eq("club_id", clubId);
       }
 
-      const [txsMesAct, txsMesPrev, personasRes, cuotasPeriodoRes, clubDocsRes, categoriasRes, txsRecRes] =
-        await Promise.all([qTxAct, qTxPrev, qPersonas, qCuotas, qDocs, qCats, qTxsRec]);
+      const [
+        txsMesAct, txsMesPrev, personasRes, cuotasPeriodoRes, clubDocsRes,
+        categoriasRes, txsRecRes, proyectosRes, txProyectosRes, comprasPendRes, comprasRecRes,
+      ] = await Promise.all([
+        qTxAct, qTxPrev, qPersonas, qCuotas, qDocs, qCats, qTxsRec,
+        qProyectos, qTxProyectos, qComprasPend, qComprasRec,
+      ]);
 
       // CAJA = Balance del mes actual (Ingresos - Egresos, excluyendo Anulado) — igual a módulo Transacciones
       const calcBalance = (rows: any[]) => {
@@ -198,11 +244,50 @@ export function useDashboard() {
       }));
       setTransacciones(txsRec);
 
+      // PROYECTOS — KPI y top 5 por % ejecución
+      const proyectos = (proyectosRes.data as any[]) ?? [];
+      const txProy = (txProyectosRes.data as any[]) ?? [];
+      const ejecPorProy: Record<string, number> = {};
+      txProy.forEach((t) => {
+        const monto = Number(t.monto) || 0;
+        const signo = String(t.tipo).toLowerCase() === "ingreso" ? -1 : 1; // egresos suman ejecución
+        ejecPorProy[t.proyecto_id] = (ejecPorProy[t.proyecto_id] ?? 0) + signo * monto;
+      });
+      const activos = proyectos.filter((p) => p.estado === "activo");
+      setProyectosKpi({
+        activos: activos.length,
+        presupuesto: activos.reduce((s, p) => s + (Number(p.presupuesto) || 0), 0),
+      });
+      const top: ProyectoResumen[] = proyectos
+        .map((p) => {
+          const ejecutado = Math.max(0, ejecPorProy[p.id] ?? 0);
+          const presupuesto = Number(p.presupuesto) || 0;
+          const pct = presupuesto > 0 ? (ejecutado / presupuesto) * 100 : 0;
+          return { id: p.id, nombre: p.nombre, presupuesto, ejecutado, pct };
+        })
+        .sort((a, b) => b.pct - a.pct)
+        .slice(0, 5);
+      setProyectosTop(top);
+
+      // COMPRAS
+      setComprasPendientes(comprasPendRes.count ?? 0);
+      const compras: CompraReciente[] = ((comprasRecRes.data as any[]) ?? []).map((e) => ({
+        id: e.id,
+        titulo: e.solicitudes_compra?.titulo ?? "Compra",
+        proveedor: e.proveedor_real,
+        monto: Number(e.monto_real) || 0,
+        fecha: fmtFecha(e.fecha_compra),
+      }));
+      setComprasRecientes(compras);
+
       setLoading(false);
     };
 
     load();
   }, [clubId]);
 
-  return { loading, kpis, morosidad, documentos, transacciones };
+  return {
+    loading, kpis, morosidad, documentos, transacciones,
+    proyectosKpi, proyectosTop, comprasPendientes, comprasRecientes,
+  };
 }

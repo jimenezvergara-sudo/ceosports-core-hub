@@ -1,15 +1,19 @@
-import { DollarSign, AlertCircle, FileWarning, Users } from "lucide-react";
+import { DollarSign, AlertCircle, FileWarning, Users, FolderKanban, ShoppingCart } from "lucide-react";
 import KPICard from "@/components/dashboard/KPICard";
 import MorosidadChart from "@/components/dashboard/MorosidadChart";
 import DocumentosVencimiento from "@/components/dashboard/DocumentosVencimiento";
 import TransaccionesRecientes from "@/components/dashboard/TransaccionesRecientes";
 import { useDashboard } from "@/hooks/use-dashboard";
+import { Progress } from "@/components/ui/progress";
 
 const fmtCLP = (n: number) =>
   new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(n);
 
 export default function Dashboard() {
-  const { loading, kpis, morosidad, documentos, transacciones } = useDashboard();
+  const {
+    loading, kpis, morosidad, documentos, transacciones,
+    proyectosKpi, proyectosTop, comprasPendientes, comprasRecientes,
+  } = useDashboard();
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -55,11 +59,70 @@ export default function Dashboard() {
           gradient="kpi-gradient-4"
           delay={0.3}
         />
+        <KPICard
+          title="Proyectos Activos"
+          value={loading ? "…" : String(proyectosKpi.activos)}
+          subtitle={`Presupuesto: ${fmtCLP(proyectosKpi.presupuesto)}`}
+          icon={FolderKanban}
+          gradient="kpi-gradient-1"
+          delay={0.4}
+        />
+        <KPICard
+          title="Compras Pendientes"
+          value={loading ? "…" : String(comprasPendientes)}
+          subtitle="Por aprobar / en revisión"
+          icon={ShoppingCart}
+          gradient="kpi-gradient-2"
+          delay={0.5}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <MorosidadChart data={morosidad} />
         <DocumentosVencimiento data={documentos} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="glass rounded-xl p-5 shadow-card">
+          <h3 className="text-foreground font-semibold mb-4">Top Proyectos por Ejecución</h3>
+          {proyectosTop.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Sin proyectos registrados</p>
+          ) : (
+            <div className="space-y-4">
+              {proyectosTop.map((p) => (
+                <div key={p.id} className="space-y-1.5">
+                  <div className="flex justify-between items-baseline gap-2">
+                    <span className="text-sm font-medium text-foreground truncate">{p.nombre}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{p.pct.toFixed(0)}%</span>
+                  </div>
+                  <Progress value={Math.min(100, p.pct)} className="h-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {fmtCLP(p.ejecutado)} de {fmtCLP(p.presupuesto)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="glass rounded-xl p-5 shadow-card">
+          <h3 className="text-foreground font-semibold mb-4">Últimas Compras Ejecutadas</h3>
+          {comprasRecientes.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Sin compras registradas</p>
+          ) : (
+            <div className="space-y-3">
+              {comprasRecientes.map((c) => (
+                <div key={c.id} className="flex items-center justify-between gap-3 py-2 border-b border-border/40 last:border-0">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{c.titulo}</p>
+                    <p className="text-xs text-muted-foreground truncate">{c.proveedor} · {c.fecha}</p>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground shrink-0">{fmtCLP(c.monto)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <TransaccionesRecientes data={transacciones} />
