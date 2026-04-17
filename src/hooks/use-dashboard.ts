@@ -34,6 +34,22 @@ export interface TransaccionReciente {
   fecha: string;
 }
 
+export interface ProyectoResumen {
+  id: string;
+  nombre: string;
+  presupuesto: number;
+  ejecutado: number;
+  pct: number;
+}
+
+export interface CompraReciente {
+  id: string;
+  titulo: string;
+  proveedor: string;
+  monto: number;
+  fecha: string;
+}
+
 const fmtFecha = (iso: string) => {
   const d = new Date(iso);
   return d.toLocaleDateString("es-CL", { day: "2-digit", month: "short" });
