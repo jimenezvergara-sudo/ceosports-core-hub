@@ -13,6 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { motion } from "framer-motion";
 import CuotaDetailSheet from "./CuotaDetailSheet";
 import GenerarCuotasDialog from "./GenerarCuotasDialog";
+import PagoCuotaRapidoDialog from "@/components/transacciones/PagoCuotaRapidoDialog";
 
 interface Cuota {
   id: string;
@@ -107,8 +108,9 @@ export default function CuotasBandeja() {
   return (
     <div className="space-y-4">
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <GenerarCuotasDialog onGenerated={fetchCuotas} />
+        <PagoCuotaRapidoDialog onPaid={fetchCuotas} />
       </div>
 
       {/* Search */}

@@ -1,4 +1,9 @@
-import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload, ArrowUp, ArrowDown, ArrowUpDown, Settings } from "lucide-react";
+import { Users, Plus, Search, CheckCircle2, XCircle, AlertTriangle, Upload, ArrowUp, ArrowDown, ArrowUpDown, Settings, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import PageShell from "@/components/shared/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -193,6 +198,23 @@ export default function Personas() {
     fetchPersonas();
   };
 
+  const [personaAEliminar, setPersonaAEliminar] = useState<Persona | null>(null);
+
+  const handleEliminar = async () => {
+    if (!personaAEliminar) return;
+    const id = personaAEliminar.id;
+    await supabase.from("persona_categoria").delete().eq("persona_id", id);
+    await supabase.from("persona_relaciones").delete().eq("persona_id", id);
+    await supabase.from("persona_relaciones").delete().eq("relacionado_id", id);
+    const { error } = await supabase.from("personas").delete().eq("id", id);
+    if (error) {
+      toast.error("No se pudo eliminar: " + error.message);
+    } else {
+      toast.success("Persona eliminada");
+      fetchPersonas();
+    }
+  };
+
   const getCategoryDisplay = (p: Persona) => {
     const assigned = personaCatMap[p.id];
     if (assigned && assigned.length > 0) return assigned;
@@ -287,13 +309,14 @@ export default function Personas() {
                   )}
                 </span>
               </th>
+              <th className="text-right p-4 text-muted-foreground font-medium text-xs uppercase tracking-wider w-12"></th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Cargando...</td></tr>
+              <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Cargando...</td></tr>
             ) : personasFiltradas.length === 0 ? (
-              <tr><td colSpan={6} className="p-8 text-center text-muted-foreground text-sm">No se encontraron personas.</td></tr>
+              <tr><td colSpan={7} className="p-8 text-center text-muted-foreground text-sm">No se encontraron personas.</td></tr>
             ) : personasFiltradas.map((p) => (
               <tr key={p.id} onClick={() => handleClickPersona(p)} className="border-b border-border/50 hover:bg-secondary/30 transition-colors cursor-pointer">
                 <td className="p-4 font-medium text-foreground">{p.apellido}, {p.nombre}</td>
@@ -310,6 +333,17 @@ export default function Personas() {
                 <td className="p-4">
                   <Badge variant={p.estado === "Moroso" ? "destructive" : "outline"} className="text-xs">{p.estado}</Badge>
                 </td>
+                <td className="p-4 text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={(e) => { e.stopPropagation(); setPersonaAEliminar(p); }}
+                    title="Eliminar persona"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -323,27 +357,36 @@ export default function Personas() {
         ) : personasFiltradas.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground bg-card border border-border rounded-lg">No se encontraron personas.</div>
         ) : personasFiltradas.map((p) => (
-          <button
-            key={p.id}
-            onClick={() => handleClickPersona(p)}
-            className="w-full text-left bg-card border border-border rounded-lg p-4 hover:bg-muted/30 active:bg-muted/50 transition-colors"
-          >
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div>
-                <h3 className="font-medium text-foreground text-sm">{p.apellido}, {p.nombre}</h3>
-                <p className="text-xs text-muted-foreground font-mono">{p.rut || "Sin RUT"}</p>
+          <div key={p.id} className="relative bg-card border border-border rounded-lg hover:bg-muted/30 active:bg-muted/50 transition-colors">
+            <button
+              onClick={() => handleClickPersona(p)}
+              className="w-full text-left p-4 pr-12"
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <h3 className="font-medium text-foreground text-sm">{p.apellido}, {p.nombre}</h3>
+                  <p className="text-xs text-muted-foreground font-mono">{p.rut || "Sin RUT"}</p>
+                </div>
+                <Badge variant={p.estado === "Moroso" ? "destructive" : "outline"} className="text-[10px] shrink-0">{p.estado}</Badge>
               </div>
-              <Badge variant={p.estado === "Moroso" ? "destructive" : "outline"} className="text-[10px] shrink-0">{p.estado}</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex flex-wrap gap-1">
-                {getCategoryDisplay(p).map((c) => (
-                  <Badge key={c} variant="secondary" className="text-[10px]">{c}</Badge>
-                ))}
+              <div className="flex items-center justify-between">
+                <div className="flex flex-wrap gap-1">
+                  {getCategoryDisplay(p).map((c) => (
+                    <Badge key={c} variant="secondary" className="text-[10px]">{c}</Badge>
+                  ))}
+                </div>
+                <span className="text-xs text-muted-foreground capitalize">{p.tipo}</span>
               </div>
-              <span className="text-xs text-muted-foreground capitalize">{p.tipo}</span>
-            </div>
-          </button>
+            </button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive"
+              onClick={(e) => { e.stopPropagation(); setPersonaAEliminar(p); }}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         ))}
       </motion.div>
 
@@ -359,6 +402,23 @@ export default function Personas() {
       <NuevaPersonaDialog open={nuevaOpen} onOpenChange={setNuevaOpen} onSave={handleNuevaPersona} />
       <ImportMasivaDialog open={importOpen} onOpenChange={setImportOpen} onImport={handleImport} existingRuts={personas.map((p) => p.rut)} />
       <CategoriasManager open={categoriasOpen} onOpenChange={setCategoriasOpen} />
+
+      <AlertDialog open={!!personaAEliminar} onOpenChange={(o) => !o && setPersonaAEliminar(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar a {personaAEliminar?.nombre} {personaAEliminar?.apellido}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción es permanente. Se eliminarán también sus categorías y vínculos familiares asociados. Las cuotas y transacciones ya emitidas no se borran.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleEliminar} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageShell>
   );
 }

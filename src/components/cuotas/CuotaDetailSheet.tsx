@@ -92,6 +92,10 @@ export default function CuotaDetailSheet({ cuota, open, onOpenChange, onUpdated,
     setMontoPago(Math.max(0, remaining));
   };
 
+  const totalPagado = pagos.reduce((s, p) => s + p.monto_pagado, 0);
+  const saldoPendiente = cuota ? cuota.monto_final - totalPagado : 0;
+  const estaPagada = !!cuota && (cuota.estado === "pagada" || saldoPendiente <= 0);
+
   const registrarPago = async () => {
     if (!cuota || !montoPago) return;
     const payload: any = {
@@ -108,15 +112,25 @@ export default function CuotaDetailSheet({ cuota, open, onOpenChange, onUpdated,
       toast.error("Error al registrar pago");
       return;
     }
-    toast.success("Pago registrado exitosamente");
+
+    // Auto-update cuota status if fully paid
+    const nuevoTotal = totalPagado + montoPago;
+    if (nuevoTotal >= cuota.monto_final) {
+      await supabase.from("cuotas").update({ estado: "pagada" }).eq("id", cuota.id);
+    } else if (nuevoTotal > 0) {
+      await supabase.from("cuotas").update({ estado: "parcial" }).eq("id", cuota.id);
+    }
+
+    toast.success("Pago registrado. Cerrando en 3s...");
     setShowPago(false);
     setReferenciaPago("");
     setObsPago("");
     fetchPagos();
     onUpdated();
-  };
 
-  const totalPagado = pagos.reduce((s, p) => s + p.monto_pagado, 0);
+    // Auto-close to prevent duplicate payments
+    setTimeout(() => onOpenChange(false), 3000);
+  };
 
   if (!cuota) return null;
 
@@ -180,7 +194,7 @@ export default function CuotaDetailSheet({ cuota, open, onOpenChange, onUpdated,
           </div>
 
           {/* Register payment */}
-          {cuota.estado !== "pagada" && cuota.estado !== "anulada" && (
+          {!estaPagada && cuota.estado !== "anulada" && (
             <>
               <Separator />
               {!showPago ? (
