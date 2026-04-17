@@ -213,7 +213,12 @@ export default function Personas() {
       toast.success("Persona eliminada");
       fetchPersonas();
     }
-    setPersonaAEliminar(null);
+  };
+
+  const getCategoryDisplay = (p: Persona) => {
+    const assigned = personaCatMap[p.id];
+    if (assigned && assigned.length > 0) return assigned;
+    return [p.categoria];
   };
 
   return (
