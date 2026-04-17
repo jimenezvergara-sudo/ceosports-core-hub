@@ -13,6 +13,7 @@ import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documen
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCategorias } from "@/hooks/use-relational-data";
+import { loadPersonaDetalle, upsertPersonaDetalle } from "@/lib/persona-detalle";
 
 type ApoderadoSource = "padre" | "madre" | "otro";
 import { format } from "date-fns";
@@ -216,6 +217,24 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
     if (open && persona) {
       loadDbDocs();
       loadAvatar();
+      // Load extended fields from persona_detalle and merge into draft
+      loadPersonaDetalle(persona.id).then((detalle) => {
+        setDraft((prev) => {
+          const base = prev ?? persona;
+          return {
+            ...base,
+            talla: detalle.talla ?? base.talla,
+            tallaUniforme: detalle.tallaUniforme ?? base.tallaUniforme,
+            peso: detalle.peso ?? base.peso,
+            colegio: detalle.colegio ?? base.colegio,
+            previsionSalud: detalle.previsionSalud ?? base.previsionSalud,
+            alergias: detalle.alergias ?? base.alergias,
+            padre: detalle.padre ?? base.padre,
+            madre: detalle.madre ?? base.madre,
+            apoderado: detalle.apoderado ?? base.apoderado,
+          };
+        });
+      });
     }
   }, [open, persona, loadDbDocs, loadAvatar]);
 
@@ -382,12 +401,38 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
     });
   };
 
-  const handleSave = () => {
-    if (draft) {
-      onSave?.(draft);
-      setEditing(false);
-      toast.success("Datos guardados correctamente");
+  const handleSave = async () => {
+    if (!draft) return;
+    // Update base persona record
+    const tipoPersonaMap: Record<string, string> = {
+      Jugador: "jugador", Jugadora: "jugador", Socio: "socio", Socia: "socio", Staff: "staff", Apoderado: "apoderado",
+    };
+    const estadoMap: Record<string, string> = { Activo: "activo", Moroso: "moroso", Inactivo: "inactivo" };
+    const { error: persErr } = await supabase.from("personas").update({
+      nombre: draft.nombre,
+      apellido: draft.apellido,
+      rut: draft.rut || null,
+      fecha_nacimiento: draft.fechaNacimiento || null,
+      tipo_persona: tipoPersonaMap[draft.tipo] || "jugador",
+      estado: estadoMap[draft.estado] || "activo",
+    } as any).eq("id", draft.id);
+    if (persErr) {
+      toast.error("Error al actualizar persona: " + persErr.message);
+      return;
     }
+    // Persist extended fields
+    const { error: detErr } = await upsertPersonaDetalle(draft.id, (persona as any)?.club_id ?? null, {
+      talla: draft.talla, tallaUniforme: draft.tallaUniforme, peso: draft.peso,
+      colegio: draft.colegio, previsionSalud: draft.previsionSalud, alergias: draft.alergias,
+      padre: draft.padre, madre: draft.madre, apoderado: draft.apoderado,
+    });
+    if (detErr) {
+      toast.error("Error al guardar detalle: " + detErr.message);
+      return;
+    }
+    onSave?.(draft);
+    setEditing(false);
+    toast.success("Datos guardados correctamente");
   };
 
   const handleCancel = () => {

@@ -12,6 +12,7 @@ import type { Persona } from "@/types/persona";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { upsertPersonaDetalle } from "@/lib/persona-detalle";
 
 interface Props {
   open: boolean;
@@ -155,6 +156,17 @@ export default function NuevaPersonaDialog({ open, onOpenChange, onSave }: Props
     const padreData = { nombre: form.padreNombre, apellido: form.padreApellido, rut: form.padreRut, telefono: form.padreTelefono, email: form.padreEmail, direccion: form.padreDireccion, profesion: form.padreProfesion };
     const madreData = { nombre: form.madreNombre, apellido: form.madreApellido, rut: form.madreRut, telefono: form.madreTelefono, email: form.madreEmail, direccion: form.madreDireccion, profesion: form.madreProfesion };
     const apoderadoData = apoderadoSource === "padre" ? { ...padreData } : apoderadoSource === "madre" ? { ...madreData } : { nombre: form.apoderadoNombre, apellido: form.apoderadoApellido, rut: form.apoderadoRut, telefono: form.apoderadoTelefono, email: form.apoderadoEmail, direccion: form.apoderadoDireccion, profesion: form.apoderadoProfesion };
+
+    // Persist extended fields
+    if (jugadorId) {
+      const { error: detErr } = await upsertPersonaDetalle(jugadorId, clubId, {
+        talla: form.talla, tallaUniforme: form.tallaUniforme, peso: form.peso,
+        colegio: form.colegio, previsionSalud: form.previsionSalud, alergias: form.alergias,
+        direccion: form.direccion,
+        padre: padreData, madre: madreData, apoderado: apoderadoData,
+      });
+      if (detErr) console.error("Error guardando detalle:", detErr);
+    }
 
     const persona: Persona = {
       id: jugadorId ?? crypto.randomUUID(),
