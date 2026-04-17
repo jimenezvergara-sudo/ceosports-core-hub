@@ -48,6 +48,12 @@ export interface CompraReciente {
   proveedor: string;
   monto: number;
   fecha: string;
+  estado?: string;
+}
+
+export interface ComprasPorEstado {
+  estado: string;
+  count: number;
 }
 
 const fmtFecha = (iso: string) => {
