@@ -12,7 +12,7 @@ const fmtCLP = (n: number) =>
 export default function Dashboard() {
   const {
     loading, kpis, morosidad, documentos, transacciones,
-    proyectosKpi, proyectosTop, comprasPendientes, comprasRecientes,
+    proyectosKpi, proyectosTop, comprasPendientes, comprasPorEstado, comprasRecientes,
   } = useDashboard();
 
   return (
