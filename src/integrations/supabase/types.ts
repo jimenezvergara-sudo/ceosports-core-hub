@@ -647,6 +647,9 @@ export type Database = {
         Row: {
           activo: boolean
           ciudad: string | null
+          contacto_cobranza_email: string | null
+          contacto_cobranza_nombre: string | null
+          contacto_cobranza_telefono: string | null
           created_at: string
           deporte: string
           descripcion: string | null
@@ -670,6 +673,9 @@ export type Database = {
         Insert: {
           activo?: boolean
           ciudad?: string | null
+          contacto_cobranza_email?: string | null
+          contacto_cobranza_nombre?: string | null
+          contacto_cobranza_telefono?: string | null
           created_at?: string
           deporte?: string
           descripcion?: string | null
@@ -693,6 +699,9 @@ export type Database = {
         Update: {
           activo?: boolean
           ciudad?: string | null
+          contacto_cobranza_email?: string | null
+          contacto_cobranza_nombre?: string | null
+          contacto_cobranza_telefono?: string | null
           created_at?: string
           deporte?: string
           descripcion?: string | null
@@ -1329,6 +1338,85 @@ export type Database = {
           },
         ]
       }
+      pagos_plataforma: {
+        Row: {
+          club_id: string
+          comprobante_path: string | null
+          created_at: string
+          estado: string
+          fecha_pago: string
+          id: string
+          metodo: string
+          moneda: string
+          monto: number
+          notas: string | null
+          periodo_desde: string | null
+          periodo_hasta: string | null
+          plan_id: string | null
+          referencia: string | null
+          registrado_por: string | null
+          suscripcion_id: string | null
+        }
+        Insert: {
+          club_id: string
+          comprobante_path?: string | null
+          created_at?: string
+          estado?: string
+          fecha_pago?: string
+          id?: string
+          metodo?: string
+          moneda?: string
+          monto: number
+          notas?: string | null
+          periodo_desde?: string | null
+          periodo_hasta?: string | null
+          plan_id?: string | null
+          referencia?: string | null
+          registrado_por?: string | null
+          suscripcion_id?: string | null
+        }
+        Update: {
+          club_id?: string
+          comprobante_path?: string | null
+          created_at?: string
+          estado?: string
+          fecha_pago?: string
+          id?: string
+          metodo?: string
+          moneda?: string
+          monto?: number
+          notas?: string | null
+          periodo_desde?: string | null
+          periodo_hasta?: string | null
+          plan_id?: string | null
+          referencia?: string | null
+          registrado_por?: string | null
+          suscripcion_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_plataforma_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_plataforma_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planes_plataforma"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_plataforma_suscripcion_id_fkey"
+            columns: ["suscripcion_id"]
+            isOneToOne: false
+            referencedRelation: "suscripciones_club"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permisos_modulo: {
         Row: {
           club_id: string
@@ -1517,6 +1605,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      planes_plataforma: {
+        Row: {
+          activo: boolean
+          caracteristicas: Json | null
+          created_at: string
+          descripcion: string | null
+          id: string
+          limite_clubes: number | null
+          limite_usuarios: number | null
+          moneda: string
+          nombre: string
+          orden: number
+          precio_anual: number
+          precio_mensual: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          caracteristicas?: Json | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          limite_clubes?: number | null
+          limite_usuarios?: number | null
+          moneda?: string
+          nombre: string
+          orden?: number
+          precio_anual?: number
+          precio_mensual?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          caracteristicas?: Json | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          limite_clubes?: number | null
+          limite_usuarios?: number | null
+          moneda?: string
+          nombre?: string
+          orden?: number
+          precio_anual?: number
+          precio_mensual?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["platform_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -1994,6 +2151,63 @@ export type Database = {
           },
         ]
       }
+      suscripciones_club: {
+        Row: {
+          ciclo_facturacion: string
+          club_id: string
+          created_at: string
+          estado: string
+          fecha_inicio: string
+          fecha_vencimiento: string | null
+          id: string
+          notas: string | null
+          plan_id: string | null
+          trial_hasta: string | null
+          updated_at: string
+        }
+        Insert: {
+          ciclo_facturacion?: string
+          club_id: string
+          created_at?: string
+          estado?: string
+          fecha_inicio?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          notas?: string | null
+          plan_id?: string | null
+          trial_hasta?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ciclo_facturacion?: string
+          club_id?: string
+          created_at?: string
+          estado?: string
+          fecha_inicio?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          notas?: string | null
+          plan_id?: string | null
+          trial_hasta?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suscripciones_club_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: true
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suscripciones_club_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planes_plataforma"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tipos_test_deportivo: {
         Row: {
           activo: boolean
@@ -2145,13 +2359,21 @@ export type Database = {
         Args: { _club_id: string; _user_id: string }
         Returns: string
       }
+      has_platform_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["platform_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       user_belongs_to_club: {
         Args: { _club_id: string; _user_id: string }
         Returns: boolean
       }
     }
     Enums: {
-      [_ in never]: never
+      platform_role: "super_admin" | "support"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2278,6 +2500,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      platform_role: ["super_admin", "support"],
+    },
   },
 } as const
