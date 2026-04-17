@@ -321,6 +321,12 @@ export default function Staff() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PersonaDetailSheet
+        persona={selectedPersona}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+      />
     </PageShell>
   );
 }
