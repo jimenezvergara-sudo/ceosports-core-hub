@@ -108,13 +108,28 @@ export default function CuotaDetailSheet({ cuota, open, onOpenChange, onUpdated,
       toast.error("Error al registrar pago");
       return;
     }
-    toast.success("Pago registrado exitosamente");
+
+    // Auto-update cuota status if fully paid
+    const nuevoTotal = totalPagado + montoPago;
+    if (nuevoTotal >= cuota.monto_final) {
+      await supabase.from("cuotas").update({ estado: "pagada" }).eq("id", cuota.id);
+    } else if (nuevoTotal > 0) {
+      await supabase.from("cuotas").update({ estado: "parcial" }).eq("id", cuota.id);
+    }
+
+    toast.success("Pago registrado. Cerrando en 3s...");
     setShowPago(false);
     setReferenciaPago("");
     setObsPago("");
     fetchPagos();
     onUpdated();
+
+    // Auto-close to prevent duplicate payments
+    setTimeout(() => onOpenChange(false), 3000);
   };
+
+  const saldoPendiente = cuota ? cuota.monto_final - totalPagado : 0;
+  const estaPagada = cuota?.estado === "pagada" || saldoPendiente <= 0;
 
   const totalPagado = pagos.reduce((s, p) => s + p.monto_pagado, 0);
 
