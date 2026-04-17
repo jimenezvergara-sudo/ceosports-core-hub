@@ -198,10 +198,22 @@ export default function Personas() {
     fetchPersonas();
   };
 
-  const getCategoryDisplay = (p: Persona) => {
-    const assigned = personaCatMap[p.id];
-    if (assigned && assigned.length > 0) return assigned;
-    return [p.categoria];
+  const [personaAEliminar, setPersonaAEliminar] = useState<Persona | null>(null);
+
+  const handleEliminar = async () => {
+    if (!personaAEliminar) return;
+    const id = personaAEliminar.id;
+    await supabase.from("persona_categoria").delete().eq("persona_id", id);
+    await supabase.from("persona_relaciones").delete().eq("persona_id", id);
+    await supabase.from("persona_relaciones").delete().eq("relacionado_id", id);
+    const { error } = await supabase.from("personas").delete().eq("id", id);
+    if (error) {
+      toast.error("No se pudo eliminar: " + error.message);
+    } else {
+      toast.success("Persona eliminada");
+      fetchPersonas();
+    }
+    setPersonaAEliminar(null);
   };
 
   return (
