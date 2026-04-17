@@ -56,11 +56,6 @@ export function useDashboard() {
   const [transacciones, setTransacciones] = useState<TransaccionReciente[]>([]);
 
   useEffect(() => {
-    if (!clubId) {
-      setLoading(false);
-      return;
-    }
-
     const load = async () => {
       setLoading(true);
       const hoy = new Date();
@@ -70,70 +65,85 @@ export function useDashboard() {
       const hoyIso = hoy.toISOString().slice(0, 10);
 
       const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().slice(0, 10);
+      const finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().slice(0, 10);
       const inicioMesPrev = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1).toISOString().slice(0, 10);
       const finMesPrev = new Date(hoy.getFullYear(), hoy.getMonth(), 0).toISOString().slice(0, 10);
+      const periodoActual = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
 
-      const [
-        txsRes,
-        personasRes,
-        cuotasMorosasRes,
-        docsRes,
-        categoriasRes,
-        personaCatRes,
-        txsRecRes,
-      ] = await Promise.all([
-        supabase.from("transacciones" as any).select("tipo,monto,fecha,descripcion").eq("club_id", clubId),
-        supabase.from("personas").select("id,estado").eq("club_id", clubId).eq("estado", "activo"),
-        supabase
-          .from("cuotas")
-          .select("id,persona_id,categoria_id,estado,fecha_vencimiento")
-          .eq("club_id", clubId)
-          .lt("fecha_vencimiento", hoyIso)
-          .in("estado", ["pendiente", "parcial", "vencida"]),
-        supabase
-          .from("documentos")
-          .select("id,etiqueta,nombre_archivo,fecha_vencimiento,persona_id")
-          .eq("club_id", clubId)
-          .not("fecha_vencimiento", "is", null)
-          .lte("fecha_vencimiento", en30Iso)
-          .gte("fecha_vencimiento", hoyIso)
-          .order("fecha_vencimiento", { ascending: true }),
-        supabase.from("categorias").select("id,nombre").eq("club_id", clubId),
-        supabase.from("persona_categoria").select("persona_id,categoria_id").eq("club_id", clubId),
-        supabase
-          .from("transacciones" as any)
-          .select("id,tipo,monto,fecha,descripcion")
-          .eq("club_id", clubId)
-          .order("fecha", { ascending: false })
-          .limit(5),
-      ]);
+      // Build queries; legacy data may have null club_id, so only filter if clubId present
+      let qTxAct: any = supabase
+        .from("transacciones")
+        .select("tipo,monto,estado")
+        .gte("fecha", inicioMes)
+        .lte("fecha", finMes);
+      let qTxPrev: any = supabase
+        .from("transacciones")
+        .select("tipo,monto,estado")
+        .gte("fecha", inicioMesPrev)
+        .lte("fecha", finMesPrev);
+      let qPersonas: any = supabase.from("personas").select("id,estado").eq("estado", "activo");
+      let qCuotas: any = supabase
+        .from("cuotas")
+        .select("id,persona_id,categoria_id,estado,fecha_vencimiento")
+        .eq("periodo", periodoActual);
+      let qDocs: any = supabase
+        .from("club_documentos")
+        .select("id,nombre,nombre_archivo,etiqueta,fecha_vencimiento")
+        .not("fecha_vencimiento", "is", null)
+        .lte("fecha_vencimiento", en30Iso)
+        .gte("fecha_vencimiento", hoyIso)
+        .order("fecha_vencimiento", { ascending: true });
+      let qCats: any = supabase.from("categorias").select("id,nombre");
+      let qTxsRec: any = supabase
+        .from("transacciones")
+        .select("id,tipo,monto,fecha,descripcion,estado")
+        .neq("estado", "Anulado")
+        .order("fecha", { ascending: false })
+        .limit(5);
 
-      // CAJA
-      const txs = (txsRes.data as any[]) ?? [];
-      let caja = 0;
-      let cajaMesAct = 0;
-      let cajaMesPrev = 0;
-      txs.forEach((t) => {
-        const monto = Number(t.monto) || 0;
-        const signo = String(t.tipo).toLowerCase() === "ingreso" ? 1 : -1;
-        caja += signo * monto;
-        if (t.fecha >= inicioMes) cajaMesAct += signo * monto;
-        else if (t.fecha >= inicioMesPrev && t.fecha <= finMesPrev) cajaMesPrev += signo * monto;
-      });
-      const cajaDelta = cajaMesPrev !== 0 ? ((cajaMesAct - cajaMesPrev) / Math.abs(cajaMesPrev)) * 100 : null;
+      if (clubId) {
+        qTxAct = qTxAct.eq("club_id", clubId);
+        qTxPrev = qTxPrev.eq("club_id", clubId);
+        qPersonas = qPersonas.eq("club_id", clubId);
+        qCuotas = qCuotas.eq("club_id", clubId);
+        qDocs = qDocs.eq("club_id", clubId);
+        qCats = qCats.eq("club_id", clubId);
+        qTxsRec = qTxsRec.eq("club_id", clubId);
+      }
 
-      // SOCIOS
+      const [txsMesAct, txsMesPrev, personasRes, cuotasPeriodoRes, clubDocsRes, categoriasRes, txsRecRes] =
+        await Promise.all([qTxAct, qTxPrev, qPersonas, qCuotas, qDocs, qCats, qTxsRec]);
+
+      // CAJA = Balance del mes actual (Ingresos - Egresos, excluyendo Anulado) — igual a módulo Transacciones
+      const calcBalance = (rows: any[]) => {
+        let ing = 0, eg = 0;
+        rows.forEach((t) => {
+          if (t.estado === "Anulado") return;
+          const monto = Number(t.monto) || 0;
+          if (String(t.tipo).toLowerCase() === "ingreso") ing += monto;
+          else eg += monto;
+        });
+        return ing - eg;
+      };
+      const caja = calcBalance((txsMesAct.data as any[]) ?? []);
+      const cajaPrev = calcBalance((txsMesPrev.data as any[]) ?? []);
+      const cajaDelta = cajaPrev !== 0 ? ((caja - cajaPrev) / Math.abs(cajaPrev)) * 100 : null;
+
+      // SOCIOS / CATEGORIAS
       const sociosActivos = personasRes.data?.length ?? 0;
-      const categoriasCount = categoriasRes.data?.length ?? 0;
+      const cats = (categoriasRes.data as any[]) ?? [];
+      const categoriasCount = cats.length;
 
-      // MOROSIDAD
-      const morososData = (cuotasMorosasRes.data as any[]) ?? [];
-      const morososIds = new Set(morososData.map((c) => c.persona_id));
+      // MOROSIDAD — basada en cuotas del periodo (igual que CuotasMorosidad)
+      const cuotasPeriodo = (cuotasPeriodoRes.data as any[]) ?? [];
+      const morososIds = new Set(
+        cuotasPeriodo.filter((c) => c.estado !== "pagada").map((c) => c.persona_id)
+      );
       const morosos = morososIds.size;
       const morosidadPct = sociosActivos > 0 ? (morosos / sociosActivos) * 100 : 0;
 
-      // DOCS
-      const docsData = (docsRes.data as any[]) ?? [];
+      // DOCS por vencer
+      const docsData = (clubDocsRes.data as any[]) ?? [];
       const docsPorVencer = docsData.length;
 
       setKpis({
@@ -146,27 +156,18 @@ export function useDashboard() {
         docsPorVencer,
       });
 
-      // MOROSIDAD POR CATEGORIA
-      const cats = (categoriasRes.data as any[]) ?? [];
-      const personaCat = (personaCatRes.data as any[]) ?? [];
-      const totalPorCat = new Map<string, Set<string>>();
-      const morososPorCat = new Map<string, Set<string>>();
-      personaCat.forEach((pc) => {
-        if (!totalPorCat.has(pc.categoria_id)) totalPorCat.set(pc.categoria_id, new Set());
-        totalPorCat.get(pc.categoria_id)!.add(pc.persona_id);
+      // MOROSIDAD POR CATEGORIA — agrupa cuotas del periodo por categoria_id
+      const catMap: Record<string, string> = {};
+      cats.forEach((c) => { catMap[c.id] = c.nombre; });
+      const byCat: Record<string, { total: number; morosos: number }> = {};
+      cuotasPeriodo.forEach((c) => {
+        const nombre = catMap[c.categoria_id ?? ""] ?? "Sin categoría";
+        if (!byCat[nombre]) byCat[nombre] = { total: 0, morosos: 0 };
+        byCat[nombre].total++;
+        if (c.estado !== "pagada") byCat[nombre].morosos++;
       });
-      morososData.forEach((c) => {
-        if (!c.categoria_id) return;
-        if (!morososPorCat.has(c.categoria_id)) morososPorCat.set(c.categoria_id, new Set());
-        morososPorCat.get(c.categoria_id)!.add(c.persona_id);
-      });
-      const morosidadList: MorosidadPorCategoria[] = cats
-        .map((c) => ({
-          categoria: c.nombre,
-          total: totalPorCat.get(c.id)?.size ?? 0,
-          morosos: morososPorCat.get(c.id)?.size ?? 0,
-        }))
-        .filter((c) => c.total > 0)
+      const morosidadList: MorosidadPorCategoria[] = Object.entries(byCat)
+        .map(([categoria, v]) => ({ categoria, total: v.total, morosos: v.morosos }))
         .sort((a, b) => b.total - a.total);
       setMorosidad(morosidadList);
 
@@ -179,7 +180,7 @@ export function useDashboard() {
         else estado = "proximo";
         return {
           id: d.id,
-          nombre: d.nombre_archivo,
+          nombre: d.nombre || d.nombre_archivo,
           tipo: d.etiqueta,
           vence: d.fecha_vencimiento,
           estado,
@@ -187,7 +188,7 @@ export function useDashboard() {
       });
       setDocumentos(docsList);
 
-      // TXS RECIENTES
+      // TXS RECIENTES (sin anuladas)
       const txsRec = ((txsRecRes.data as any[]) ?? []).map((t) => ({
         id: t.id,
         desc: t.descripcion ?? "Sin descripción",
