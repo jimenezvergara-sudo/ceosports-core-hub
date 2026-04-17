@@ -37,10 +37,11 @@ export default function ProyectoDetailSheet({ proyectoId, open, onOpenChange, on
     setTransacciones(txs ?? []);
     const { data: libres } = await supabase
       .from("transacciones")
-      .select("id, fecha, descripcion, tipo, monto")
+      .select("id, fecha, descripcion, tipo, monto, categoria, subcategoria")
       .is("proyecto_id", null)
+      .or("categoria.ilike.%compra%,categoria.ilike.%proyecto%,subcategoria.ilike.%proyecto%")
       .order("fecha", { ascending: false })
-      .limit(50);
+      .limit(100);
     setDisponibles(libres ?? []);
   };
 
