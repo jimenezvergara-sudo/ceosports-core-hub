@@ -629,35 +629,58 @@ export default function Organizacion() {
                     <p className="text-sm text-muted-foreground/70">Sube constitución, inscripciones y otros documentos legales del club.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {documentos.map((doc) => (
-                      <div key={doc.id} className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors group">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <FileText className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm text-foreground truncate">{doc.nombre}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <Badge variant="secondary" className="text-xs">{doc.etiqueta}</Badge>
-                            {doc.fecha_vencimiento && (
-                              <span className="text-xs text-muted-foreground">
-                                Vence: {format(new Date(doc.fecha_vencimiento + "T12:00:00"), "dd/MM/yyyy")}
-                              </span>
-                            )}
+                  <div className="space-y-6">
+                    {Object.entries(
+                      documentos.reduce((acc: Record<string, ClubDocumento[]>, doc) => {
+                        const key = doc.etiqueta || "Otro";
+                        (acc[key] ||= []).push(doc);
+                        return acc;
+                      }, {})
+                    )
+                      .sort(([a], [b]) => {
+                        const ia = ETIQUETAS_DOCUMENTO.indexOf(a);
+                        const ib = ETIQUETAS_DOCUMENTO.indexOf(b);
+                        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+                      })
+                      .map(([etiqueta, docs]) => (
+                        <div key={etiqueta} className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{etiqueta}</h4>
+                            <span className="text-xs text-muted-foreground/60">({docs.length})</span>
+                            <div className="flex-1 h-px bg-border" />
+                          </div>
+                          <div className="space-y-2">
+                            {docs.map((doc) => (
+                              <div key={doc.id} className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors group">
+                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                  <FileText className="w-5 h-5 text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm text-foreground truncate">{doc.nombre}</p>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <Badge variant="secondary" className="text-xs">{doc.etiqueta}</Badge>
+                                    {doc.fecha_vencimiento && (
+                                      <span className="text-xs text-muted-foreground">
+                                        Vence: {format(new Date(doc.fecha_vencimiento + "T12:00:00"), "dd/MM/yyyy")}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleDocDownload(doc)}>
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                  {isAdmin && (
+                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleDocDelete(doc)}>
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleDocDownload(doc)}>
-                            <Download className="w-4 h-4" />
-                          </Button>
-                          {isAdmin && (
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleDocDelete(doc)}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 )}
               </CardContent>
