@@ -253,7 +253,10 @@ export function useDashboard() {
         const signo = String(t.tipo).toLowerCase() === "ingreso" ? -1 : 1; // egresos suman ejecución
         ejecPorProy[t.proyecto_id] = (ejecPorProy[t.proyecto_id] ?? 0) + signo * monto;
       });
-      const activos = proyectos.filter((p) => p.estado === "activo");
+      const activos = proyectos.filter((p) => {
+        const e = String(p.estado ?? "").toLowerCase();
+        return e === "activo" || e.includes("ejecuc"); // soporta "activo" y "En Ejecución"
+      });
       setProyectosKpi({
         activos: activos.length,
         presupuesto: activos.reduce((s, p) => s + (Number(p.presupuesto) || 0), 0),
