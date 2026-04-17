@@ -144,12 +144,12 @@ export default function ProyectoDetailSheet({ proyectoId, open, onOpenChange, on
               ))}
             </TabsContent>
             <TabsContent value="disponibles" className="space-y-2 mt-3">
-              {disponibles.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No hay transacciones sin proyecto</p>}
+              {disponibles.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No hay compras o gastos de proyectos sin vincular</p>}
               {disponibles.map((t) => (
                 <div key={t.id} className="flex items-center justify-between border rounded-lg p-2 text-sm">
                   <div className="min-w-0 flex-1">
                     <p className="truncate">{t.descripcion}</p>
-                    <p className="text-xs text-muted-foreground">{t.fecha} · ${Number(t.monto).toLocaleString("es-CL")}</p>
+                    <p className="text-xs text-muted-foreground">{t.fecha} · {t.categoria}{t.subcategoria ? ` / ${t.subcategoria}` : ""} · ${Number(t.monto).toLocaleString("es-CL")}</p>
                   </div>
                   <Button size="sm" variant="outline" onClick={() => vincular(t.id)} className="gap-1">
                     <Link2 className="w-3 h-3" /> Vincular
