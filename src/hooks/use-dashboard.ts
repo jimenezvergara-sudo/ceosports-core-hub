@@ -155,8 +155,8 @@ export function useDashboard() {
         qTxsRec = qTxsRec.eq("club_id", clubId);
         qProyectos = qProyectos.eq("club_id", clubId);
         qTxProyectos = qTxProyectos.eq("club_id", clubId);
-        qComprasAll = qComprasAll.eq("club_id", clubId);
-        qComprasRec = qComprasRec.eq("club_id", clubId);
+        qComprasAll = qComprasAll.or(`club_id.eq.${clubId},club_id.is.null`);
+        qComprasRec = qComprasRec.or(`club_id.eq.${clubId},club_id.is.null`);
       }
 
       const [
