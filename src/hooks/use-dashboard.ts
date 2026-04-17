@@ -70,63 +70,49 @@ export function useDashboard() {
       const finMesPrev = new Date(hoy.getFullYear(), hoy.getMonth(), 0).toISOString().slice(0, 10);
       const periodoActual = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
 
-      // Helper to optionally filter by clubId (legacy data may have null club_id)
-      const withClub = <T extends { eq: (col: string, val: any) => T }>(q: T) =>
-        clubId ? q.eq("club_id", clubId) : q;
+      // Build queries; legacy data may have null club_id, so only filter if clubId present
+      let qTxAct: any = supabase
+        .from("transacciones")
+        .select("tipo,monto,estado")
+        .gte("fecha", inicioMes)
+        .lte("fecha", finMes);
+      let qTxPrev: any = supabase
+        .from("transacciones")
+        .select("tipo,monto,estado")
+        .gte("fecha", inicioMesPrev)
+        .lte("fecha", finMesPrev);
+      let qPersonas: any = supabase.from("personas").select("id,estado").eq("estado", "activo");
+      let qCuotas: any = supabase
+        .from("cuotas")
+        .select("id,persona_id,categoria_id,estado,fecha_vencimiento")
+        .eq("periodo", periodoActual);
+      let qDocs: any = supabase
+        .from("club_documentos")
+        .select("id,nombre,nombre_archivo,etiqueta,fecha_vencimiento")
+        .not("fecha_vencimiento", "is", null)
+        .lte("fecha_vencimiento", en30Iso)
+        .gte("fecha_vencimiento", hoyIso)
+        .order("fecha_vencimiento", { ascending: true });
+      let qCats: any = supabase.from("categorias").select("id,nombre");
+      let qTxsRec: any = supabase
+        .from("transacciones")
+        .select("id,tipo,monto,fecha,descripcion,estado")
+        .neq("estado", "Anulado")
+        .order("fecha", { ascending: false })
+        .limit(5);
 
-      const [
-        txsMesAct,
-        txsMesPrev,
-        personasRes,
-        cuotasPeriodoRes,
-        clubDocsRes,
-        categoriasRes,
-        txsRecRes,
-      ] = await Promise.all([
-        // Transacciones del mes actual (igual que módulo Transacciones)
-        withClub(
-          supabase
-            .from("transacciones")
-            .select("tipo,monto,estado")
-            .gte("fecha", inicioMes)
-            .lte("fecha", finMes)
-        ),
-        // Mes anterior (para delta)
-        withClub(
-          supabase
-            .from("transacciones")
-            .select("tipo,monto,estado")
-            .gte("fecha", inicioMesPrev)
-            .lte("fecha", finMesPrev)
-        ),
-        withClub(supabase.from("personas").select("id,estado").eq("estado", "activo")),
-        // Cuotas del periodo actual (igual que CuotasMorosidad)
-        withClub(
-          supabase
-            .from("cuotas")
-            .select("id,persona_id,categoria_id,estado,fecha_vencimiento")
-            .eq("periodo", periodoActual)
-        ),
-        // Documentos del club (igual que módulo Documentos)
-        withClub(
-          supabase
-            .from("club_documentos")
-            .select("id,nombre,nombre_archivo,etiqueta,fecha_vencimiento")
-            .not("fecha_vencimiento", "is", null)
-            .lte("fecha_vencimiento", en30Iso)
-            .gte("fecha_vencimiento", hoyIso)
-            .order("fecha_vencimiento", { ascending: true })
-        ),
-        withClub(supabase.from("categorias").select("id,nombre")),
-        withClub(
-          supabase
-            .from("transacciones")
-            .select("id,tipo,monto,fecha,descripcion,estado")
-            .neq("estado", "Anulado")
-            .order("fecha", { ascending: false })
-            .limit(5)
-        ),
-      ]);
+      if (clubId) {
+        qTxAct = qTxAct.eq("club_id", clubId);
+        qTxPrev = qTxPrev.eq("club_id", clubId);
+        qPersonas = qPersonas.eq("club_id", clubId);
+        qCuotas = qCuotas.eq("club_id", clubId);
+        qDocs = qDocs.eq("club_id", clubId);
+        qCats = qCats.eq("club_id", clubId);
+        qTxsRec = qTxsRec.eq("club_id", clubId);
+      }
+
+      const [txsMesAct, txsMesPrev, personasRes, cuotasPeriodoRes, clubDocsRes, categoriasRes, txsRecRes] =
+        await Promise.all([qTxAct, qTxPrev, qPersonas, qCuotas, qDocs, qCats, qTxsRec]);
 
       // CAJA = Balance del mes actual (Ingresos - Egresos, excluyendo Anulado) — igual a módulo Transacciones
       const calcBalance = (rows: any[]) => {
