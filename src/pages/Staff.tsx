@@ -215,12 +215,12 @@ export default function Staff() {
       ) : (
         <div className="space-y-4">
           {groupByRole(items).map(([rol, members]) => (
-            <div key={rol} className="space-y-2">
-              <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 h-6 bg-muted/50">{rol}</Badge>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-                {members.map((r, i) => renderCard(r, i))}
+              <div key={rol} className="space-y-3">
+                <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 h-6 bg-muted/50">{rol}</Badge>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {members.map((r, i) => renderCard(r, i))}
+                </div>
               </div>
-            </div>
           ))}
         </div>
       )}
