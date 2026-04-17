@@ -72,6 +72,8 @@ export default function Staff() {
   const { categorias } = useCategorias();
   const { clubId } = useAuth();
   const [open, setOpen] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [form, setForm] = useState({
     persona_id: "",
     rol: "",
@@ -79,6 +81,14 @@ export default function Staff() {
     categoria_id: "",
     activo: true,
   });
+
+  const openPersonaSheet = async (personaId: string) => {
+    const { data } = await supabase.from("personas").select("*").eq("id", personaId).maybeSingle();
+    if (data) {
+      setSelectedPersona(dbToPersona(data));
+      setSheetOpen(true);
+    }
+  };
 
   const isRolConCategoria = (rol: string) =>
     [...ROLES_TECNICO, "Coordinador"].includes(rol) || (!ROLES_BASE.includes(rol) && rol.toLowerCase().includes("delegado"));
