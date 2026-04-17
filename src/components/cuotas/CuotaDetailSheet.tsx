@@ -194,7 +194,7 @@ export default function CuotaDetailSheet({ cuota, open, onOpenChange, onUpdated,
           </div>
 
           {/* Register payment */}
-          {cuota.estado !== "pagada" && cuota.estado !== "anulada" && (
+          {!estaPagada && cuota.estado !== "anulada" && (
             <>
               <Separator />
               {!showPago ? (
