@@ -17,10 +17,12 @@ import {
   ChevronRight,
   LogOut,
   RefreshCw,
+  Crown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsSuperAdmin } from "@/hooks/use-super-admin";
 import ceoIsotipo from "@/assets/ceo-isotipo.png";
 
 const navItems = [
@@ -42,6 +44,7 @@ export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { clubActual, clubs, setClubActual, signOut } = useAuth();
+  const { isSuperAdmin } = useIsSuperAdmin();
 
   return (
     <motion.aside
@@ -80,6 +83,23 @@ export default function AppSidebar() {
             </NavLink>
           );
         })}
+        {isSuperAdmin && (
+          <>
+            <div className="h-px bg-sidebar-border my-2" />
+            <NavLink
+              to="/super-admin"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
+                location.pathname === "/super-admin"
+                  ? "bg-warning/20 text-warning-foreground"
+                  : "text-warning-foreground/80 hover:bg-warning/10"
+              )}
+            >
+              <Crown className="w-5 h-5 shrink-0" />
+              {!collapsed && <span>Super Admin</span>}
+            </NavLink>
+          </>
+        )}
       </nav>
 
       {/* Footer actions */}
