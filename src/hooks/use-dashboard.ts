@@ -155,16 +155,16 @@ export function useDashboard() {
         qTxsRec = qTxsRec.eq("club_id", clubId);
         qProyectos = qProyectos.eq("club_id", clubId);
         qTxProyectos = qTxProyectos.eq("club_id", clubId);
-        qComprasPend = qComprasPend.eq("club_id", clubId);
+        qComprasAll = qComprasAll.eq("club_id", clubId);
         qComprasRec = qComprasRec.eq("club_id", clubId);
       }
 
       const [
         txsMesAct, txsMesPrev, personasRes, cuotasPeriodoRes, clubDocsRes,
-        categoriasRes, txsRecRes, proyectosRes, txProyectosRes, comprasPendRes, comprasRecRes,
+        categoriasRes, txsRecRes, proyectosRes, txProyectosRes, comprasAllRes, comprasRecRes,
       ] = await Promise.all([
         qTxAct, qTxPrev, qPersonas, qCuotas, qDocs, qCats, qTxsRec,
-        qProyectos, qTxProyectos, qComprasPend, qComprasRec,
+        qProyectos, qTxProyectos, qComprasAll, qComprasRec,
       ]);
 
       // CAJA = Balance del mes actual (Ingresos - Egresos, excluyendo Anulado) — igual a módulo Transacciones
