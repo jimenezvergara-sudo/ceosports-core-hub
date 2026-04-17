@@ -5,7 +5,7 @@ interface Props {
   data: MorosidadPorCategoria[];
 }
 
-export default function MorosidadChart({ data }: Props) {
+export default function MorosidadChart({ data = [] }: Props) {
   const maxTotal = Math.max(1, ...data.map((d) => d.total));
 
   return (

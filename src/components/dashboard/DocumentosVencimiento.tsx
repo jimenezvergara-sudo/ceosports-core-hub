@@ -13,7 +13,7 @@ interface Props {
   data: DocumentoVencimiento[];
 }
 
-export default function DocumentosVencimiento({ data }: Props) {
+export default function DocumentosVencimiento({ data = [] }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
