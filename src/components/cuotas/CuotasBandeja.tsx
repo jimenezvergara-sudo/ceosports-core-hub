@@ -110,7 +110,7 @@ export default function CuotasBandeja() {
       {/* Actions */}
       <div className="flex flex-wrap items-center gap-2">
         <GenerarCuotasDialog onGenerated={fetchCuotas} />
-        <PagoCuotaRapidoDialog onSuccess={fetchCuotas} />
+        <PagoCuotaRapidoDialog onPaid={fetchCuotas} />
       </div>
 
       {/* Search */}
