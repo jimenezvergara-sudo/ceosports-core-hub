@@ -279,15 +279,45 @@ export function useDashboard() {
         .slice(0, 5);
       setProyectosTop(top);
 
-      // COMPRAS
-      setComprasPendientes(comprasPendRes.count ?? 0);
-      const compras: CompraReciente[] = ((comprasRecRes.data as any[]) ?? []).map((e) => ({
-        id: e.id,
-        titulo: e.solicitudes_compra?.titulo ?? "Compra",
-        proveedor: e.proveedor_real,
-        monto: Number(e.monto_real) || 0,
-        fecha: fmtFecha(e.fecha_compra),
-      }));
+      // COMPRAS — desglose por estado y pendientes (todas las que no están cerradas/rechazadas/rendidas)
+      const todasCompras = (comprasAllRes.data as any[]) ?? [];
+      const estadosCount: Record<string, number> = {};
+      todasCompras.forEach((s) => {
+        const e = String(s.estado ?? "").toLowerCase();
+        estadosCount[e] = (estadosCount[e] ?? 0) + 1;
+      });
+      const ESTADOS_PENDIENTES = ["borrador", "enviada", "en revisión", "aprobada", "observada"];
+      const pendientes = todasCompras.filter((s) =>
+        ESTADOS_PENDIENTES.includes(String(s.estado ?? "").toLowerCase())
+      ).length;
+      setComprasPendientes(pendientes);
+      setComprasPorEstado(
+        Object.entries(estadosCount)
+          .map(([estado, count]) => ({ estado, count }))
+          .sort((a, b) => b.count - a.count)
+      );
+
+      // RECIENTES: ejecuciones reales; si no hay, mostrar últimas solicitudes
+      const ejecuciones = (comprasRecRes.data as any[]) ?? [];
+      let compras: CompraReciente[];
+      if (ejecuciones.length > 0) {
+        compras = ejecuciones.map((e) => ({
+          id: e.id,
+          titulo: e.solicitudes_compra?.titulo ?? "Compra",
+          proveedor: e.proveedor_real,
+          monto: Number(e.monto_real) || 0,
+          fecha: fmtFecha(e.fecha_compra),
+        }));
+      } else {
+        compras = todasCompras.slice(0, 5).map((s) => ({
+          id: s.id,
+          titulo: s.titulo ?? "Solicitud",
+          proveedor: s.proveedor_sugerido ?? "Sin proveedor",
+          monto: Number(s.monto_estimado) || 0,
+          fecha: fmtFecha(s.created_at),
+          estado: s.estado,
+        }));
+      }
       setComprasRecientes(compras);
 
       setLoading(false);
@@ -298,6 +328,6 @@ export function useDashboard() {
 
   return {
     loading, kpis, morosidad, documentos, transacciones,
-    proyectosKpi, proyectosTop, comprasPendientes, comprasRecientes,
+    proyectosKpi, proyectosTop, comprasPendientes, comprasPorEstado, comprasRecientes,
   };
 }
