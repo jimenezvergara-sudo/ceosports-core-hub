@@ -92,6 +92,10 @@ export default function CuotaDetailSheet({ cuota, open, onOpenChange, onUpdated,
     setMontoPago(Math.max(0, remaining));
   };
 
+  const totalPagado = pagos.reduce((s, p) => s + p.monto_pagado, 0);
+  const saldoPendiente = cuota ? cuota.monto_final - totalPagado : 0;
+  const estaPagada = !!cuota && (cuota.estado === "pagada" || saldoPendiente <= 0);
+
   const registrarPago = async () => {
     if (!cuota || !montoPago) return;
     const payload: any = {
@@ -127,11 +131,6 @@ export default function CuotaDetailSheet({ cuota, open, onOpenChange, onUpdated,
     // Auto-close to prevent duplicate payments
     setTimeout(() => onOpenChange(false), 3000);
   };
-
-  const saldoPendiente = cuota ? cuota.monto_final - totalPagado : 0;
-  const estaPagada = cuota?.estado === "pagada" || saldoPendiente <= 0;
-
-  const totalPagado = pagos.reduce((s, p) => s + p.monto_pagado, 0);
 
   if (!cuota) return null;
 
