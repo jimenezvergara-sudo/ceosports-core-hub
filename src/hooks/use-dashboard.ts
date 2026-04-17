@@ -70,6 +70,10 @@ export function useDashboard() {
   const [morosidad, setMorosidad] = useState<MorosidadPorCategoria[]>([]);
   const [documentos, setDocumentos] = useState<DocumentoVencimiento[]>([]);
   const [transacciones, setTransacciones] = useState<TransaccionReciente[]>([]);
+  const [proyectosKpi, setProyectosKpi] = useState({ activos: 0, presupuesto: 0 });
+  const [proyectosTop, setProyectosTop] = useState<ProyectoResumen[]>([]);
+  const [comprasPendientes, setComprasPendientes] = useState(0);
+  const [comprasRecientes, setComprasRecientes] = useState<CompraReciente[]>([]);
 
   useEffect(() => {
     const load = async () => {
