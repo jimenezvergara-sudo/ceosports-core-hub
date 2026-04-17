@@ -14,6 +14,34 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useStaffRoles, usePersonas, useCategorias, personaLabel } from "@/hooks/use-relational-data";
 import { useAuth } from "@/hooks/use-auth";
+import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
+import type { Persona } from "@/types/persona";
+import { calcularEdad, calcularCategoria } from "@/types/persona";
+
+const familiarVacio = { nombre: "", apellido: "", rut: "", telefono: "", email: "", direccion: "", profesion: "" };
+
+function dbToPersona(row: any): Persona {
+  const fechaNac = row.fecha_nacimiento || "";
+  const edad = fechaNac ? calcularEdad(fechaNac) : 0;
+  const catAuto = fechaNac ? calcularCategoria(fechaNac) : "—";
+  const tipoMap: Record<string, string> = { jugador: "Jugador", jugadora: "Jugadora", socio: "Socio", socia: "Socia", apoderado: "Apoderado", staff: "Staff" };
+  const estadoMap: Record<string, string> = { activo: "Activo", moroso: "Moroso", inactivo: "Inactivo" };
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    apellido: row.apellido,
+    rut: row.rut || "",
+    fechaNacimiento: fechaNac,
+    edad,
+    categoria: catAuto,
+    rama: "Mixto" as any,
+    tipo: (tipoMap[row.tipo_persona] || row.tipo_persona) as any,
+    estado: (estadoMap[row.estado] || row.estado) as any,
+    talla: "", tallaUniforme: "", peso: "", colegio: "", previsionSalud: "", alergias: "",
+    padre: { ...familiarVacio }, madre: { ...familiarVacio }, apoderado: { ...familiarVacio },
+    documentos: [],
+  };
+}
 
 const ROLES_DIRECTIVA = [
   "Presidente",
