@@ -213,14 +213,14 @@ export default function Staff() {
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground bg-card border border-border rounded-lg p-4">Sin asignaciones</p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {groupByRole(items).map(([rol, members]) => (
-              <div key={rol} className="space-y-3">
-                <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 h-6 bg-muted/50">{rol}</Badge>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {members.map((r, i) => renderCard(r, i))}
-                </div>
+            <div key={rol} className="space-y-2">
+              <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 h-6 bg-muted/50">{rol}</Badge>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {members.map((r, i) => renderCard(r, i))}
               </div>
+            </div>
           ))}
         </div>
       )}
