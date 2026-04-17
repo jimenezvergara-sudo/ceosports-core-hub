@@ -120,6 +120,23 @@ export function useDashboard() {
         .neq("estado", "Anulado")
         .order("fecha", { ascending: false })
         .limit(5);
+      let qProyectos: any = supabase
+        .from("proyectos")
+        .select("id,nombre,presupuesto,estado");
+      let qTxProyectos: any = supabase
+        .from("transacciones")
+        .select("proyecto_id,tipo,monto,estado")
+        .not("proyecto_id", "is", null)
+        .neq("estado", "Anulado");
+      let qComprasPend: any = supabase
+        .from("solicitudes_compra")
+        .select("id", { count: "exact", head: true })
+        .in("estado", ["enviada", "en revisión"]);
+      let qComprasRec: any = supabase
+        .from("ejecuciones_compra")
+        .select("id,monto_real,proveedor_real,fecha_compra,solicitud_id,solicitudes_compra:solicitud_id(titulo)")
+        .order("fecha_compra", { ascending: false })
+        .limit(5);
 
       if (clubId) {
         qTxAct = qTxAct.eq("club_id", clubId);
@@ -129,10 +146,19 @@ export function useDashboard() {
         qDocs = qDocs.eq("club_id", clubId);
         qCats = qCats.eq("club_id", clubId);
         qTxsRec = qTxsRec.eq("club_id", clubId);
+        qProyectos = qProyectos.eq("club_id", clubId);
+        qTxProyectos = qTxProyectos.eq("club_id", clubId);
+        qComprasPend = qComprasPend.eq("club_id", clubId);
+        qComprasRec = qComprasRec.eq("club_id", clubId);
       }
 
-      const [txsMesAct, txsMesPrev, personasRes, cuotasPeriodoRes, clubDocsRes, categoriasRes, txsRecRes] =
-        await Promise.all([qTxAct, qTxPrev, qPersonas, qCuotas, qDocs, qCats, qTxsRec]);
+      const [
+        txsMesAct, txsMesPrev, personasRes, cuotasPeriodoRes, clubDocsRes,
+        categoriasRes, txsRecRes, proyectosRes, txProyectosRes, comprasPendRes, comprasRecRes,
+      ] = await Promise.all([
+        qTxAct, qTxPrev, qPersonas, qCuotas, qDocs, qCats, qTxsRec,
+        qProyectos, qTxProyectos, qComprasPend, qComprasRec,
+      ]);
 
       // CAJA = Balance del mes actual (Ingresos - Egresos, excluyendo Anulado) — igual a módulo Transacciones
       const calcBalance = (rows: any[]) => {
