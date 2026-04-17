@@ -13,6 +13,7 @@ import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documen
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCategorias } from "@/hooks/use-relational-data";
+import { loadPersonaDetalle, upsertPersonaDetalle } from "@/lib/persona-detalle";
 
 type ApoderadoSource = "padre" | "madre" | "otro";
 import { format } from "date-fns";
@@ -216,6 +217,24 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
     if (open && persona) {
       loadDbDocs();
       loadAvatar();
+      // Load extended fields from persona_detalle and merge into draft
+      loadPersonaDetalle(persona.id).then((detalle) => {
+        setDraft((prev) => {
+          const base = prev ?? persona;
+          return {
+            ...base,
+            talla: detalle.talla ?? base.talla,
+            tallaUniforme: detalle.tallaUniforme ?? base.tallaUniforme,
+            peso: detalle.peso ?? base.peso,
+            colegio: detalle.colegio ?? base.colegio,
+            previsionSalud: detalle.previsionSalud ?? base.previsionSalud,
+            alergias: detalle.alergias ?? base.alergias,
+            padre: detalle.padre ?? base.padre,
+            madre: detalle.madre ?? base.madre,
+            apoderado: detalle.apoderado ?? base.apoderado,
+          };
+        });
+      });
     }
   }, [open, persona, loadDbDocs, loadAvatar]);
 
