@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Search, Building2, Pencil } from "lucide-react";
+import { Search, Building2, Pencil, Plus } from "lucide-react";
+import NuevoClubDialog from "./NuevoClubDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,7 @@ export default function ClubesTab() {
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [editing, setEditing] = useState<ClubRow | null>(null);
   const [form, setForm] = useState<any>({});
+  const [nuevoOpen, setNuevoOpen] = useState(false);
 
   const load = async () => {
     const [{ data: clubsData }, { data: subs }, { data: plansData }] = await Promise.all([
@@ -115,7 +117,10 @@ export default function ClubesTab() {
             {ESTADOS.map((e) => <SelectItem key={e} value={e} className="capitalize">{e}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Button onClick={() => setNuevoOpen(true)} className="gap-2"><Plus className="w-4 h-4" />Nuevo Club</Button>
       </div>
+
+      <NuevoClubDialog open={nuevoOpen} onOpenChange={setNuevoOpen} onCreated={load} />
 
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
