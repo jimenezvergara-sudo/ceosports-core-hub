@@ -1058,6 +1058,57 @@ export type Database = {
           },
         ]
       }
+      gestiones_cobranza: {
+        Row: {
+          club_id: string
+          created_at: string
+          fecha_gestion: string
+          id: string
+          nota: string | null
+          realizado_por: string | null
+          resultado: string | null
+          suscripcion_id: string | null
+          tipo_gestion: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          fecha_gestion?: string
+          id?: string
+          nota?: string | null
+          realizado_por?: string | null
+          resultado?: string | null
+          suscripcion_id?: string | null
+          tipo_gestion?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          fecha_gestion?: string
+          id?: string
+          nota?: string | null
+          realizado_por?: string | null
+          resultado?: string | null
+          suscripcion_id?: string | null
+          tipo_gestion?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gestiones_cobranza_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gestiones_cobranza_suscripcion_id_fkey"
+            columns: ["suscripcion_id"]
+            isOneToOne: false
+            referencedRelation: "suscripciones_club"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historial_compra: {
         Row: {
           accion: string
@@ -1109,6 +1160,75 @@ export type Database = {
             columns: ["solicitud_id"]
             isOneToOne: false
             referencedRelation: "solicitudes_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads_comerciales: {
+        Row: {
+          ciudad: string | null
+          club_convertido_id: string | null
+          contacto_email: string | null
+          contacto_nombre: string | null
+          contacto_telefono: string | null
+          created_at: string
+          deporte: string | null
+          estado: string
+          fecha_ultimo_contacto: string | null
+          id: string
+          nombre_entidad: string
+          notas: string | null
+          orden: number
+          plan_interes_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          ciudad?: string | null
+          club_convertido_id?: string | null
+          contacto_email?: string | null
+          contacto_nombre?: string | null
+          contacto_telefono?: string | null
+          created_at?: string
+          deporte?: string | null
+          estado?: string
+          fecha_ultimo_contacto?: string | null
+          id?: string
+          nombre_entidad: string
+          notas?: string | null
+          orden?: number
+          plan_interes_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ciudad?: string | null
+          club_convertido_id?: string | null
+          contacto_email?: string | null
+          contacto_nombre?: string | null
+          contacto_telefono?: string | null
+          created_at?: string
+          deporte?: string | null
+          estado?: string
+          fecha_ultimo_contacto?: string | null
+          id?: string
+          nombre_entidad?: string
+          notas?: string | null
+          orden?: number
+          plan_interes_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_comerciales_club_convertido_id_fkey"
+            columns: ["club_convertido_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_comerciales_plan_interes_id_fkey"
+            columns: ["plan_interes_id"]
+            isOneToOne: false
+            referencedRelation: "planes_plataforma"
             referencedColumns: ["id"]
           },
         ]
@@ -2279,12 +2399,15 @@ export type Database = {
           ciclo_facturacion: string
           club_id: string
           created_at: string
+          email_contacto: string | null
           estado: string
           fecha_inicio: string
           fecha_vencimiento: string | null
           id: string
           notas: string | null
           plan_id: string | null
+          responsable_pago: string | null
+          rut_facturacion: string | null
           trial_hasta: string | null
           updated_at: string
         }
@@ -2292,12 +2415,15 @@ export type Database = {
           ciclo_facturacion?: string
           club_id: string
           created_at?: string
+          email_contacto?: string | null
           estado?: string
           fecha_inicio?: string
           fecha_vencimiento?: string | null
           id?: string
           notas?: string | null
           plan_id?: string | null
+          responsable_pago?: string | null
+          rut_facturacion?: string | null
           trial_hasta?: string | null
           updated_at?: string
         }
@@ -2305,12 +2431,15 @@ export type Database = {
           ciclo_facturacion?: string
           club_id?: string
           created_at?: string
+          email_contacto?: string | null
           estado?: string
           fecha_inicio?: string
           fecha_vencimiento?: string | null
           id?: string
           notas?: string | null
           plan_id?: string | null
+          responsable_pago?: string | null
+          rut_facturacion?: string | null
           trial_hasta?: string | null
           updated_at?: string
         }

@@ -6,6 +6,7 @@ import { useIsSuperAdmin } from "@/hooks/use-super-admin";
 import ClubesTab from "@/components/superadmin/ClubesTab";
 import PlanesTab from "@/components/superadmin/PlanesTab";
 import PagosTab from "@/components/superadmin/PagosTab";
+import GestionComercial from "@/components/superadmin/comercial/GestionComercial";
 
 export default function SuperAdmin() {
   const { isSuperAdmin, loading } = useIsSuperAdmin();
@@ -19,12 +20,14 @@ export default function SuperAdmin() {
 
   return (
     <PageShell title="Super Administrador" description="Gestión de clubes, planes y pagos de la plataforma" icon={Crown}>
-      <Tabs defaultValue="clubes" className="space-y-4">
-        <TabsList className="grid grid-cols-3 w-full max-w-md">
+      <Tabs defaultValue="comercial" className="space-y-4">
+        <TabsList className="flex flex-wrap w-full justify-start">
+          <TabsTrigger value="comercial">Gestión Comercial</TabsTrigger>
           <TabsTrigger value="clubes">Clubes</TabsTrigger>
           <TabsTrigger value="planes">Planes</TabsTrigger>
           <TabsTrigger value="pagos">Pagos</TabsTrigger>
         </TabsList>
+        <TabsContent value="comercial"><GestionComercial /></TabsContent>
         <TabsContent value="clubes"><ClubesTab /></TabsContent>
         <TabsContent value="planes"><PlanesTab /></TabsContent>
         <TabsContent value="pagos"><PagosTab /></TabsContent>
