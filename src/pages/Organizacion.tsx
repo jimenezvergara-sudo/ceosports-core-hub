@@ -323,6 +323,7 @@ export default function Organizacion() {
           <TabsTrigger value="perfil">Perfil del Club</TabsTrigger>
           <TabsTrigger value="directiva">Directiva</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
+          <TabsTrigger value="comunicaciones">Comunicaciones</TabsTrigger>
         </TabsList>
 
         {/* ── TAB: PERFIL ── */}
