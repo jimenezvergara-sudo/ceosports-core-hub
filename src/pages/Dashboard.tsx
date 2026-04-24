@@ -1,4 +1,4 @@
-import { DollarSign, AlertCircle, FileWarning, Users, FolderKanban, ShoppingCart } from "lucide-react";
+import { DollarSign, AlertCircle, FileWarning, Users, FolderKanban, ShoppingCart, CheckCircle2, AlertTriangle } from "lucide-react";
 import KPICard from "@/components/dashboard/KPICard";
 import MorosidadChart from "@/components/dashboard/MorosidadChart";
 import DocumentosVencimiento from "@/components/dashboard/DocumentosVencimiento";
@@ -6,6 +6,7 @@ import TransaccionesRecientes from "@/components/dashboard/TransaccionesReciente
 import ProximasAcciones from "@/components/dashboard/ProximasAcciones";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { useAuth } from "@/hooks/use-auth";
+import { useCronCuotas } from "@/hooks/use-cron-cuotas";
 import { Progress } from "@/components/ui/progress";
 
 const fmtCLP = (n: number) =>
