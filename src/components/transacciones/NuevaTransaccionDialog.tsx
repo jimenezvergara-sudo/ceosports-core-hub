@@ -188,7 +188,33 @@ export default function NuevaTransaccionDialog({
     setShowAdvanced(false);
   };
 
-  const handleSubmit = async () => {
+  const aplicarPlantilla = (p: PlantillaGasto) => {
+    setTipo("Egreso");
+    setCategoria(p.categoria);
+    setSubcategoria(p.subcategoria);
+    setDescripcion(p.descripcion);
+    toast.success(`Plantilla "${p.label}" aplicada`);
+  };
+
+  /** Busca compras ejecutadas con monto similar (±10%) y fecha similar (±3 días). */
+  const checkPosibleDoble = async (montoNum: number, fechaStr: string): Promise<any[]> => {
+    if (tipo !== "Egreso") return [];
+    const fechaBase = new Date(fechaStr + "T12:00:00");
+    const desde = new Date(fechaBase); desde.setDate(desde.getDate() - 3);
+    const hasta = new Date(fechaBase); hasta.setDate(hasta.getDate() + 3);
+    const min = Math.floor(montoNum * 0.9);
+    const max = Math.ceil(montoNum * 1.1);
+    const { data } = await supabase
+      .from("ejecuciones_compra")
+      .select("id, fecha_compra, monto_real, proveedor_real, numero_comprobante")
+      .gte("fecha_compra", desde.toISOString().slice(0, 10))
+      .lte("fecha_compra", hasta.toISOString().slice(0, 10))
+      .gte("monto_real", min)
+      .lte("monto_real", max)
+      .order("fecha_compra", { ascending: false })
+      .limit(5);
+    return data ?? [];
+  };
     if (!categoria || !descripcion || !monto) {
       toast.error("Completa los campos obligatorios: categoría, descripción y monto.");
       return;
