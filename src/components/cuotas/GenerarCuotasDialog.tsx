@@ -12,6 +12,9 @@ import { toast } from "sonner";
 
 interface Props {
   onGenerated: () => void;
+  triggerLabel?: string;
+  triggerVariant?: "default" | "outline" | "ghost";
+  triggerSize?: "sm" | "default";
 }
 
 interface GenerationSummary {
