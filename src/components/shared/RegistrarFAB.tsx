@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Receipt, Banknote, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Receipt, Banknote, X, ClipboardCheck } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import NuevaTransaccionDialog from "@/components/transacciones/NuevaTransaccionDialog";
@@ -7,36 +8,29 @@ import PagoCuotaRapidoDialog from "@/components/transacciones/PagoCuotaRapidoDia
 
 /**
  * Botón flotante global "+ Registrar".
- * Solo visible para rol ADMIN. Acceso rápido a:
- *  - Registrar gasto (Egreso)
- *  - Registrar pago de socio (cuota)
+ * - Admin: ver gasto, pago de socio y registrar asistencia.
+ * - Staff/coach: solo registrar asistencia.
  */
 export default function RegistrarFAB() {
   const { rolSistema, clubActual } = useAuth();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [gastoOpen, setGastoOpen] = useState(false);
   const [pagoOpen, setPagoOpen] = useState(false);
 
-  // Visible solo cuando hay club activo y el usuario es admin
-  if (!clubActual || rolSistema !== "admin") return null;
+  if (!clubActual) return null;
+  const isAdmin = rolSistema === "admin";
+  const isStaff = rolSistema === "staff";
+  if (!isAdmin && !isStaff) return null;
 
-  const openGasto = () => {
-    setMenuOpen(false);
-    setGastoOpen(true);
-  };
+  const openGasto = () => { setMenuOpen(false); setGastoOpen(true); };
+  const openPago = () => { setMenuOpen(false); setPagoOpen(true); };
+  const openAsistencia = () => { setMenuOpen(false); navigate("/deportistas"); };
 
-  const openPago = () => {
-    setMenuOpen(false);
-    setPagoOpen(true);
-  };
-
-  const noop = () => {
-    // refrescos opcionales: las páginas individuales ya re-fetchean cuando el usuario navega.
-  };
+  const noop = () => {};
 
   return (
     <>
-      {/* Backdrop suave cuando el menú está abierto */}
       {menuOpen && (
         <div
           className="fixed inset-0 z-40 bg-background/20 backdrop-blur-[2px] animate-fade-in"
@@ -45,7 +39,6 @@ export default function RegistrarFAB() {
       )}
 
       <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-3">
-        {/* Opciones del menú (suben desde el botón) */}
         <div
           className={cn(
             "flex flex-col gap-2 transition-all duration-200 origin-bottom-left",
@@ -54,31 +47,39 @@ export default function RegistrarFAB() {
               : "opacity-0 translate-y-2 pointer-events-none"
           )}
         >
+          {isAdmin && (
+            <>
+              <button
+                onClick={openGasto}
+                className="flex items-center gap-3 pl-3 pr-4 py-2.5 bg-card border border-border rounded-full shadow-lg hover:shadow-xl hover:bg-muted/40 transition-all"
+              >
+                <span className="w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
+                  <Receipt className="w-4 h-4" />
+                </span>
+                <span className="text-sm font-medium text-foreground whitespace-nowrap">Registrar gasto</span>
+              </button>
+              <button
+                onClick={openPago}
+                className="flex items-center gap-3 pl-3 pr-4 py-2.5 bg-card border border-border rounded-full shadow-lg hover:shadow-xl hover:bg-muted/40 transition-all"
+              >
+                <span className="w-8 h-8 rounded-full bg-success/10 text-success flex items-center justify-center">
+                  <Banknote className="w-4 h-4" />
+                </span>
+                <span className="text-sm font-medium text-foreground whitespace-nowrap">Registrar pago de socio</span>
+              </button>
+            </>
+          )}
           <button
-            onClick={openGasto}
-            className="flex items-center gap-3 pl-3 pr-4 py-2.5 bg-card border border-border rounded-full shadow-lg hover:shadow-xl hover:bg-muted/40 transition-all group"
+            onClick={openAsistencia}
+            className="flex items-center gap-3 pl-3 pr-4 py-2.5 bg-card border border-border rounded-full shadow-lg hover:shadow-xl hover:bg-muted/40 transition-all"
           >
-            <span className="w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
-              <Receipt className="w-4 h-4" />
+            <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+              <ClipboardCheck className="w-4 h-4" />
             </span>
-            <span className="text-sm font-medium text-foreground whitespace-nowrap">
-              Registrar gasto
-            </span>
-          </button>
-          <button
-            onClick={openPago}
-            className="flex items-center gap-3 pl-3 pr-4 py-2.5 bg-card border border-border rounded-full shadow-lg hover:shadow-xl hover:bg-muted/40 transition-all group"
-          >
-            <span className="w-8 h-8 rounded-full bg-success/10 text-success flex items-center justify-center">
-              <Banknote className="w-4 h-4" />
-            </span>
-            <span className="text-sm font-medium text-foreground whitespace-nowrap">
-              Registrar pago de socio
-            </span>
+            <span className="text-sm font-medium text-foreground whitespace-nowrap">Registrar asistencia</span>
           </button>
         </div>
 
-        {/* Botón principal */}
         <button
           onClick={() => setMenuOpen((v) => !v)}
           aria-label={menuOpen ? "Cerrar menú de registro" : "Abrir menú de registro"}
@@ -92,20 +93,23 @@ export default function RegistrarFAB() {
         </button>
       </div>
 
-      {/* Diálogos controlados */}
-      <NuevaTransaccionDialog
-        onCreated={noop}
-        open={gastoOpen}
-        onOpenChange={setGastoOpen}
-        hideTrigger
-        defaultTipo="Egreso"
-      />
-      <PagoCuotaRapidoDialog
-        onPaid={noop}
-        open={pagoOpen}
-        onOpenChange={setPagoOpen}
-        hideTrigger
-      />
+      {isAdmin && (
+        <>
+          <NuevaTransaccionDialog
+            onCreated={noop}
+            open={gastoOpen}
+            onOpenChange={setGastoOpen}
+            hideTrigger
+            defaultTipo="Egreso"
+          />
+          <PagoCuotaRapidoDialog
+            onPaid={noop}
+            open={pagoOpen}
+            onOpenChange={setPagoOpen}
+            hideTrigger
+          />
+        </>
+      )}
     </>
   );
 }
