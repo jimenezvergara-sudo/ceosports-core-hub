@@ -215,17 +215,9 @@ export default function NuevaTransaccionDialog({
       .limit(5);
     return data ?? [];
   };
-    if (!categoria || !descripcion || !monto) {
-      toast.error("Completa los campos obligatorios: categoría, descripción y monto.");
-      return;
-    }
 
+  const doSubmit = async () => {
     const montoNum = parseInt(monto, 10);
-    if (isNaN(montoNum) || montoNum <= 0) {
-      toast.error("El monto debe ser un número positivo.");
-      return;
-    }
-
     setLoading(true);
 
     let comprobantePath: string | null = null;
@@ -271,6 +263,25 @@ export default function NuevaTransaccionDialog({
     resetForm();
     setOpen(false);
     onCreated();
+  };
+
+  const handleSubmit = async () => {
+    if (!categoria || !descripcion || !monto) {
+      toast.error("Completa los campos obligatorios: categoría, descripción y monto.");
+      return;
+    }
+    const montoNum = parseInt(monto, 10);
+    if (isNaN(montoNum) || montoNum <= 0) {
+      toast.error("El monto debe ser un número positivo.");
+      return;
+    }
+    // Verifica posible doble registro contra compras ejecutadas
+    const matches = await checkPosibleDoble(montoNum, fecha);
+    if (matches.length > 0) {
+      setDuplicateWarning({ open: true, matches });
+      return;
+    }
+    await doSubmit();
   };
 
   const montoNum = parseInt(monto || "0", 10);
