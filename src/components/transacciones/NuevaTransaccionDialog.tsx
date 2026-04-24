@@ -305,6 +305,27 @@ export default function NuevaTransaccionDialog({
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
+          {/* Plantillas de gastos frecuentes */}
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
+              Plantillas rápidas
+            </p>
+            <div className="flex gap-1.5 flex-wrap">
+              {PLANTILLAS_GASTO.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => aplicarPlantilla(p)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border bg-background hover:bg-muted/50 text-xs font-medium transition-colors"
+                  title={`Pre-llenar como "${p.label}"`}
+                >
+                  <span aria-hidden>{p.emoji}</span>
+                  <span>{p.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Toggle grande Ingreso/Egreso */}
           <div className="grid grid-cols-2 gap-2 p-1 bg-muted/40 rounded-lg">
             <button
