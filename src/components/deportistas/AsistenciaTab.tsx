@@ -117,7 +117,14 @@ export default function AsistenciaTab() {
         club_id: clubId,
         estado: "sin_marcar",
       }));
-      await supabase.from("asistencia_entrenamiento" as any).insert(rows as any);
+      const { error: insertError } = await supabase
+        .from("asistencia_entrenamiento" as any)
+        .insert(rows as any);
+
+      if (insertError) {
+        console.error("[asistencia] error insertando asistencia inicial", insertError);
+        toast.error("La sesión se creó, pero no se pudieron cargar las jugadoras");
+      }
     }
 
     toast.success("Sesión creada — marca asistencia");
