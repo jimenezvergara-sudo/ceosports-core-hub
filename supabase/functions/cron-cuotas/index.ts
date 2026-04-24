@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
 });
 
 async function processClub(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   clubId: string,
   periodo: string,
 ): Promise<ClubResult> {
