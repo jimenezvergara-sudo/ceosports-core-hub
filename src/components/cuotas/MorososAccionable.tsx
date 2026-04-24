@@ -195,7 +195,7 @@ export default function MorososAccionable() {
       </div>
 
       {/* Plantilla editable (compacto) */}
-      <PlantillaCobranzaEditor compact />
+      <PlantillaCobranzaEditor compact onSaved={(tpl) => setPlantilla(tpl)} />
 
 
       {/* Lista */}
