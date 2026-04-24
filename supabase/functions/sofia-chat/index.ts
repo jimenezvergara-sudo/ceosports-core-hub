@@ -60,9 +60,10 @@ async function loadClubContext(supabase: any, clubId: string) {
       .limit(20),
     supabase
       .from("solicitudes_compra")
-      .select("id, titulo, monto_estimado, estado, fecha_solicitud")
+      .select("id, titulo, monto_estimado, estado, created_at, prioridad")
       .eq("club_id", clubId)
-      .in("estado", ["pendiente_aprobacion", "en_revision", "aprobada_pendiente_ejecucion"])
+      .in("estado", ["enviada", "en revisión", "aprobada"])
+      .order("created_at", { ascending: false })
       .limit(20),
     supabase
       .from("club_documentos")
