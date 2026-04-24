@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import PlantillaCobranzaEditor from "@/components/shared/PlantillaCobranzaEditor";
 
 interface ClubData {
   id: string;
@@ -323,6 +324,7 @@ export default function Organizacion() {
           <TabsTrigger value="perfil">Perfil del Club</TabsTrigger>
           <TabsTrigger value="directiva">Directiva</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
+          <TabsTrigger value="comunicaciones">Comunicaciones</TabsTrigger>
         </TabsList>
 
         {/* ── TAB: PERFIL ── */}
@@ -685,6 +687,13 @@ export default function Organizacion() {
                 )}
               </CardContent>
             </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* ── TAB: COMUNICACIONES ── */}
+        <TabsContent value="comunicaciones" className="space-y-6">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+            <PlantillaCobranzaEditor />
           </motion.div>
         </TabsContent>
       </Tabs>

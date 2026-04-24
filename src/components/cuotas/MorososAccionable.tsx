@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { MessageCircle, Phone, Search, Send, Save } from "lucide-react";
+import { MessageCircle, Phone, Search, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
+import PlantillaCobranzaEditor from "@/components/shared/PlantillaCobranzaEditor";
 
 const DEFAULT_PLANTILLA =
   "Hola {nombre} 👋, te recordamos que tienes {cuotas} cuota(s) pendiente(s) por un total de {monto} en {club}. Si ya pagaste, por favor envíanos el comprobante. ¡Gracias!";
@@ -46,12 +45,10 @@ export default function MorososAccionable() {
   const [morosos, setMorosos] = useState<MorosoRow[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [plantilla, setPlantilla] = useState(DEFAULT_PLANTILLA);
-  const [plantillaInicial, setPlantillaInicial] = useState(DEFAULT_PLANTILLA);
-  const [savingPlantilla, setSavingPlantilla] = useState(false);
 
   const isAdmin = rolSistema === "admin";
 
-  // Cargar plantilla guardada del club
+  // Cargar plantilla guardada del club (solo lectura para construir mensajes)
   useEffect(() => {
     if (!clubId) return;
     (async () => {
@@ -62,22 +59,8 @@ export default function MorososAccionable() {
         .single();
       const tpl = (data as any)?.plantilla_cobranza_whatsapp || DEFAULT_PLANTILLA;
       setPlantilla(tpl);
-      setPlantillaInicial(tpl);
     })();
   }, [clubId]);
-
-  const guardarPlantilla = async () => {
-    if (!clubId) return;
-    setSavingPlantilla(true);
-    const { error } = await supabase
-      .from("clubs")
-      .update({ plantilla_cobranza_whatsapp: plantilla } as any)
-      .eq("id", clubId);
-    setSavingPlantilla(false);
-    if (error) { toast.error("Error al guardar la plantilla"); return; }
-    setPlantillaInicial(plantilla);
-    toast.success("Plantilla guardada");
-  };
 
   useEffect(() => {
     if (!isAdmin) { setLoading(false); return; }
@@ -211,22 +194,9 @@ export default function MorososAccionable() {
         </div>
       </div>
 
-      {/* Plantilla editable */}
-      <div className="bg-card border border-border rounded-lg p-4">
-        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">
-          Plantilla de mensaje WhatsApp
-        </label>
-        <Textarea
-          value={plantilla}
-          onChange={(e) => setPlantilla(e.target.value)}
-          rows={2}
-          className="text-sm"
-        />
-        <p className="text-[11px] text-muted-foreground mt-1.5">
-          Variables: <code>{"{nombre}"}</code> · <code>{"{cuotas}"}</code> ·{" "}
-          <code>{"{monto}"}</code> · <code>{"{categoria}"}</code>
-        </p>
-      </div>
+      {/* Plantilla editable (compacto) */}
+      <PlantillaCobranzaEditor compact onSaved={(tpl) => setPlantilla(tpl)} />
+
 
       {/* Lista */}
       {loading ? (
