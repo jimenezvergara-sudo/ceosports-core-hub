@@ -58,6 +58,29 @@ export default function Transacciones() {
   const [loading, setLoading] = useState(true);
   const [selectedTx, setSelectedTx] = useState<Transaccion | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showHistorico, setShowHistorico] = useState(false);
+  const [historico, setHistorico] = useState<{ ingresos: number; egresos: number; balance: number; count: number; primeraFecha: string | null } | null>(null);
+  const [loadingHistorico, setLoadingHistorico] = useState(false);
+
+  const fetchHistorico = async () => {
+    setLoadingHistorico(true);
+    setHistorico(null);
+    const { data } = await supabase
+      .from("transacciones")
+      .select("tipo,monto,estado,fecha")
+      .neq("estado", "Anulado");
+    const rows = (data as any[]) ?? [];
+    let ing = 0, eg = 0;
+    let primera: string | null = null;
+    rows.forEach((t) => {
+      const m = Number(t.monto) || 0;
+      if (String(t.tipo).toLowerCase() === "ingreso") ing += m;
+      else eg += m;
+      if (!primera || t.fecha < primera) primera = t.fecha;
+    });
+    setHistorico({ ingresos: ing, egresos: eg, balance: ing - eg, count: rows.length, primeraFecha: primera });
+    setLoadingHistorico(false);
+  };
 
   // Date filters
   const now = new Date();
