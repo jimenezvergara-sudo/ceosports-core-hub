@@ -86,7 +86,7 @@ export default function NuevoProyectoDialog({ open, onOpenChange, proyecto, onSa
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Fuente Financiamiento</Label>
+              <Label>Organismo que financia</Label>
               <Select value={form.fuente_financiamiento} onValueChange={(v) => setForm({ ...form, fuente_financiamiento: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{FUENTES.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>

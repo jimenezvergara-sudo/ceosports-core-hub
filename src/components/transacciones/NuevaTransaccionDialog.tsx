@@ -363,10 +363,10 @@ export default function NuevaTransaccionDialog({
 
           {showAdvanced && (
             <div className="grid gap-3 -mt-1">
-              {/* Sub Ítem */}
+              {/* Detalle */}
               {subcategorias.length > 0 && (
                 <div className="grid gap-1.5">
-                  <Label>Subcategoría</Label>
+                  <Label>Detalle</Label>
                   <Select value={subcategoria} onValueChange={setSubcategoria}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona subcategoría" />
