@@ -173,6 +173,129 @@ export function useRegistrosTest(personaId: string | null) {
   return { registros, loading, refetch: fetch };
 }
 
+// ============= Asistencia stats =============
+
+export interface AsistenciaPersonaStats {
+  persona_id: string;
+  nombre: string;
+  apellido: string;
+  total: number;
+  presentes: number;
+  ausentes: number;
+  justificadas: number;
+  porcentaje: number;
+}
+
+export interface AsistenciaCategoriaStats {
+  totalSesiones: number;
+  promedioAsistencia: number;
+  jugadorasBajas: AsistenciaPersonaStats[]; // <70%
+  jugadorasPerfectas: AsistenciaPersonaStats[]; // 100%
+  porPersona: AsistenciaPersonaStats[];
+}
+
+/**
+ * Stats de asistencia por categoría en un rango de fechas.
+ * Calcula % por jugadora y agregados.
+ */
+export function useAsistenciaStatsCategoria(categoriaId: string | null, desde: string, hasta: string) {
+  const [stats, setStats] = useState<AsistenciaCategoriaStats | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { clubId } = useAuth();
+
+  const fetch = useCallback(async () => {
+    if (!categoriaId || !clubId) { setStats(null); return; }
+    setLoading(true);
+    // Sesiones de la categoría en el rango
+    const { data: sesData } = await supabase
+      .from("sesiones_entrenamiento" as any)
+      .select("id")
+      .eq("club_id", clubId)
+      .eq("categoria_id", categoriaId)
+      .gte("fecha", desde)
+      .lte("fecha", hasta);
+    const sesIds = ((sesData as any[]) ?? []).map((s: any) => s.id);
+    const totalSesiones = sesIds.length;
+
+    if (sesIds.length === 0) {
+      setStats({ totalSesiones: 0, promedioAsistencia: 0, jugadorasBajas: [], jugadorasPerfectas: [], porPersona: [] });
+      setLoading(false);
+      return;
+    }
+
+    // Asistencia de esas sesiones
+    const { data: asisData } = await supabase
+      .from("asistencia_entrenamiento" as any)
+      .select("persona_id, estado, personas:persona_id(nombre, apellido)")
+      .in("sesion_id", sesIds);
+
+    const map = new Map<string, AsistenciaPersonaStats>();
+    ((asisData as any[]) ?? []).forEach((a: any) => {
+      const cur = map.get(a.persona_id) ?? {
+        persona_id: a.persona_id,
+        nombre: a.personas?.nombre ?? "",
+        apellido: a.personas?.apellido ?? "",
+        total: 0, presentes: 0, ausentes: 0, justificadas: 0, porcentaje: 0,
+      };
+      cur.total += 1;
+      if (a.estado === "presente") cur.presentes += 1;
+      else if (a.estado === "ausente") cur.ausentes += 1;
+      else if (a.estado === "justificado" || a.estado === "lesionada") cur.justificadas += 1;
+      map.set(a.persona_id, cur);
+    });
+
+    const porPersona = Array.from(map.values()).map((p) => ({
+      ...p,
+      porcentaje: p.total > 0 ? Math.round(((p.presentes + p.justificadas) / p.total) * 100) : 0,
+    })).sort((a, b) => a.apellido.localeCompare(b.apellido));
+
+    const promedioAsistencia = porPersona.length > 0
+      ? Math.round(porPersona.reduce((s, p) => s + p.porcentaje, 0) / porPersona.length)
+      : 0;
+
+    setStats({
+      totalSesiones,
+      promedioAsistencia,
+      jugadorasBajas: porPersona.filter((p) => p.total > 0 && p.porcentaje < 70),
+      jugadorasPerfectas: porPersona.filter((p) => p.total > 0 && p.porcentaje === 100),
+      porPersona,
+    });
+    setLoading(false);
+  }, [categoriaId, clubId, desde, hasta]);
+
+  useEffect(() => { fetch(); }, [fetch]);
+  return { stats, loading, refetch: fetch };
+}
+
+/**
+ * % asistencia de una persona en un rango de fechas.
+ */
+export function useAsistenciaPersona(personaId: string | null, desde: string, hasta: string) {
+  const [data, setData] = useState<{ total: number; presentes: number; porcentaje: number } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { clubId } = useAuth();
+
+  const fetch = useCallback(async () => {
+    if (!personaId || !clubId) { setData(null); return; }
+    setLoading(true);
+    const { data: rows } = await supabase
+      .from("asistencia_entrenamiento" as any)
+      .select("estado, sesiones_entrenamiento:sesion_id!inner(fecha, club_id)")
+      .eq("persona_id", personaId)
+      .eq("club_id", clubId)
+      .gte("sesiones_entrenamiento.fecha", desde)
+      .lte("sesiones_entrenamiento.fecha", hasta);
+    const arr = (rows as any[]) ?? [];
+    const total = arr.length;
+    const presentes = arr.filter((a: any) => a.estado === "presente" || a.estado === "justificado" || a.estado === "lesionada").length;
+    setData({ total, presentes, porcentaje: total > 0 ? Math.round((presentes / total) * 100) : 0 });
+    setLoading(false);
+  }, [personaId, clubId, desde, hasta]);
+
+  useEffect(() => { fetch(); }, [fetch]);
+  return { data, loading };
+}
+
 // Timeline: all events for a persona
 export interface TimelineEvent {
   id: string;

@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Users, HeartPulse, FileText, Upload, AlertTriangle, CheckCircle2, XCircle, Pencil, Save, X, Loader2, Eye, Trash2, Camera, Download, Link2, Plus } from "lucide-react";
 import RelacionesTab from "@/components/personas/RelacionesTab";
+import AsistenciaResumenPersona from "@/components/personas/AsistenciaResumenPersona";
 import type { Persona, DocumentoPersona, Familiar } from "@/types/persona";
 import { DOCUMENTOS_OBLIGATORIOS, ETIQUETAS_DOCUMENTO, documentoVencido, documentosPorVencer, requiereTutor, calcularEdad, calcularCategoria } from "@/types/persona";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -561,6 +562,9 @@ export default function PersonaDetailSheet({ persona, open, onOpenChange, onSave
             </div>
             {/* ─── CATEGORÍAS ASIGNADAS ─── */}
             <CategoriaAssignment personaId={draft.id} />
+
+            {/* ─── ASISTENCIA RESUMEN ─── */}
+            <AsistenciaResumenPersona personaId={draft.id} />
 
             {necesitaTutor && (
               <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 flex items-start gap-2">
