@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import PlantillaCobranzaEditor from "@/components/shared/PlantillaCobranzaEditor";
 
 interface ClubData {
   id: string;
