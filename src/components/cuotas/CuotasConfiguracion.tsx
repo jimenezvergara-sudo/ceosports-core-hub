@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Pencil, Trash2, CheckCircle2, AlertTriangle, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCategorias, type CategoriaRow } from "@/hooks/use-relational-data";
+import { useCronCuotas } from "@/hooks/use-cron-cuotas";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import GenerarCuotasDialog from "./GenerarCuotasDialog";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
@@ -112,11 +115,66 @@ export default function CuotasConfiguracion() {
 
   const catName = (id: string | null) => categorias.find((c) => c.id === id)?.nombre ?? "—";
 
+  const cron = useCronCuotas();
+
+  const categoriasSinConfig = useMemo(() => {
+    const conConfig = new Set(configs.filter((c) => c.activa).map((c) => c.categoria_id));
+    return categorias.filter((c) => !conConfig.has(c.id));
+  }, [configs, categorias]);
+
+  const proximaLabel = cron.proximaEjecucion.toLocaleDateString("es-CL", { day: "numeric", month: "long" });
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      {/* Banner estado generación automática */}
+      {categoriasSinConfig.length === 0 ? (
+        <div className="rounded-lg border border-success/30 bg-success/10 p-4 flex items-start gap-3">
+          <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Generación automática activa</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Las cuotas se emiten automáticamente el día 1 de cada mes. Próxima ejecución: <span className="font-medium text-foreground">{proximaLabel}</span>.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              {categoriasSinConfig.length} categoría{categoriasSinConfig.length === 1 ? "" : "s"} sin configuración activa
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              No se generarán cuotas automáticas para: {categoriasSinConfig.map((c) => c.nombre).join(", ")}.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-foreground">Configuraciones de Cuota</h3>
-        <Button size="sm" onClick={openNew}><Plus className="w-4 h-4 mr-1" />Nueva</Button>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="ghost" className="text-xs text-muted-foreground">Más opciones</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <div className="px-2 py-1.5 text-[11px] text-muted-foreground">
+                Respaldo manual — el flujo normal es automático.
+              </div>
+              <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
+                <div className="w-full">
+                  <GenerarCuotasDialog
+                    onGenerated={() => { fetch(); cron.refresh(); }}
+                    triggerLabel="Forzar generación manual"
+                    triggerVariant="ghost"
+                  />
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button size="sm" onClick={openNew}><Plus className="w-4 h-4 mr-1" />Nueva</Button>
+        </div>
       </div>
 
       {/* Desktop table */}

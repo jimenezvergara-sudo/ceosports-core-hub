@@ -727,6 +727,42 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_logs: {
+        Row: {
+          clubes_procesados: number
+          cuotas_generadas: number
+          cuotas_vencidas_actualizadas: number
+          detalle: Json | null
+          ejecutado_en: string
+          error: string | null
+          id: string
+          job_name: string
+          resultado: string
+        }
+        Insert: {
+          clubes_procesados?: number
+          cuotas_generadas?: number
+          cuotas_vencidas_actualizadas?: number
+          detalle?: Json | null
+          ejecutado_en?: string
+          error?: string | null
+          id?: string
+          job_name: string
+          resultado?: string
+        }
+        Update: {
+          clubes_procesados?: number
+          cuotas_generadas?: number
+          cuotas_vencidas_actualizadas?: number
+          detalle?: Json | null
+          ejecutado_en?: string
+          error?: string | null
+          id?: string
+          job_name?: string
+          resultado?: string
+        }
+        Relationships: []
+      }
       cuota_configuraciones: {
         Row: {
           activa: boolean
@@ -1396,6 +1432,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notificaciones_admin: {
+        Row: {
+          club_id: string
+          created_at: string
+          id: string
+          leida: boolean
+          mensaje: string
+          metadata: Json | null
+          read_at: string | null
+          severidad: string
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          id?: string
+          leida?: boolean
+          mensaje: string
+          metadata?: Json | null
+          read_at?: string | null
+          severidad?: string
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          id?: string
+          leida?: boolean
+          mensaje?: string
+          metadata?: Json | null
+          read_at?: string | null
+          severidad?: string
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: []
       }
       pagos_cuotas: {
         Row: {
