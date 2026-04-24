@@ -555,7 +555,14 @@ function SessionDetail({ sesion, canEdit, onBack }: DetailProps) {
           <div className="text-center py-12 border rounded-lg">
             <Users className="w-10 h-10 mx-auto mb-2 text-muted-foreground opacity-40" />
             <p className="text-sm text-muted-foreground">Sin jugadoras en esta sesión</p>
-            <p className="text-xs text-muted-foreground mt-1">Asigna jugadoras a la categoría desde Personas</p>
+            <p className="text-xs text-muted-foreground mt-1 mb-3">
+              Sincroniza las jugadoras activas asignadas a {sesion.categoria_nombre || "la categoría"}.
+            </p>
+            {canEdit && (
+              <Button onClick={sincronizarJugadoras} disabled={reparando} size="sm">
+                {reparando ? "Cargando..." : "Cargar jugadoras de la categoría"}
+              </Button>
+            )}
           </div>
         ) : asistencia.map((a, idx) => {
           const estado = drafts[a.id] ?? null;
