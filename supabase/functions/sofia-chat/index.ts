@@ -305,32 +305,39 @@ ${guia}
 ${JSON.stringify(ctx, null, 2)}
 `;
 
-    const anthropicResp = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "google/gemini-2.5-flash",
         max_tokens: 1500,
-        system: systemPrompt,
-        messages: messages.map((m: Msg) => ({ role: m.role, content: m.content })),
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...messages.map((m: Msg) => ({ role: m.role, content: m.content })),
+        ],
       }),
     });
 
-    if (!anthropicResp.ok) {
-      const errText = await anthropicResp.text();
-      console.error("Anthropic error", anthropicResp.status, errText);
-      return new Response(JSON.stringify({ error: `Error IA (${anthropicResp.status})`, detail: errText }), {
-        status: 500,
+    if (!aiResp.ok) {
+      const errText = await aiResp.text();
+      console.error("AI gateway error", aiResp.status, errText);
+      const fallbackable = aiResp.status === 429 || aiResp.status === 402 || aiResp.status >= 500;
+      const userMsg = aiResp.status === 429
+        ? "Demasiadas consultas en poco tiempo. Intenta de nuevo en un momento."
+        : aiResp.status === 402
+        ? "Se agotaron los créditos de IA del workspace. Contacta al administrador."
+        : `Error IA (${aiResp.status})`;
+      return new Response(JSON.stringify({ error: userMsg, detail: errText, fallback: fallbackable }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await anthropicResp.json();
-    const reply = data?.content?.[0]?.text ?? "";
+    const data = await aiResp.json();
+    const reply = data?.choices?.[0]?.message?.content ?? "";
 
     return new Response(JSON.stringify({ reply }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
