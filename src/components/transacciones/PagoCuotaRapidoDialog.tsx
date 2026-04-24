@@ -37,10 +37,19 @@ type Step = "buscar" | "cuotas" | "confirmar";
 
 interface Props {
   onPaid: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
-export default function PagoCuotaRapidoDialog({ onPaid }: Props) {
-  const [open, setOpen] = useState(false);
+export default function PagoCuotaRapidoDialog({ onPaid, open: openProp, onOpenChange, hideTrigger = false }: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : internalOpen;
+  const setOpen = (v: boolean) => {
+    if (!isControlled) setInternalOpen(v);
+    onOpenChange?.(v);
+  };
   const [step, setStep] = useState<Step>("buscar");
 
   // Step 1: search
@@ -169,12 +178,14 @@ export default function PagoCuotaRapidoDialog({ onPaid }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetAll(); }}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <Banknote className="w-4 h-4" />
-          Pago Cuota
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button variant="outline" className="gap-2">
+            <Banknote className="w-4 h-4" />
+            Pago Cuota
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
