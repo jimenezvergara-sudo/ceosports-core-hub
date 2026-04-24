@@ -688,6 +688,13 @@ export default function Organizacion() {
             </Card>
           </motion.div>
         </TabsContent>
+
+        {/* ── TAB: COMUNICACIONES ── */}
+        <TabsContent value="comunicaciones" className="space-y-6">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+            <PlantillaCobranzaEditor />
+          </motion.div>
+        </TabsContent>
       </Tabs>
     </PageShell>
   );
