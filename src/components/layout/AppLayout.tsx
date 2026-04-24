@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
+import SofiaAssistant from "@/components/sofia/SofiaAssistant";
 
 export default function AppLayout() {
   return (
@@ -8,6 +9,8 @@ export default function AppLayout() {
       <main className="ml-[260px] min-h-screen transition-all duration-300">
         <Outlet />
       </main>
+      <SofiaAssistant />
     </div>
   );
 }
+
