@@ -169,7 +169,9 @@ export default function MorososAccionable() {
       .replace(/\{nombre\}/g, target)
       .replace(/\{cuotas\}/g, String(m.cuotas_impagas))
       .replace(/\{monto\}/g, fmtCLP(m.monto_adeudado))
-      .replace(/\{categoria\}/g, m.categoria);
+      .replace(/\{categoria\}/g, m.categoria)
+      .replace(/\{periodo\}/g, m.periodos.join(", "))
+      .replace(/\{club\}/g, clubActual?.nombre ?? "el club");
   };
 
   const waLink = (m: MorosoRow): string | null => {
