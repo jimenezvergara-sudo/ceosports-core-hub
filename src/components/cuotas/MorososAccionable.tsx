@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MessageCircle, Phone, Search, Send } from "lucide-react";
+import { MessageCircle, Phone, Search, Send, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+
+const DEFAULT_PLANTILLA =
+  "Hola {nombre} 👋, te recordamos que tienes {cuotas} cuota(s) pendiente(s) por un total de {monto} en {club}. Si ya pagaste, por favor envíanos el comprobante. ¡Gracias!";
 
 interface MorosoRow {
   persona_id: string;
