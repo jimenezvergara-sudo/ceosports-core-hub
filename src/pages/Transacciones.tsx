@@ -395,19 +395,83 @@ export default function Transacciones() {
       )}
 
       {/* Resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {[
-          { label: "Ingresos", value: totalIngresos, color: "text-success" },
-          { label: "Egresos", value: totalEgresos, color: "text-destructive" },
-          { label: "Balance", value: balance, color: balance >= 0 ? "text-success" : "text-destructive" },
-        ].map((item) => (
-          <div key={item.label} className="bg-card border border-border rounded-lg p-4">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{item.label}</p>
-            <p className={`text-xl font-mono font-bold ${item.color}`}>
-              ${item.value.toLocaleString("es-CL")}
-            </p>
-          </div>
-        ))}
+      <TooltipProvider>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+          {[
+            { label: "Ingresos", value: totalIngresos, color: "text-success", key: "ingresos" },
+            { label: "Egresos", value: totalEgresos, color: "text-destructive", key: "egresos" },
+            { label: "Balance", value: balance, color: balance >= 0 ? "text-success" : "text-destructive", key: "balance" },
+          ].map((item) => (
+            <div key={item.label} className="bg-card border border-border rounded-lg p-4">
+              <div className="flex items-center gap-1.5 mb-1">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{item.label}</p>
+                {item.key === "balance" && balance < 0 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Información del balance">
+                        <Info className="w-3.5 h-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p className="text-xs leading-relaxed">
+                        El balance negativo indica que los egresos del período superan los ingresos registrados en este mes. Esto no refleja el saldo total del club.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+              <p className={`text-xl font-mono font-bold ${item.color}`}>
+                ${item.value.toLocaleString("es-CL")}
+              </p>
+            </div>
+          ))}
+        </div>
+      </TooltipProvider>
+
+      {/* Acción: balance histórico */}
+      <div className="flex justify-end mb-6">
+        <Dialog open={showHistorico} onOpenChange={(o) => { setShowHistorico(o); if (o && !historico) fetchHistorico(); }}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <History className="w-4 h-4" />
+              Ver balance histórico
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Balance histórico acumulado</DialogTitle>
+              <DialogDescription>
+                Suma total de todas las transacciones registradas (excluye anuladas), sin filtrar por período.
+              </DialogDescription>
+            </DialogHeader>
+            {loadingHistorico || !historico ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">Calculando...</div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex justify-between items-baseline border-b border-border pb-2">
+                  <span className="text-sm text-muted-foreground">Ingresos totales</span>
+                  <span className="font-mono font-bold text-success">${historico.ingresos.toLocaleString("es-CL")}</span>
+                </div>
+                <div className="flex justify-between items-baseline border-b border-border pb-2">
+                  <span className="text-sm text-muted-foreground">Egresos totales</span>
+                  <span className="font-mono font-bold text-destructive">${historico.egresos.toLocaleString("es-CL")}</span>
+                </div>
+                <div className="flex justify-between items-baseline pt-2">
+                  <span className="text-sm font-medium">Balance acumulado</span>
+                  <span className={`font-mono text-2xl font-bold ${historico.balance >= 0 ? "text-success" : "text-destructive"}`}>
+                    ${historico.balance.toLocaleString("es-CL")}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground pt-3 border-t border-border space-y-1">
+                  <p>{historico.count} transacciones registradas</p>
+                  {historico.primeraFecha && (
+                    <p>Desde: {format(new Date(historico.primeraFecha), "dd 'de' MMMM yyyy", { locale: es })}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Tabla */}
