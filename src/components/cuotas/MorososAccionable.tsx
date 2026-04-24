@@ -45,12 +45,10 @@ export default function MorososAccionable() {
   const [morosos, setMorosos] = useState<MorosoRow[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [plantilla, setPlantilla] = useState(DEFAULT_PLANTILLA);
-  const [plantillaInicial, setPlantillaInicial] = useState(DEFAULT_PLANTILLA);
-  const [savingPlantilla, setSavingPlantilla] = useState(false);
 
   const isAdmin = rolSistema === "admin";
 
-  // Cargar plantilla guardada del club
+  // Cargar plantilla guardada del club (solo lectura para construir mensajes)
   useEffect(() => {
     if (!clubId) return;
     (async () => {
@@ -61,22 +59,8 @@ export default function MorososAccionable() {
         .single();
       const tpl = (data as any)?.plantilla_cobranza_whatsapp || DEFAULT_PLANTILLA;
       setPlantilla(tpl);
-      setPlantillaInicial(tpl);
     })();
   }, [clubId]);
-
-  const guardarPlantilla = async () => {
-    if (!clubId) return;
-    setSavingPlantilla(true);
-    const { error } = await supabase
-      .from("clubs")
-      .update({ plantilla_cobranza_whatsapp: plantilla } as any)
-      .eq("id", clubId);
-    setSavingPlantilla(false);
-    if (error) { toast.error("Error al guardar la plantilla"); return; }
-    setPlantillaInicial(plantilla);
-    toast.success("Plantilla guardada");
-  };
 
   useEffect(() => {
     if (!isAdmin) { setLoading(false); return; }
