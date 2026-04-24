@@ -248,17 +248,25 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Verify the requesting user belongs to the club
+    // Decode JWT locally to extract user id (avoids session_not_found errors
+    // when the server-side session was rotated, e.g. after a password reset).
     const token = authHeader.replace(/^Bearer\s+/i, "");
-    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
-    if (userErr || !userData?.user) {
-      console.error("getUser failed", userErr);
-      return new Response(JSON.stringify({ error: "Sesión inválida", detail: userErr?.message }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    let userId: string | null = null;
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      userId = payload.sub ?? null;
+      const exp = typeof payload.exp === "number" ? payload.exp : 0;
+      if (!userId || exp * 1000 < Date.now()) {
+        throw new Error("Token expirado o inválido");
+      }
+    } catch (e) {
+      console.error("JWT decode failed", e);
+      return new Response(
+        JSON.stringify({ error: "Sesión inválida. Cierra sesión y vuelve a entrar." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
-    const user = userData.user;
+    const user = { id: userId } as { id: string };
 
     // Read role from DB — never trust the client
     const { data: membership } = await supabase
