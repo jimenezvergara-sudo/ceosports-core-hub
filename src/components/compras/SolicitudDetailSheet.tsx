@@ -306,7 +306,7 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
                     <Field label="Decisión" value={aprobacion.decision} />
                     <Field label="Aprobado por" value={aprobacion.aprobado_por} />
                     <Field label="Monto Aprobado" value={aprobacion.monto_aprobado ? `$${aprobacion.monto_aprobado.toLocaleString("es-CL")}` : null} />
-                    <Field label="Centro de Costo" value={aprobacion.centro_costo} />
+                    <Field label="Área del Club" value={aprobacion.centro_costo} />
                     <Field label="Responsable" value={aprobacion.responsable_compra} />
                     <Field label="Fecha" value={format(new Date(aprobacion.fecha_aprobacion), "dd/MM/yyyy HH:mm", { locale: es })} />
                   </div>
@@ -315,7 +315,7 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
               )}
 
               {ejecucion && (
-                <Section title="Ejecución" icon={<FileText className="w-4 h-4 text-primary" />}>
+                <Section title="Pago Realizado" icon={<FileText className="w-4 h-4 text-primary" />}>
                   <div className="grid grid-cols-2 gap-x-3 gap-y-2">
                     <Field label="Proveedor" value={ejecucion.proveedor_real} />
                     <Field label="Monto Real" value={`$${ejecucion.monto_real.toLocaleString("es-CL")}`} />
@@ -409,9 +409,9 @@ export default function SolicitudDetailSheet({ solicitud, open, onOpenChange, on
               <FormField label="Monto Aprobado ($)">
                 <Input type="number" value={apForm.monto_aprobado} onChange={(e) => setApForm(f => ({ ...f, monto_aprobado: Number(e.target.value) }))} />
               </FormField>
-              <FormField label="Centro de Costo">
+              <FormField label="Área del Club">
                 <Select value={apForm.centro_costo} onValueChange={(v) => setApForm(f => ({ ...f, centro_costo: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar centro de costo" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar área" /></SelectTrigger>
                   <SelectContent>
                     {centrosCosto.map((cc) => (
                       <SelectItem key={cc.id} value={cc.nombre}>{cc.codigo ? `${cc.codigo} — ` : ""}{cc.nombre}</SelectItem>

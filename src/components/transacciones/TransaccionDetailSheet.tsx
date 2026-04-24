@@ -89,9 +89,9 @@ export default function TransaccionDetailSheet({ transaccion, open, onOpenChange
 
           <DetailRow label="Fecha" value={transaccion.fecha} />
           <DetailRow label="Descripción" value={transaccion.descripcion} />
-          <DetailRow label="Ítem" value={catData?.label ?? transaccion.categoria} />
-          <DetailRow label="Sub Ítem" value={subData?.label ?? transaccion.subcategoria} />
-          <DetailRow label="Origen" value={ORIGEN_LABELS[transaccion.origen_tipo || "manual"] || "Manual"} />
+          <DetailRow label="Categoría" value={catData?.label ?? transaccion.categoria} />
+          <DetailRow label="Detalle" value={subData?.label ?? transaccion.subcategoria} />
+          <DetailRow label="Generado desde" value={ORIGEN_LABELS[transaccion.origen_tipo || "manual"] || "Manual"} />
 
           <Separator />
 

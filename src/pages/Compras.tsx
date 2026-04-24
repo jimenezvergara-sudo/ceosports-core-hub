@@ -31,6 +31,8 @@ import NuevaSolicitudDialog from "@/components/compras/NuevaSolicitudDialog";
 import SolicitudDetailSheet from "@/components/compras/SolicitudDetailSheet";
 import { ESTADOS_COMPRA, ESTADO_COLOR, PRIORIDAD_COLOR } from "@/data/comprasConstants";
 import type { EstadoCompra } from "@/data/comprasConstants";
+import ContextBanner from "@/components/shared/ContextBanner";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Solicitud {
   id: string;
@@ -51,6 +53,9 @@ interface Solicitud {
 }
 
 export default function Compras() {
+  const { rolSistema } = useAuth();
+  const role = (rolSistema || "viewer").toLowerCase();
+  const isAdmin = role === "admin" || role === "owner";
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Solicitud | null>(null);
@@ -113,6 +118,14 @@ export default function Compras() {
       icon={ShoppingCart}
       actions={<NuevaSolicitudDialog onCreated={fetchSolicitudes} />}
     >
+      {isAdmin && (
+        <ContextBanner
+          text="¿Es un gasto pequeño que ya pagaste?"
+          linkText="Regístralo directo en Transacciones"
+          to="/transacciones"
+        />
+      )}
+
       {/* Search bar - always visible */}
       <div className="flex items-center gap-2 mb-3">
         <div className="relative flex-1">

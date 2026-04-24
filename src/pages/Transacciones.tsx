@@ -16,6 +16,8 @@ import NuevaTransaccionDialog from "@/components/transacciones/NuevaTransaccionD
 import PagoCuotaRapidoDialog from "@/components/transacciones/PagoCuotaRapidoDialog";
 import TransaccionDetailSheet from "@/components/transacciones/TransaccionDetailSheet";
 import { categoriasTransaccion } from "@/data/categoriasTransaccion";
+import ContextBanner from "@/components/shared/ContextBanner";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Transaccion {
   id: string;
@@ -47,6 +49,9 @@ const ESTADOS = ["Pendiente", "Pagado", "Anulado"];
 const ORIGENES = ["manual", "compra", "cuota", "pago_entrenador"];
 
 export default function Transacciones() {
+  const { rolSistema } = useAuth();
+  const role = (rolSistema || "viewer").toLowerCase();
+  const isAdmin = role === "admin" || role === "owner";
   const [txs, setTxs] = useState<Transaccion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTx, setSelectedTx] = useState<Transaccion | null>(null);
@@ -143,7 +148,7 @@ export default function Transacciones() {
 
   // CSV Export
   const exportCSV = () => {
-    const headers = ["Fecha", "Tipo", "Ítem", "Sub Ítem", "Descripción", "Monto", "Estado", "Método de Pago", "Referencia", "Origen", "Categoría Deportiva", "Notas"];
+    const headers = ["Fecha", "Tipo", "Categoría", "Detalle", "Descripción", "Monto", "Estado", "Método de Pago", "Referencia", "Generado desde", "Categoría Deportiva", "Notas"];
     const rows = filteredTxs.map(tx => [
       tx.fecha,
       tx.tipo,
@@ -198,6 +203,15 @@ export default function Transacciones() {
         </div>
       }
     >
+      {isAdmin && (
+        <ContextBanner
+          text="¿El gasto requiere aprobación previa?"
+          linkText="Úsalo desde el módulo Compras"
+          to="/compras"
+          variant="info"
+        />
+      )}
+
       {/* Date filters + toggle */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <span className="text-sm text-muted-foreground font-medium">Período:</span>
@@ -285,9 +299,9 @@ export default function Transacciones() {
               </Select>
             </div>
 
-            {/* Ítem */}
+            {/* Categoría */}
             <div>
-              <label className="text-xs text-muted-foreground font-medium mb-1 block">Ítem</label>
+              <label className="text-xs text-muted-foreground font-medium mb-1 block">Categoría</label>
               <Select value={filterCategoria} onValueChange={setFilterCategoria}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -313,9 +327,9 @@ export default function Transacciones() {
               </Select>
             </div>
 
-            {/* Origen */}
+            {/* Generado desde */}
             <div>
-              <label className="text-xs text-muted-foreground font-medium mb-1 block">Origen</label>
+              <label className="text-xs text-muted-foreground font-medium mb-1 block">Generado desde</label>
               <Select value={filterOrigen} onValueChange={setFilterOrigen}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -379,8 +393,8 @@ export default function Transacciones() {
               <tr className="border-b border-border">
                 <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">Fecha</th>
                 <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">Descripción</th>
-                <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">Ítem</th>
-                <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">Origen</th>
+                <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">Categoría</th>
+                <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">Generado desde</th>
                 <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">Tipo</th>
                 <th className="text-right p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">Monto</th>
                 <th className="text-left p-3 text-muted-foreground font-medium text-xs uppercase tracking-wider">Estado</th>
