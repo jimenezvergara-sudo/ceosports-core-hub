@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Plus, Upload, X, ChevronDown, ChevronUp, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { Plus, Upload, X, ChevronDown, ChevronUp, ArrowDownCircle, ArrowUpCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -22,6 +32,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { categoriasTransaccion } from "@/data/categoriasTransaccion";
 import { cn } from "@/lib/utils";
+
+interface PlantillaGasto {
+  id: string;
+  emoji: string;
+  label: string;
+  categoria: string;
+  subcategoria: string;
+  descripcion: string;
+}
+
+const PLANTILLAS_GASTO: PlantillaGasto[] = [
+  { id: "arbitraje", emoji: "⚽", label: "Arbitraje", categoria: "Competencia", subcategoria: "Arbitraje", descripcion: "Pago arbitraje" },
+  { id: "movilizacion", emoji: "🚌", label: "Movilización", categoria: "Competencia", subcategoria: "Traslados", descripcion: "Movilización equipo" },
+  { id: "arriendo", emoji: "🏟️", label: "Arriendo Cancha", categoria: "Infraestructura", subcategoria: "Arriendo Cancha", descripcion: "Arriendo de cancha" },
+  { id: "indumentaria", emoji: "👕", label: "Indumentaria", categoria: "Equipamiento", subcategoria: "Indumentaria", descripcion: "Compra de indumentaria" },
+  { id: "material", emoji: "🏀", label: "Material Deportivo", categoria: "Equipamiento", subcategoria: "Implementación", descripcion: "Compra de material deportivo" },
+];
+
 
 interface Props {
   onCreated: () => void;
