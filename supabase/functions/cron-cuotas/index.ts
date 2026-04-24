@@ -196,8 +196,8 @@ async function processClub(
     .eq("periodo", periodo)
     .eq("club_id", clubId);
   const existingKeys = new Set((existing ?? []).map((e: any) => `${e.persona_id}_${e.categoria_id}`));
-  const newPairs = generableP airs.filter((p: any) => !existingKeys.has(`${p.persona_id}_${p.categoria_id}`));
-  result.duplicadas = generableP airs.length - newPairs.length;
+  const newPairs = generablePairs.filter((p: any) => !existingKeys.has(`${p.persona_id}_${p.categoria_id}`));
+  result.duplicadas = generablePairs.length - newPairs.length;
   if (!newPairs.length) return result;
 
   // Apoderado map
