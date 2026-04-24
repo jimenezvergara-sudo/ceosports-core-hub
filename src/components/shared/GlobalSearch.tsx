@@ -60,52 +60,60 @@ export default function GlobalSearch() {
         const promises: Promise<any>[] = [];
 
         // Personas: admin + staff
-        if (isAdmin || isStaff) {
-          promises.push(
-            supabase
-              .from("personas")
-              .select("id, nombre, apellido, rut, email")
-              .eq("club_id", clubId)
-              .or(`nombre.ilike.${like},apellido.ilike.${like},rut.ilike.${like},email.ilike.${like}`)
-              .limit(5)
-          );
-        } else promises.push(Promise.resolve({ data: [] }));
+        promises.push(
+          isAdmin || isStaff
+            ? Promise.resolve(
+                await supabase
+                  .from("personas")
+                  .select("id, nombre, apellido, rut, email")
+                  .eq("club_id", clubId)
+                  .or(`nombre.ilike.${like},apellido.ilike.${like},rut.ilike.${like},email.ilike.${like}`)
+                  .limit(5)
+              )
+            : Promise.resolve({ data: [] })
+        );
 
         // Transacciones: solo admin
-        if (isAdmin) {
-          promises.push(
-            supabase
-              .from("transacciones" as any)
-              .select("id, fecha, descripcion, monto, tipo")
-              .eq("club_id", clubId)
-              .ilike("descripcion", like)
-              .limit(5)
-          );
-        } else promises.push(Promise.resolve({ data: [] }));
+        promises.push(
+          isAdmin
+            ? Promise.resolve(
+                await supabase
+                  .from("transacciones" as any)
+                  .select("id, fecha, descripcion, monto, tipo")
+                  .eq("club_id", clubId)
+                  .ilike("descripcion", like)
+                  .limit(5)
+              )
+            : Promise.resolve({ data: [] })
+        );
 
         // Proyectos: admin + staff
-        if (isAdmin || isStaff) {
-          promises.push(
-            supabase
-              .from("proyectos")
-              .select("id, nombre, estado")
-              .eq("club_id", clubId)
-              .ilike("nombre", like)
-              .limit(5)
-          );
-        } else promises.push(Promise.resolve({ data: [] }));
+        promises.push(
+          isAdmin || isStaff
+            ? Promise.resolve(
+                await supabase
+                  .from("proyectos")
+                  .select("id, nombre, estado")
+                  .eq("club_id", clubId)
+                  .ilike("nombre", like)
+                  .limit(5)
+              )
+            : Promise.resolve({ data: [] })
+        );
 
         // Documentos: admin + staff
-        if (isAdmin || isStaff) {
-          promises.push(
-            supabase
-              .from("documentos")
-              .select("id, nombre_archivo, etiqueta, persona_id")
-              .eq("club_id", clubId)
-              .or(`nombre_archivo.ilike.${like},etiqueta.ilike.${like}`)
-              .limit(5)
-          );
-        } else promises.push(Promise.resolve({ data: [] }));
+        promises.push(
+          isAdmin || isStaff
+            ? Promise.resolve(
+                await supabase
+                  .from("documentos")
+                  .select("id, nombre_archivo, etiqueta, persona_id")
+                  .eq("club_id", clubId)
+                  .or(`nombre_archivo.ilike.${like},etiqueta.ilike.${like}`)
+                  .limit(5)
+              )
+            : Promise.resolve({ data: [] })
+        );
 
         const [p, t, pr, d] = await Promise.all(promises);
         setResults({
