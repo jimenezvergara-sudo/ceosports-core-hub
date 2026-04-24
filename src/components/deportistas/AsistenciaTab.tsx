@@ -383,9 +383,11 @@ interface DetailProps {
 }
 
 function SessionDetail({ sesion, canEdit, onBack }: DetailProps) {
+  const { clubId } = useAuth();
   const { asistencia, refetch } = useAsistencia(sesion.id);
   const [drafts, setDrafts] = useState<Record<string, Estado>>({});
   const [saving, setSaving] = useState(false);
+  const [reparando, setReparando] = useState(false);
 
   // Sync drafts on first load / refetch
   useEffect(() => {
@@ -395,6 +397,67 @@ function SessionDetail({ sesion, canEdit, onBack }: DetailProps) {
     });
     setDrafts(next);
   }, [asistencia]);
+
+  // Sincroniza jugadoras de la categoría → asistencia (crea filas faltantes).
+  // Útil para sesiones existentes vacías o cuando se agregaron jugadoras nuevas.
+  const sincronizarJugadoras = async () => {
+    if (!sesion.categoria_id) {
+      toast.error("La sesión no tiene categoría asignada");
+      return;
+    }
+    setReparando(true);
+    const { data: pcData, error } = await supabase
+      .from("persona_categoria" as any)
+      .select("persona_id, personas:persona_id(estado, tipo_persona, club_id)")
+      .eq("categoria_id", sesion.categoria_id);
+
+    if (error) {
+      console.error("[asistencia] sincronizar error", error);
+      toast.error("No se pudo leer la categoría");
+      setReparando(false);
+      return;
+    }
+
+    const personaIdsCategoria = ((pcData as any[]) ?? [])
+      .filter((p: any) => {
+        const per = p.personas;
+        if (!per) return false;
+        const estadoOk = !per.estado || per.estado === "activo";
+        const tipoOk = !per.tipo_persona || per.tipo_persona === "jugador";
+        const clubOk = !per.club_id || !clubId || per.club_id === clubId;
+        return estadoOk && tipoOk && clubOk;
+      })
+      .map((p: any) => p.persona_id as string);
+
+    const yaPresentes = new Set(asistencia.map((a) => a.persona_id));
+    const faltantes = personaIdsCategoria.filter((pid) => !yaPresentes.has(pid));
+
+    if (faltantes.length === 0) {
+      toast.info(personaIdsCategoria.length === 0
+        ? "No hay jugadoras activas en esta categoría"
+        : "Todas las jugadoras ya están en la sesión");
+      setReparando(false);
+      return;
+    }
+
+    const rows = faltantes.map((pid) => ({
+      sesion_id: sesion.id,
+      persona_id: pid,
+      club_id: clubId,
+      estado: "sin_marcar",
+    }));
+    const { error: insErr } = await supabase
+      .from("asistencia_entrenamiento" as any)
+      .insert(rows as any);
+    if (insErr) {
+      console.error("[asistencia] insert faltantes error", insErr);
+      toast.error("Error al agregar jugadoras");
+    } else {
+      toast.success(`${faltantes.length} jugadora(s) añadidas`);
+      refetch();
+    }
+    setReparando(false);
+  };
 
   // Edición permitida solo hasta 24h después de la sesión
   const sesionMoment = new Date(`${sesion.fecha}T${sesion.hora_fin || "23:59"}`);
