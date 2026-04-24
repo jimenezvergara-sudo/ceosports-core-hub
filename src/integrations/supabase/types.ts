@@ -2139,6 +2139,62 @@ export type Database = {
           },
         ]
       }
+      reconciliaciones_banco: {
+        Row: {
+          banco_detectado: string | null
+          club_id: string
+          created_at: string
+          cuotas_conciliadas: number
+          detalle: Json | null
+          ejecutado_por: string | null
+          id: string
+          identificados_auto: number
+          monto_conciliado: number
+          no_identificados: number
+          nombre_archivo: string
+          posibles_coincidencias: number
+          total_movimientos: number
+        }
+        Insert: {
+          banco_detectado?: string | null
+          club_id: string
+          created_at?: string
+          cuotas_conciliadas?: number
+          detalle?: Json | null
+          ejecutado_por?: string | null
+          id?: string
+          identificados_auto?: number
+          monto_conciliado?: number
+          no_identificados?: number
+          nombre_archivo: string
+          posibles_coincidencias?: number
+          total_movimientos?: number
+        }
+        Update: {
+          banco_detectado?: string | null
+          club_id?: string
+          created_at?: string
+          cuotas_conciliadas?: number
+          detalle?: Json | null
+          ejecutado_por?: string | null
+          id?: string
+          identificados_auto?: number
+          monto_conciliado?: number
+          no_identificados?: number
+          nombre_archivo?: string
+          posibles_coincidencias?: number
+          total_movimientos?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliaciones_banco_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       registros_test_deportivo: {
         Row: {
           club_id: string | null
