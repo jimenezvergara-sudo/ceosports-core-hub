@@ -661,6 +661,7 @@ export type Database = {
           municipalidad: string | null
           nombre: string
           numero_registro: string | null
+          plantilla_cobranza_whatsapp: string | null
           redes_sociales: Json | null
           region: string | null
           representante_legal: string | null
@@ -687,6 +688,7 @@ export type Database = {
           municipalidad?: string | null
           nombre: string
           numero_registro?: string | null
+          plantilla_cobranza_whatsapp?: string | null
           redes_sociales?: Json | null
           region?: string | null
           representante_legal?: string | null
@@ -713,6 +715,7 @@ export type Database = {
           municipalidad?: string | null
           nombre?: string
           numero_registro?: string | null
+          plantilla_cobranza_whatsapp?: string | null
           redes_sociales?: Json | null
           region?: string | null
           representante_legal?: string | null

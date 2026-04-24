@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MessageCircle, Phone, Search, Send } from "lucide-react";
+import { MessageCircle, Phone, Search, Send, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+
+const DEFAULT_PLANTILLA =
+  "Hola {nombre} 👋, te recordamos que tienes {cuotas} cuota(s) pendiente(s) por un total de {monto} en {club}. Si ya pagaste, por favor envíanos el comprobante. ¡Gracias!";
 
 interface MorosoRow {
   persona_id: string;
@@ -37,16 +41,43 @@ const toWaNumber = (raw: string | null): string | null => {
 };
 
 export default function MorososAccionable() {
-  const { clubActual, rolSistema } = useAuth();
+  const { clubActual, clubId, rolSistema } = useAuth();
   const [loading, setLoading] = useState(true);
   const [morosos, setMorosos] = useState<MorosoRow[]>([]);
   const [busqueda, setBusqueda] = useState("");
-  const [plantilla, setPlantilla] = useState(
-    `Hola {nombre} 👋, te recordamos que tienes {cuotas} cuota(s) pendiente(s) por un total de {monto} en ${clubActual?.nombre ?? "el club"}. Si ya pagaste, por favor envíanos el comprobante. ¡Gracias!`
-  );
+  const [plantilla, setPlantilla] = useState(DEFAULT_PLANTILLA);
+  const [plantillaInicial, setPlantillaInicial] = useState(DEFAULT_PLANTILLA);
+  const [savingPlantilla, setSavingPlantilla] = useState(false);
 
-  // Solo admin puede ver esta vista
   const isAdmin = rolSistema === "admin";
+
+  // Cargar plantilla guardada del club
+  useEffect(() => {
+    if (!clubId) return;
+    (async () => {
+      const { data } = await supabase
+        .from("clubs")
+        .select("plantilla_cobranza_whatsapp")
+        .eq("id", clubId)
+        .single();
+      const tpl = (data as any)?.plantilla_cobranza_whatsapp || DEFAULT_PLANTILLA;
+      setPlantilla(tpl);
+      setPlantillaInicial(tpl);
+    })();
+  }, [clubId]);
+
+  const guardarPlantilla = async () => {
+    if (!clubId) return;
+    setSavingPlantilla(true);
+    const { error } = await supabase
+      .from("clubs")
+      .update({ plantilla_cobranza_whatsapp: plantilla } as any)
+      .eq("id", clubId);
+    setSavingPlantilla(false);
+    if (error) { toast.error("Error al guardar la plantilla"); return; }
+    setPlantillaInicial(plantilla);
+    toast.success("Plantilla guardada");
+  };
 
   useEffect(() => {
     if (!isAdmin) { setLoading(false); return; }
@@ -138,7 +169,9 @@ export default function MorososAccionable() {
       .replace(/\{nombre\}/g, target)
       .replace(/\{cuotas\}/g, String(m.cuotas_impagas))
       .replace(/\{monto\}/g, fmtCLP(m.monto_adeudado))
-      .replace(/\{categoria\}/g, m.categoria);
+      .replace(/\{categoria\}/g, m.categoria)
+      .replace(/\{periodo\}/g, m.periodos.join(", "))
+      .replace(/\{club\}/g, clubActual?.nombre ?? "el club");
   };
 
   const waLink = (m: MorosoRow): string | null => {

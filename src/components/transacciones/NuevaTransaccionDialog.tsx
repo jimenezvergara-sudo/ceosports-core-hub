@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Plus, Upload, X, ChevronDown, ChevronUp, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { Plus, Upload, X, ChevronDown, ChevronUp, ArrowDownCircle, ArrowUpCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -22,6 +32,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { categoriasTransaccion } from "@/data/categoriasTransaccion";
 import { cn } from "@/lib/utils";
+
+interface PlantillaGasto {
+  id: string;
+  emoji: string;
+  label: string;
+  categoria: string;
+  subcategoria: string;
+  descripcion: string;
+}
+
+const PLANTILLAS_GASTO: PlantillaGasto[] = [
+  { id: "arbitraje", emoji: "⚽", label: "Arbitraje", categoria: "Competencia", subcategoria: "Arbitraje", descripcion: "Pago arbitraje" },
+  { id: "movilizacion", emoji: "🚌", label: "Movilización", categoria: "Competencia", subcategoria: "Traslados", descripcion: "Movilización equipo" },
+  { id: "arriendo", emoji: "🏟️", label: "Arriendo Cancha", categoria: "Infraestructura", subcategoria: "Arriendo Cancha", descripcion: "Arriendo de cancha" },
+  { id: "indumentaria", emoji: "👕", label: "Indumentaria", categoria: "Equipamiento", subcategoria: "Indumentaria", descripcion: "Compra de indumentaria" },
+  { id: "material", emoji: "🏀", label: "Material Deportivo", categoria: "Equipamiento", subcategoria: "Implementación", descripcion: "Compra de material deportivo" },
+];
+
 
 interface Props {
   onCreated: () => void;
@@ -69,6 +97,9 @@ export default function NuevaTransaccionDialog({
   const [personaId, setPersonaId] = useState("");
   const [comprobante, setComprobante] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Aviso de posible doble registro
+  const [duplicateWarning, setDuplicateWarning] = useState<{ open: boolean; matches: any[] }>({ open: false, matches: [] });
 
   // Real data from Supabase
   const [categoriasDB, setCategoriasDB] = useState<{ id: string; nombre: string }[]>([]);
@@ -157,18 +188,36 @@ export default function NuevaTransaccionDialog({
     setShowAdvanced(false);
   };
 
-  const handleSubmit = async () => {
-    if (!categoria || !descripcion || !monto) {
-      toast.error("Completa los campos obligatorios: categoría, descripción y monto.");
-      return;
-    }
+  const aplicarPlantilla = (p: PlantillaGasto) => {
+    setTipo("Egreso");
+    setCategoria(p.categoria);
+    setSubcategoria(p.subcategoria);
+    setDescripcion(p.descripcion);
+    toast.success(`Plantilla "${p.label}" aplicada`);
+  };
 
+  /** Busca compras ejecutadas con monto similar (±10%) y fecha similar (±3 días). */
+  const checkPosibleDoble = async (montoNum: number, fechaStr: string): Promise<any[]> => {
+    if (tipo !== "Egreso") return [];
+    const fechaBase = new Date(fechaStr + "T12:00:00");
+    const desde = new Date(fechaBase); desde.setDate(desde.getDate() - 3);
+    const hasta = new Date(fechaBase); hasta.setDate(hasta.getDate() + 3);
+    const min = Math.floor(montoNum * 0.9);
+    const max = Math.ceil(montoNum * 1.1);
+    const { data } = await supabase
+      .from("ejecuciones_compra")
+      .select("id, fecha_compra, monto_real, proveedor_real, numero_comprobante")
+      .gte("fecha_compra", desde.toISOString().slice(0, 10))
+      .lte("fecha_compra", hasta.toISOString().slice(0, 10))
+      .gte("monto_real", min)
+      .lte("monto_real", max)
+      .order("fecha_compra", { ascending: false })
+      .limit(5);
+    return data ?? [];
+  };
+
+  const doSubmit = async () => {
     const montoNum = parseInt(monto, 10);
-    if (isNaN(montoNum) || montoNum <= 0) {
-      toast.error("El monto debe ser un número positivo.");
-      return;
-    }
-
     setLoading(true);
 
     let comprobantePath: string | null = null;
@@ -216,6 +265,25 @@ export default function NuevaTransaccionDialog({
     onCreated();
   };
 
+  const handleSubmit = async () => {
+    if (!categoria || !descripcion || !monto) {
+      toast.error("Completa los campos obligatorios: categoría, descripción y monto.");
+      return;
+    }
+    const montoNum = parseInt(monto, 10);
+    if (isNaN(montoNum) || montoNum <= 0) {
+      toast.error("El monto debe ser un número positivo.");
+      return;
+    }
+    // Verifica posible doble registro contra compras ejecutadas
+    const matches = await checkPosibleDoble(montoNum, fecha);
+    if (matches.length > 0) {
+      setDuplicateWarning({ open: true, matches });
+      return;
+    }
+    await doSubmit();
+  };
+
   const montoNum = parseInt(monto || "0", 10);
   const montoPreview = !isNaN(montoNum) && montoNum > 0 ? fmtCLP(montoNum) : "";
 
@@ -237,6 +305,27 @@ export default function NuevaTransaccionDialog({
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
+          {/* Plantillas de gastos frecuentes */}
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
+              Plantillas rápidas
+            </p>
+            <div className="flex gap-1.5 flex-wrap">
+              {PLANTILLAS_GASTO.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => aplicarPlantilla(p)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border bg-background hover:bg-muted/50 text-xs font-medium transition-colors"
+                  title={`Pre-llenar como "${p.label}"`}
+                >
+                  <span aria-hidden>{p.emoji}</span>
+                  <span>{p.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Toggle grande Ingreso/Egreso */}
           <div className="grid grid-cols-2 gap-2 p-1 bg-muted/40 rounded-lg">
             <button
@@ -482,6 +571,53 @@ export default function NuevaTransaccionDialog({
           </Button>
         </div>
       </DialogContent>
+
+      {/* Aviso de posible doble registro con compras ejecutadas */}
+      <AlertDialog open={duplicateWarning.open} onOpenChange={(o) => setDuplicateWarning((s) => ({ ...s, open: o }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              Posible doble registro
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Detectamos {duplicateWarning.matches.length === 1 ? "una compra ejecutada recientemente" : `${duplicateWarning.matches.length} compras ejecutadas recientemente`} por un monto similar. ¿Es la misma operación?
+                </p>
+                <div className="space-y-1.5 text-xs bg-muted/40 rounded-md p-2 max-h-40 overflow-y-auto">
+                  {duplicateWarning.matches.map((m) => (
+                    <div key={m.id} className="flex justify-between gap-2 border-b border-border/40 last:border-0 pb-1 last:pb-0">
+                      <div>
+                        <p className="font-medium text-foreground">{m.proveedor_real}</p>
+                        <p className="text-muted-foreground">{m.fecha_compra}{m.numero_comprobante ? ` · ${m.numero_comprobante}` : ""}</p>
+                      </div>
+                      <span className="font-mono text-foreground">${Number(m.monto_real).toLocaleString("es-CL")}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Si ya está registrada como compra, no necesitas registrarla de nuevo: la transacción se generó automáticamente.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDuplicateWarning({ open: false, matches: [] })}>
+              Sí, cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setDuplicateWarning({ open: false, matches: [] });
+                await doSubmit();
+              }}
+            >
+              No, continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
+
