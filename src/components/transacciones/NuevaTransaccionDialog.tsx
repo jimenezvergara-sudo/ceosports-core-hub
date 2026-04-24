@@ -571,6 +571,53 @@ export default function NuevaTransaccionDialog({
           </Button>
         </div>
       </DialogContent>
+
+      {/* Aviso de posible doble registro con compras ejecutadas */}
+      <AlertDialog open={duplicateWarning.open} onOpenChange={(o) => setDuplicateWarning((s) => ({ ...s, open: o }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              Posible doble registro
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Detectamos {duplicateWarning.matches.length === 1 ? "una compra ejecutada recientemente" : `${duplicateWarning.matches.length} compras ejecutadas recientemente`} por un monto similar. ¿Es la misma operación?
+                </p>
+                <div className="space-y-1.5 text-xs bg-muted/40 rounded-md p-2 max-h-40 overflow-y-auto">
+                  {duplicateWarning.matches.map((m) => (
+                    <div key={m.id} className="flex justify-between gap-2 border-b border-border/40 last:border-0 pb-1 last:pb-0">
+                      <div>
+                        <p className="font-medium text-foreground">{m.proveedor_real}</p>
+                        <p className="text-muted-foreground">{m.fecha_compra}{m.numero_comprobante ? ` · ${m.numero_comprobante}` : ""}</p>
+                      </div>
+                      <span className="font-mono text-foreground">${Number(m.monto_real).toLocaleString("es-CL")}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Si ya está registrada como compra, no necesitas registrarla de nuevo: la transacción se generó automáticamente.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDuplicateWarning({ open: false, matches: [] })}>
+              Sí, cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setDuplicateWarning({ open: false, matches: [] });
+                await doSubmit();
+              }}
+            >
+              No, continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
+
