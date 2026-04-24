@@ -239,8 +239,8 @@ export default function GenerarCuotasDialog({ onGenerated, triggerLabel, trigger
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) resetAndClose(); else setOpen(true); }}>
       <DialogTrigger asChild>
-        <Button size="sm" className="h-10 px-4 text-sm">
-          <Zap className="w-4 h-4 mr-1.5" />Generar Cuotas del Mes
+        <Button size={triggerSize} variant={triggerVariant} className="text-sm">
+          <Zap className="w-4 h-4 mr-1.5" />{triggerLabel ?? "Forzar generación manual"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
