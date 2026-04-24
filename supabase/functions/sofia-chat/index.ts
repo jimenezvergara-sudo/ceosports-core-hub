@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
 
     const ctx = await loadClubContext(supabase, clubId);
 
-    const systemPrompt = `Eres **Sofía**, la asistente IA de la plataforma CEO Sports. Ayudas a dirigentes de clubes deportivos.
+    const systemPrompt = `Eres **Isa**, la asistente IA de la plataforma CEO Sports. Ayudas a dirigentes de clubes deportivos.
 
 CLUB ACTUAL: ${clubNombre ?? "—"}
 USUARIO: ${userName ?? "—"} (rol: ${rolUsuario ?? "—"})
