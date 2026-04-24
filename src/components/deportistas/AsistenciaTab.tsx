@@ -84,16 +84,31 @@ export default function AsistenciaTab() {
       .single();
     if (error || !data) { toast.error("Error al crear sesión"); setSaving(false); return; }
 
-    // Auto-cargar jugadoras de la categoría con estado null (sin marcar)
-    const { data: pcData } = await supabase
+    // Auto-cargar jugadoras de la categoría (incluye legacy con club_id NULL).
+    // La categoría ya está acotada al club, así que NO filtramos por club_id en persona_categoria.
+    const { data: pcData, error: pcError } = await supabase
       .from("persona_categoria" as any)
-      .select("persona_id, personas:persona_id(estado, tipo_persona)")
-      .eq("categoria_id", catId)
-      .eq("club_id", clubId);
+      .select("persona_id, personas:persona_id(estado, tipo_persona, club_id)")
+      .eq("categoria_id", catId);
+
+    if (pcError) console.error("[asistencia] error cargando persona_categoria", pcError);
 
     const personaIds = ((pcData as any[]) ?? [])
-      .filter((p: any) => p.personas?.estado === "activo" || !p.personas?.estado)
+      .filter((p: any) => {
+        const per = p.personas;
+        if (!per) return false;
+        const estadoOk = !per.estado || per.estado === "activo";
+        // Solo jugadores; si tipo_persona viene null lo aceptamos por compatibilidad
+        const tipoOk = !per.tipo_persona || per.tipo_persona === "jugador";
+        // Persona del mismo club o legacy (club_id null)
+        const clubOk = !per.club_id || per.club_id === clubId;
+        return estadoOk && tipoOk && clubOk;
+      })
       .map((p: any) => p.persona_id);
+
+    if (personaIds.length === 0) {
+      console.warn("[asistencia] sin jugadoras para categoría", catId, "club", clubId, "filas crudas:", pcData);
+    }
 
     if (personaIds.length > 0) {
       const rows = personaIds.map((pid: string) => ({
