@@ -25,7 +25,7 @@ interface GenerationSummary {
   beneficiosApplied: number;
 }
 
-export default function GenerarCuotasDialog({ onGenerated }: Props) {
+export default function GenerarCuotasDialog({ onGenerated, triggerLabel, triggerVariant = "default", triggerSize = "sm" }: Props) {
   const [open, setOpen] = useState(false);
   const { categorias } = useCategorias();
   const [categoriaId, setCategoriaId] = useState("todas");
