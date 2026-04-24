@@ -249,18 +249,16 @@ Deno.serve(async (req) => {
     );
 
     // Verify the requesting user belongs to the club
-    const userClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) {
-      return new Response(JSON.stringify({ error: "Sesión inválida" }), {
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      console.error("getUser failed", userErr);
+      return new Response(JSON.stringify({ error: "Sesión inválida", detail: userErr?.message }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const user = userData.user;
 
     // Read role from DB — never trust the client
     const { data: membership } = await supabase
