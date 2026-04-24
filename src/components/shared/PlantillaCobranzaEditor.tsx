@@ -85,6 +85,7 @@ export default function PlantillaCobranzaEditor({ compact = false, onSaved }: Pr
       return;
     }
     setInicial(plantilla);
+    onSaved?.(plantilla);
     toast.success("Plantilla guardada");
   };
 
