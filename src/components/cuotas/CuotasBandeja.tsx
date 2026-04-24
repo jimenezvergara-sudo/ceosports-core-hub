@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { motion } from "framer-motion";
 import CuotaDetailSheet from "./CuotaDetailSheet";
-import GenerarCuotasDialog from "./GenerarCuotasDialog";
 import PagoCuotaRapidoDialog from "@/components/transacciones/PagoCuotaRapidoDialog";
 
 interface Cuota {
