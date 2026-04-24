@@ -98,6 +98,9 @@ export default function NuevaTransaccionDialog({
   const [comprobante, setComprobante] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Aviso de posible doble registro
+  const [duplicateWarning, setDuplicateWarning] = useState<{ open: boolean; matches: any[] }>({ open: false, matches: [] });
+
   // Real data from Supabase
   const [categoriasDB, setCategoriasDB] = useState<{ id: string; nombre: string }[]>([]);
   const [jugadorasDB, setJugadorasDB] = useState<{ id: string; nombre: string; apellido: string; rut: string | null }[]>([]);
