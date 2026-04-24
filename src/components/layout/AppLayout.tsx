@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
 import SofiaAssistant from "@/components/sofia/SofiaAssistant";
+import RegistrarFAB from "@/components/shared/RegistrarFAB";
 
 export default function AppLayout() {
   return (
@@ -10,7 +11,7 @@ export default function AppLayout() {
         <Outlet />
       </main>
       <SofiaAssistant />
+      <RegistrarFAB />
     </div>
   );
 }
-
