@@ -51,7 +51,8 @@ function dbToPersona(row: any): Persona {
     madre: { ...familiarVacio },
     apoderado: { ...familiarVacio },
     documentos: [],
-  };
+    club_id: row.club_id ?? null,
+  } as any;
 }
 
 function DocStatusIcons({ personaId }: { personaId: string }) {
