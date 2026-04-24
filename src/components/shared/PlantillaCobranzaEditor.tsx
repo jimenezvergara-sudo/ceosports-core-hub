@@ -27,9 +27,11 @@ const fmtCLP = (n: number) =>
 interface Props {
   /** Si es true, muestra solo el textarea + botón guardar (modo compacto para Morosos) */
   compact?: boolean;
+  /** Callback cuando se guarda exitosamente la plantilla */
+  onSaved?: (plantilla: string) => void;
 }
 
-export default function PlantillaCobranzaEditor({ compact = false }: Props) {
+export default function PlantillaCobranzaEditor({ compact = false, onSaved }: Props) {
   const { clubId, clubActual } = useAuth();
   const [plantilla, setPlantilla] = useState(DEFAULT_PLANTILLA);
   const [inicial, setInicial] = useState(DEFAULT_PLANTILLA);
