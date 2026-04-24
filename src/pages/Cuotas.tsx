@@ -7,6 +7,7 @@ import CuotasConfiguracion from "@/components/cuotas/CuotasConfiguracion";
 import CuotasBeneficios from "@/components/cuotas/CuotasBeneficios";
 import CuotasMorosidad from "@/components/cuotas/CuotasMorosidad";
 import MorososAccionable from "@/components/cuotas/MorososAccionable";
+import ReconciliacionBancariaDialog from "@/components/cuotas/ReconciliacionBancariaDialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useSearchParams } from "react-router-dom";
 
@@ -18,7 +19,12 @@ export default function Cuotas() {
   const [tab, setTab] = useState(initialTab);
 
   return (
-    <PageShell title="Cuotas" description="Cobros mensuales, morosidad y pagos" icon={Receipt}>
+    <PageShell
+      title="Cuotas"
+      description="Cobros mensuales, morosidad y pagos"
+      icon={Receipt}
+      actions={isAdmin ? <ReconciliacionBancariaDialog /> : undefined}
+    >
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className={`grid w-full ${isAdmin ? "grid-cols-5" : "grid-cols-4"} h-auto`}>
           <TabsTrigger value="bandeja" className="text-xs sm:text-sm py-2">Bandeja</TabsTrigger>
