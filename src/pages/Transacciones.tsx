@@ -49,6 +49,9 @@ const ESTADOS = ["Pendiente", "Pagado", "Anulado"];
 const ORIGENES = ["manual", "compra", "cuota", "pago_entrenador"];
 
 export default function Transacciones() {
+  const { rolSistema } = useAuth();
+  const role = (rolSistema || "viewer").toLowerCase();
+  const isAdmin = role === "admin" || role === "owner";
   const [txs, setTxs] = useState<Transaccion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTx, setSelectedTx] = useState<Transaccion | null>(null);
@@ -200,6 +203,15 @@ export default function Transacciones() {
         </div>
       }
     >
+      {isAdmin && (
+        <ContextBanner
+          text="¿El gasto requiere aprobación previa?"
+          linkText="Úsalo desde el módulo Compras"
+          to="/compras"
+          variant="info"
+        />
+      )}
+
       {/* Date filters + toggle */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <span className="text-sm text-muted-foreground font-medium">Período:</span>
