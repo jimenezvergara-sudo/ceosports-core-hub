@@ -108,7 +108,6 @@ export default function CuotasBandeja() {
     <div className="space-y-4">
       {/* Actions */}
       <div className="flex flex-wrap items-center gap-2">
-        <GenerarCuotasDialog onGenerated={fetchCuotas} />
         <PagoCuotaRapidoDialog onPaid={fetchCuotas} />
       </div>
 
