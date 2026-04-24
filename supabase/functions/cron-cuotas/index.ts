@@ -186,8 +186,8 @@ async function processClub(
     }
   }
 
-  const generableP airs = activePairs.filter((p: any) => configByCat[p.categoria_id]);
-  if (!generableP airs.length) return result;
+  const generablePairs = activePairs.filter((p: any) => configByCat[p.categoria_id]);
+  if (!generablePairs.length) return result;
 
   // Avoid duplicates
   const { data: existing } = await supabase
