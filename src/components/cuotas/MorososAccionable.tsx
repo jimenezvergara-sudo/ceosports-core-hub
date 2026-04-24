@@ -194,22 +194,9 @@ export default function MorososAccionable() {
         </div>
       </div>
 
-      {/* Plantilla editable */}
-      <div className="bg-card border border-border rounded-lg p-4">
-        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">
-          Plantilla de mensaje WhatsApp
-        </label>
-        <Textarea
-          value={plantilla}
-          onChange={(e) => setPlantilla(e.target.value)}
-          rows={2}
-          className="text-sm"
-        />
-        <p className="text-[11px] text-muted-foreground mt-1.5">
-          Variables: <code>{"{nombre}"}</code> · <code>{"{cuotas}"}</code> ·{" "}
-          <code>{"{monto}"}</code> · <code>{"{categoria}"}</code>
-        </p>
-      </div>
+      {/* Plantilla editable (compacto) */}
+      <PlantillaCobranzaEditor compact />
+
 
       {/* Lista */}
       {loading ? (
