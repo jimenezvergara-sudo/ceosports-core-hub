@@ -118,6 +118,33 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Indicador de generación automática de cuotas (solo admin) */}
+      {showFinancialKPIs && (
+        <div className={`rounded-lg border p-3 flex items-start gap-3 ${
+          cron.generadoEsteMes
+            ? "border-success/30 bg-success/10"
+            : "border-destructive/30 bg-destructive/10"
+        }`}>
+          {cron.generadoEsteMes ? (
+            <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
+          ) : (
+            <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-foreground">
+              {cron.generadoEsteMes
+                ? `Cuotas generadas automáticamente${cron.ultimaEjecucion ? ` el ${new Date(cron.ultimaEjecucion).toLocaleDateString("es-CL")}` : ""}`
+                : "Sin cuotas generadas este mes"}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {cron.generadoEsteMes
+                ? `${cron.ultimasCuotas ?? 0} cuotas en la última ejecución. Próxima: ${cron.proximaEjecucion.toLocaleDateString("es-CL", { day: "numeric", month: "long" })}.`
+                : "Revisa la configuración de cuotas o fuerza la generación manual desde Cuotas → Configuración."}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Sección financiera: solo admin */}
       {showFinancialKPIs && (
         <>
