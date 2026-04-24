@@ -26,7 +26,7 @@ export default function SofiaAssistant() {
     {
       role: "assistant",
       content:
-        "¡Hola! 👋 Soy **Sofía**, tu asistente de CEO Sports. Puedo guiarte sobre cómo usar la plataforma o responder con datos reales de tu club. ¿En qué te ayudo?",
+        "¡Hola! 👋 Soy **Isa**, tu asistente de CEO Sports. Puedo guiarte sobre cómo usar la plataforma o responder con datos reales de tu club. ¿En qué te ayudo?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -63,7 +63,7 @@ export default function SofiaAssistant() {
       setMessages((prev) => [...prev, { role: "assistant", content: (data as any).reply || "..." }]);
     } catch (e: any) {
       toast({
-        title: "Sofía no pudo responder",
+        title: "Isa no pudo responder",
         description: e?.message ?? "Intenta de nuevo en un momento.",
         variant: "destructive",
       });
@@ -82,7 +82,7 @@ export default function SofiaAssistant() {
       <button
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-1 group"
-        aria-label="Abrir Sofía"
+        aria-label="Abrir Isa"
       >
         <div
           className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform group-hover:scale-110"
@@ -94,7 +94,7 @@ export default function SofiaAssistant() {
           <MessageCircle className="w-6 h-6 text-white" />
         </div>
         <span className="text-xs font-semibold text-foreground bg-card px-2 py-0.5 rounded-full shadow-sm border border-border">
-          Sofía
+          Isa
         </span>
       </button>
 
@@ -115,7 +115,7 @@ export default function SofiaAssistant() {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col items-start">
-                <span className="text-base font-bold text-white">Sofía</span>
+                <span className="text-base font-bold text-white">Isa</span>
                 <span className="text-xs font-normal text-sidebar-foreground/70">
                   Asistente CEO Sports
                 </span>
@@ -155,7 +155,7 @@ export default function SofiaAssistant() {
                 <div className="flex justify-start">
                   <div className="bg-sidebar-accent text-white rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-2 text-sm">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Sofía está pensando…
+                    Isa está pensando…
                   </div>
                 </div>
               )}
@@ -187,7 +187,7 @@ export default function SofiaAssistant() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Pregúntale a Sofía…"
+              placeholder="Pregúntale a Isa…"
               disabled={loading}
               className="bg-sidebar-accent/40 border-sidebar-border text-white placeholder:text-sidebar-foreground/50 focus-visible:ring-secondary"
             />
