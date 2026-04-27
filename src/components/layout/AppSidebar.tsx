@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsSuperAdmin } from "@/hooks/use-super-admin";
+import { useRecordatoriosBadge } from "@/hooks/use-deportistas";
 import ceoIsotipo from "@/assets/ceo-isotipo.png";
 
 type NavItem = { to: string; icon: any; label: string };
@@ -91,6 +92,7 @@ export default function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProp
   const location = useLocation();
   const { clubActual, clubs, signOut, rolSistema } = useAuth();
   const { isSuperAdmin } = useIsSuperAdmin();
+  const { count: recordatoriosCount } = useRecordatoriosBadge();
 
   const role = (rolSistema || "viewer").toLowerCase();
   const isAdmin = role === "admin" || role === "owner";
@@ -145,12 +147,13 @@ export default function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProp
 
   const renderItem = (item: NavItem) => {
     const isActive = location.pathname === item.to;
+    const showBadge = item.to === "/deportistas" && recordatoriosCount > 0;
     return (
       <NavLink
         key={item.to}
         to={item.to}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
+          "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 relative",
           collapsed && "md:justify-center",
           isActive
             ? "bg-sidebar-accent text-white"
@@ -158,7 +161,15 @@ export default function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProp
         )}
       >
         <item.icon className="w-4 h-4 shrink-0" />
-        {(!collapsed || mobileOpen) && <span className="truncate">{item.label}</span>}
+        {(!collapsed || mobileOpen) && <span className="truncate flex-1">{item.label}</span>}
+        {showBadge && (
+          <span className={cn(
+            "min-w-[18px] h-[18px] px-1 rounded-full bg-warning text-[10px] font-bold flex items-center justify-center text-warning-foreground",
+            collapsed && !mobileOpen && "absolute top-1 right-1"
+          )}>
+            {recordatoriosCount}
+          </span>
+        )}
       </NavLink>
     );
   };

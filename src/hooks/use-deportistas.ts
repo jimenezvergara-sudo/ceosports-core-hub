@@ -2,6 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
+export type TipoEntrenamiento = "Técnico" | "Físico" | "Táctico" | "Partido" | "Mixto";
+export type Intensidad = "Baja" | "Media" | "Alta";
+
 export interface SesionEntrenamiento {
   id: string;
   categoria_id: string | null;
@@ -10,6 +13,51 @@ export interface SesionEntrenamiento {
   hora_fin: string;
   notas: string | null;
   categoria_nombre?: string;
+  tipo_entrenamiento?: TipoEntrenamiento | null;
+  objetivo_dia?: string | null;
+  intensidad?: Intensidad | null;
+  notas_entrenador?: string | null;
+  resultado_sesion?: string | null;
+  created_by?: string | null;
+}
+
+export interface SesionEjercicio {
+  id: string;
+  sesion_id: string;
+  nombre: string;
+  duracion_min: number;
+  orden: number;
+}
+
+export type TipoObservacion = "positiva" | "mejora" | "lesion" | "ausencia" | "destacada";
+
+export interface ObservacionJugadora {
+  id: string;
+  sesion_id: string;
+  persona_id: string;
+  tipo: TipoObservacion;
+  texto: string;
+  created_by: string | null;
+  created_at: string;
+  persona_nombre?: string;
+  persona_apellido?: string;
+}
+
+export interface RecordatorioCoach {
+  id: string;
+  club_id: string;
+  persona_id: string | null;
+  sesion_id: string | null;
+  titulo: string;
+  descripcion: string | null;
+  fecha_limite: string | null;
+  prioridad: "baja" | "media" | "alta";
+  estado: "pendiente" | "cumplido";
+  created_by: string | null;
+  cumplido_at: string | null;
+  created_at: string;
+  persona_nombre?: string;
+  persona_apellido?: string;
 }
 
 export interface AsistenciaRow {
@@ -66,7 +114,7 @@ export function useSesiones() {
     setLoading(true);
     const { data } = await supabase
       .from("sesiones_entrenamiento" as any)
-      .select("id, categoria_id, fecha, hora_inicio, hora_fin, notas, categorias:categoria_id(nombre)")
+      .select("id, categoria_id, fecha, hora_inicio, hora_fin, notas, tipo_entrenamiento, objetivo_dia, intensidad, notas_entrenador, resultado_sesion, created_by, categorias:categoria_id(nombre)")
       .eq("club_id", clubId)
       .order("fecha", { ascending: false });
     const mapped = ((data as any[]) ?? []).map((s: any) => ({
@@ -329,4 +377,159 @@ export function useTimeline(personaId: string | null) {
 
   useEffect(() => { fetch(); }, [fetch]);
   return { events, loading, refetch: fetch };
+}
+
+// =================== BITÁCORA DE ENTRENAMIENTO ===================
+
+export function useEjerciciosSesion(sesionId: string | null) {
+  const [ejercicios, setEjercicios] = useState<SesionEjercicio[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetch = useCallback(async () => {
+    if (!sesionId) { setEjercicios([]); return; }
+    setLoading(true);
+    const { data } = await supabase
+      .from("sesion_ejercicios" as any)
+      .select("id, sesion_id, nombre, duracion_min, orden")
+      .eq("sesion_id", sesionId)
+      .order("orden", { ascending: true });
+    setEjercicios((data as unknown as SesionEjercicio[]) ?? []);
+    setLoading(false);
+  }, [sesionId]);
+
+  useEffect(() => { fetch(); }, [fetch]);
+  return { ejercicios, loading, refetch: fetch };
+}
+
+export function useObservacionesSesion(sesionId: string | null) {
+  const [observaciones, setObservaciones] = useState<ObservacionJugadora[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetch = useCallback(async () => {
+    if (!sesionId) { setObservaciones([]); return; }
+    setLoading(true);
+    const { data } = await supabase
+      .from("observaciones_jugadora" as any)
+      .select("id, sesion_id, persona_id, tipo, texto, created_by, created_at, personas:persona_id(nombre, apellido)")
+      .eq("sesion_id", sesionId)
+      .order("created_at", { ascending: false });
+    const mapped = ((data as any[]) ?? []).map((o: any) => ({
+      ...o,
+      persona_nombre: o.personas?.nombre,
+      persona_apellido: o.personas?.apellido,
+    }));
+    setObservaciones(mapped);
+    setLoading(false);
+  }, [sesionId]);
+
+  useEffect(() => { fetch(); }, [fetch]);
+  return { observaciones, loading, refetch: fetch };
+}
+
+export function useObservacionesPersona(personaId: string | null, limit: number = 20) {
+  const [observaciones, setObservaciones] = useState<ObservacionJugadora[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetch = useCallback(async () => {
+    if (!personaId) { setObservaciones([]); return; }
+    setLoading(true);
+    const { data } = await supabase
+      .from("observaciones_jugadora" as any)
+      .select("id, sesion_id, persona_id, tipo, texto, created_by, created_at, sesiones_entrenamiento:sesion_id(fecha)")
+      .eq("persona_id", personaId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    setObservaciones((data as unknown as ObservacionJugadora[]) ?? []);
+    setLoading(false);
+  }, [personaId, limit]);
+
+  useEffect(() => { fetch(); }, [fetch]);
+  return { observaciones, loading, refetch: fetch };
+}
+
+export function useRecordatoriosCoach() {
+  const { clubId } = useAuth();
+  const [recordatorios, setRecordatorios] = useState<RecordatorioCoach[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetch = useCallback(async () => {
+    if (!clubId) { setLoading(false); return; }
+    setLoading(true);
+    const { data } = await supabase
+      .from("recordatorios_coach" as any)
+      .select("*, personas:persona_id(nombre, apellido)")
+      .eq("club_id", clubId)
+      .order("fecha_limite", { ascending: true, nullsFirst: false });
+    const mapped = ((data as any[]) ?? []).map((r: any) => ({
+      ...r,
+      persona_nombre: r.personas?.nombre,
+      persona_apellido: r.personas?.apellido,
+    }));
+    setRecordatorios(mapped);
+    setLoading(false);
+  }, [clubId]);
+
+  useEffect(() => { fetch(); }, [fetch]);
+  return { recordatorios, loading, refetch: fetch };
+}
+
+/**
+ * Cuenta de recordatorios pendientes que vencen hoy o mañana (para badge sidebar).
+ */
+export function useRecordatoriosBadge() {
+  const { clubId } = useAuth();
+  const [count, setCount] = useState(0);
+
+  const fetch = useCallback(async () => {
+    if (!clubId) { setCount(0); return; }
+    const hoy = new Date();
+    const manana = new Date();
+    manana.setDate(hoy.getDate() + 1);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    const { count: c } = await supabase
+      .from("recordatorios_coach" as any)
+      .select("id", { count: "exact", head: true })
+      .eq("club_id", clubId)
+      .eq("estado", "pendiente")
+      .lte("fecha_limite", fmt(manana))
+      .gte("fecha_limite", fmt(hoy));
+    setCount(c ?? 0);
+  }, [clubId]);
+
+  useEffect(() => {
+    fetch();
+    const i = setInterval(fetch, 60_000); // refrescar cada minuto
+    return () => clearInterval(i);
+  }, [fetch]);
+
+  return { count, refetch: fetch };
+}
+
+/**
+ * Para un partido (sesion con tipo_entrenamiento='Partido'),
+ * obtiene las 3 sesiones de entrenamiento previas en la misma categoría.
+ */
+export function useSesionesPreviasPartido(sesionPartido: SesionEntrenamiento | null) {
+  const [previas, setPrevias] = useState<SesionEntrenamiento[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { clubId } = useAuth();
+
+  const fetch = useCallback(async () => {
+    if (!sesionPartido || !sesionPartido.categoria_id || !clubId) { setPrevias([]); return; }
+    setLoading(true);
+    const { data } = await supabase
+      .from("sesiones_entrenamiento" as any)
+      .select("id, categoria_id, fecha, hora_inicio, hora_fin, tipo_entrenamiento, intensidad, objetivo_dia")
+      .eq("club_id", clubId)
+      .eq("categoria_id", sesionPartido.categoria_id)
+      .neq("tipo_entrenamiento", "Partido")
+      .lt("fecha", sesionPartido.fecha)
+      .order("fecha", { ascending: false })
+      .limit(3);
+    setPrevias((data as unknown as SesionEntrenamiento[]) ?? []);
+    setLoading(false);
+  }, [sesionPartido, clubId]);
+
+  useEffect(() => { fetch(); }, [fetch]);
+  return { previas, loading };
 }

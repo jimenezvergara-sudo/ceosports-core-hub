@@ -20,9 +20,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import {
   useSesiones, useAsistencia, useAsistenciaStatsCategoria, type SesionEntrenamiento,
+  type TipoEntrenamiento, type Intensidad,
 } from "@/hooks/use-deportistas";
 import { useCategorias } from "@/hooks/use-relational-data";
 import { motion } from "framer-motion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import BitacoraSesion from "./BitacoraSesion";
+import ObservacionesSesion from "./ObservacionesSesion";
+import { Textarea } from "@/components/ui/textarea";
+import { cn as cnUtil } from "@/lib/utils";
+
+const TIPOS_ENT: TipoEntrenamiento[] = ["Técnico", "Físico", "Táctico", "Partido", "Mixto"];
+const INTENSIDADES_OPC: Intensidad[] = ["Baja", "Media", "Alta"];
 
 const ESTADOS = [
   { value: "presente", label: "Presente", short: "✅", icon: Check, classes: "bg-success text-success-foreground border-success" },
@@ -35,8 +44,8 @@ const LESIONADA = { value: "lesionada", label: "Lesionada", icon: HeartPulse, cl
 type Estado = typeof ESTADOS[number]["value"] | "lesionada" | null;
 
 export default function AsistenciaTab() {
-  const { clubId, rolSistema } = useAuth();
-  const canEdit = rolSistema === "admin" || rolSistema === "staff";
+  const { clubId, rolSistema, user } = useAuth();
+  const canEdit = rolSistema === "admin" || rolSistema === "staff" || rolSistema === "coach";
   const { sesiones, loading, refetch } = useSesiones();
   const { categorias } = useCategorias();
 
@@ -51,6 +60,9 @@ export default function AsistenciaTab() {
   const [horaFin, setHoraFin] = useState("18:00");
   const [catId, setCatId] = useState("");
   const [notas, setNotas] = useState("");
+  const [tipoNuevo, setTipoNuevo] = useState<TipoEntrenamiento>("Mixto");
+  const [intensidadNueva, setIntensidadNueva] = useState<Intensidad>("Media");
+  const [objetivoNuevo, setObjetivoNuevo] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Edit session metadata
@@ -79,8 +91,12 @@ export default function AsistenciaTab() {
         club_id: clubId, categoria_id: catId,
         fecha: format(fecha, "yyyy-MM-dd"),
         hora_inicio: horaInicio, hora_fin: horaFin, notas: notas || null,
+        tipo_entrenamiento: tipoNuevo,
+        intensidad: intensidadNueva,
+        objetivo_dia: objetivoNuevo || null,
+        created_by: user?.id ?? null,
       } as any)
-      .select("id, categoria_id, fecha, hora_inicio, hora_fin, notas")
+      .select("id, categoria_id, fecha, hora_inicio, hora_fin, notas, tipo_entrenamiento, intensidad, objetivo_dia, created_by")
       .single();
     if (error || !data) { toast.error("Error al crear sesión"); setSaving(false); return; }
 
@@ -139,6 +155,10 @@ export default function AsistenciaTab() {
       hora_fin: horaFin,
       notas: notas || null,
       categoria_nombre: cat?.nombre,
+      tipo_entrenamiento: tipoNuevo,
+      intensidad: intensidadNueva,
+      objetivo_dia: objetivoNuevo || null,
+      created_by: user?.id ?? null,
     });
     setView("session");
     refetch();
@@ -176,11 +196,39 @@ export default function AsistenciaTab() {
 
   if (view === "session" && selectedSesion) {
     return (
-      <SessionDetail
-        sesion={selectedSesion}
-        canEdit={canEdit}
-        onBack={() => { setSelectedSesion(null); setView("list"); refetch(); }}
-      />
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => { setSelectedSesion(null); setView("list"); refetch(); }} className="h-9 w-9 shrink-0">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-base truncate">
+              {format(new Date(selectedSesion.fecha + "T12:00:00"), "EEEE d 'de' MMMM", { locale: es })}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {selectedSesion.categoria_nombre} · {selectedSesion.hora_inicio?.slice(0, 5)} – {selectedSesion.hora_fin?.slice(0, 5)}
+              {selectedSesion.tipo_entrenamiento ? ` · ${selectedSesion.tipo_entrenamiento}` : ""}
+              {selectedSesion.intensidad ? ` · ${selectedSesion.intensidad}` : ""}
+            </p>
+          </div>
+        </div>
+        <Tabs defaultValue="asistencia">
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="asistencia">Asistencia</TabsTrigger>
+            <TabsTrigger value="bitacora">Bitácora</TabsTrigger>
+            <TabsTrigger value="observaciones">Observaciones</TabsTrigger>
+          </TabsList>
+          <TabsContent value="asistencia" className="mt-3">
+            <SessionDetail sesion={selectedSesion} canEdit={canEdit} onBack={() => { setSelectedSesion(null); setView("list"); refetch(); }} hideHeader />
+          </TabsContent>
+          <TabsContent value="bitacora" className="mt-3">
+            <BitacoraSesion sesion={selectedSesion} canEdit={canEdit} onUpdated={refetch} />
+          </TabsContent>
+          <TabsContent value="observaciones" className="mt-3">
+            <ObservacionesSesion sesion={selectedSesion} canEdit={canEdit} />
+          </TabsContent>
+        </Tabs>
+      </div>
     );
   }
 
@@ -309,7 +357,7 @@ export default function AsistenciaTab() {
 
       {/* Nueva sesión */}
       <Dialog open={openNew} onOpenChange={setOpenNew}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Nueva Sesión de Entrenamiento</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
@@ -318,6 +366,38 @@ export default function AsistenciaTab() {
                 <SelectTrigger className="h-11"><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
                 <SelectContent>{categorias.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre} ({c.rama})</SelectItem>)}</SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label>Tipo</Label>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mt-1">
+                {TIPOS_ENT.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTipoNuevo(t)}
+                    className={cnUtil(
+                      "h-10 rounded-md border text-xs font-medium transition-all active:scale-95",
+                      tipoNuevo === t ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted/50"
+                    )}
+                  >{t}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label>Intensidad</Label>
+              <div className="grid grid-cols-3 gap-1.5 mt-1">
+                {INTENSIDADES_OPC.map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setIntensidadNueva(i)}
+                    className={cnUtil(
+                      "h-10 rounded-md border text-xs font-medium transition-all active:scale-95",
+                      intensidadNueva === i ? "bg-primary/10 border-primary text-primary" : "bg-background hover:bg-muted/50"
+                    )}
+                  >{i}</button>
+                ))}
+              </div>
             </div>
             <div>
               <Label>Fecha</Label>
@@ -337,11 +417,15 @@ export default function AsistenciaTab() {
               <div><Label>Hora inicio</Label><Input type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} className="h-11" /></div>
               <div><Label>Hora fin</Label><Input type="time" value={horaFin} onChange={(e) => setHoraFin(e.target.value)} className="h-11" /></div>
             </div>
-            <div><Label>Notas</Label><Input value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Opcional" className="h-11" /></div>
+            <div>
+              <Label>Objetivo del día</Label>
+              <Textarea value={objetivoNuevo} onChange={(e) => setObjetivoNuevo(e.target.value)} placeholder="Opcional" rows={2} className="resize-none" />
+            </div>
+            <div><Label>Notas breves</Label><Input value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Opcional" className="h-11" /></div>
           </div>
           <DialogFooter>
             <Button onClick={crearSesion} disabled={saving || !catId || !fecha} size="lg" className="w-full sm:w-auto">
-              {saving ? "Creando..." : "Crear y registrar asistencia"}
+              {saving ? "Creando..." : "Crear sesión"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -387,9 +471,10 @@ interface DetailProps {
   sesion: SesionEntrenamiento;
   canEdit: boolean;
   onBack: () => void;
+  hideHeader?: boolean;
 }
 
-function SessionDetail({ sesion, canEdit, onBack }: DetailProps) {
+function SessionDetail({ sesion, canEdit, onBack, hideHeader }: DetailProps) {
   const { clubId } = useAuth();
   const { asistencia, refetch } = useAsistencia(sesion.id);
   const [drafts, setDrafts] = useState<Record<string, Estado>>({});
@@ -515,27 +600,36 @@ function SessionDetail({ sesion, canEdit, onBack }: DetailProps) {
   return (
     <div className="space-y-3 pb-24">
       {/* Header sticky */}
-      <div className="sticky top-0 z-10 bg-background -mx-4 px-4 py-3 border-b sm:mx-0 sm:px-0 sm:border-0 sm:static">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 shrink-0">
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-base truncate">
-              {format(new Date(sesion.fecha + "T12:00:00"), "EEEE d 'de' MMMM", { locale: es })}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {sesion.categoria_nombre} · {sesion.hora_inicio?.slice(0, 5)} – {sesion.hora_fin?.slice(0, 5)}
-            </p>
+      {!hideHeader && (
+        <div className="sticky top-0 z-10 bg-background -mx-4 px-4 py-3 border-b sm:mx-0 sm:px-0 sm:border-0 sm:static">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 shrink-0">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-base truncate">
+                {format(new Date(sesion.fecha + "T12:00:00"), "EEEE d 'de' MMMM", { locale: es })}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {sesion.categoria_nombre} · {sesion.hora_inicio?.slice(0, 5)} – {sesion.hora_fin?.slice(0, 5)}
+              </p>
+            </div>
+            <Badge variant={sinMarcar === 0 ? "default" : "secondary"} className="shrink-0">
+              {marcados}/{asistencia.length}
+            </Badge>
           </div>
-          <Badge variant={sinMarcar === 0 ? "default" : "secondary"} className="shrink-0">
-            {marcados}/{asistencia.length}
-          </Badge>
         </div>
+      )}
 
-        {/* Bulk actions */}
+      {/* Bulk actions y banners */}
+      <div>
+        {hideHeader && asistencia.length > 0 && (
+          <div className="flex items-center justify-between mb-2">
+            <Badge variant={sinMarcar === 0 ? "default" : "secondary"}>{marcados}/{asistencia.length}</Badge>
+          </div>
+        )}
         {editable && asistencia.length > 0 && (
-          <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1">
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
             <Button size="sm" variant="outline" className="h-8 text-xs shrink-0" onClick={() => marcarTodos("presente")}>
               ✅ Todos presentes
             </Button>
