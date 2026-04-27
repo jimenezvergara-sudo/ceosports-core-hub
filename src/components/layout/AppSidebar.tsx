@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsSuperAdmin } from "@/hooks/use-super-admin";
+import { useRecordatoriosBadge } from "@/hooks/use-deportistas";
 import ceoIsotipo from "@/assets/ceo-isotipo.png";
 
 type NavItem = { to: string; icon: any; label: string };
