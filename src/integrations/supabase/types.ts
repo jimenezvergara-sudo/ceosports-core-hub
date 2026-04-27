@@ -1472,6 +1472,57 @@ export type Database = {
         }
         Relationships: []
       }
+      observaciones_jugadora: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          persona_id: string
+          sesion_id: string
+          texto: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          persona_id: string
+          sesion_id: string
+          texto: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          persona_id?: string
+          sesion_id?: string
+          texto?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "observaciones_jugadora_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "observaciones_jugadora_sesion_id_fkey"
+            columns: ["sesion_id"]
+            isOneToOne: false
+            referencedRelation: "sesiones_entrenamiento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pagos_cuotas: {
         Row: {
           club_id: string | null
@@ -2195,6 +2246,69 @@ export type Database = {
           },
         ]
       }
+      recordatorios_coach: {
+        Row: {
+          club_id: string
+          created_at: string
+          created_by: string | null
+          cumplido_at: string | null
+          descripcion: string | null
+          estado: string
+          fecha_limite: string | null
+          id: string
+          persona_id: string | null
+          prioridad: string
+          sesion_id: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          created_by?: string | null
+          cumplido_at?: string | null
+          descripcion?: string | null
+          estado?: string
+          fecha_limite?: string | null
+          id?: string
+          persona_id?: string | null
+          prioridad?: string
+          sesion_id?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          created_by?: string | null
+          cumplido_at?: string | null
+          descripcion?: string | null
+          estado?: string
+          fecha_limite?: string | null
+          id?: string
+          persona_id?: string | null
+          prioridad?: string
+          sesion_id?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recordatorios_coach_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recordatorios_coach_sesion_id_fkey"
+            columns: ["sesion_id"]
+            isOneToOne: false
+            referencedRelation: "sesiones_entrenamiento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       registros_test_deportivo: {
         Row: {
           club_id: string | null
@@ -2311,38 +2425,101 @@ export type Database = {
           },
         ]
       }
+      sesion_ejercicios: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          duracion_min: number
+          id: string
+          nombre: string
+          orden: number
+          sesion_id: string
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          duracion_min?: number
+          id?: string
+          nombre: string
+          orden?: number
+          sesion_id: string
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          duracion_min?: number
+          id?: string
+          nombre?: string
+          orden?: number
+          sesion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sesion_ejercicios_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sesion_ejercicios_sesion_id_fkey"
+            columns: ["sesion_id"]
+            isOneToOne: false
+            referencedRelation: "sesiones_entrenamiento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sesiones_entrenamiento: {
         Row: {
           categoria_id: string | null
           club_id: string | null
           created_at: string
+          created_by: string | null
           fecha: string
           hora_fin: string
           hora_inicio: string
           id: string
+          intensidad: string | null
           notas: string | null
+          notas_entrenador: string | null
+          objetivo_dia: string | null
+          resultado_sesion: string | null
+          tipo_entrenamiento: string | null
           updated_at: string
         }
         Insert: {
           categoria_id?: string | null
           club_id?: string | null
           created_at?: string
+          created_by?: string | null
           fecha: string
           hora_fin: string
           hora_inicio: string
           id?: string
+          intensidad?: string | null
           notas?: string | null
+          notas_entrenador?: string | null
+          objetivo_dia?: string | null
+          resultado_sesion?: string | null
+          tipo_entrenamiento?: string | null
           updated_at?: string
         }
         Update: {
           categoria_id?: string | null
           club_id?: string | null
           created_at?: string
+          created_by?: string | null
           fecha?: string
           hora_fin?: string
           hora_inicio?: string
           id?: string
+          intensidad?: string | null
           notas?: string | null
+          notas_entrenador?: string | null
+          objetivo_dia?: string | null
+          resultado_sesion?: string | null
+          tipo_entrenamiento?: string | null
           updated_at?: string
         }
         Relationships: [
