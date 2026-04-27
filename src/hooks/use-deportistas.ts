@@ -114,7 +114,7 @@ export function useSesiones() {
     setLoading(true);
     const { data } = await supabase
       .from("sesiones_entrenamiento" as any)
-      .select("id, categoria_id, fecha, hora_inicio, hora_fin, notas, categorias:categoria_id(nombre)")
+      .select("id, categoria_id, fecha, hora_inicio, hora_fin, notas, tipo_entrenamiento, objetivo_dia, intensidad, notas_entrenador, resultado_sesion, created_by, categorias:categoria_id(nombre)")
       .eq("club_id", clubId)
       .order("fecha", { ascending: false });
     const mapped = ((data as any[]) ?? []).map((s: any) => ({
