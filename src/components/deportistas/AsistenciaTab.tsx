@@ -44,8 +44,8 @@ const LESIONADA = { value: "lesionada", label: "Lesionada", icon: HeartPulse, cl
 type Estado = typeof ESTADOS[number]["value"] | "lesionada" | null;
 
 export default function AsistenciaTab() {
-  const { clubId, rolSistema } = useAuth();
-  const canEdit = rolSistema === "admin" || rolSistema === "staff";
+  const { clubId, rolSistema, user } = useAuth();
+  const canEdit = rolSistema === "admin" || rolSistema === "staff" || rolSistema === "coach";
   const { sesiones, loading, refetch } = useSesiones();
   const { categorias } = useCategorias();
 
