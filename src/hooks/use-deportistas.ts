@@ -2,6 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
+export type TipoEntrenamiento = "Técnico" | "Físico" | "Táctico" | "Partido" | "Mixto";
+export type Intensidad = "Baja" | "Media" | "Alta";
+
 export interface SesionEntrenamiento {
   id: string;
   categoria_id: string | null;
@@ -10,6 +13,51 @@ export interface SesionEntrenamiento {
   hora_fin: string;
   notas: string | null;
   categoria_nombre?: string;
+  tipo_entrenamiento?: TipoEntrenamiento | null;
+  objetivo_dia?: string | null;
+  intensidad?: Intensidad | null;
+  notas_entrenador?: string | null;
+  resultado_sesion?: string | null;
+  created_by?: string | null;
+}
+
+export interface SesionEjercicio {
+  id: string;
+  sesion_id: string;
+  nombre: string;
+  duracion_min: number;
+  orden: number;
+}
+
+export type TipoObservacion = "positiva" | "mejora" | "lesion" | "ausencia" | "destacada";
+
+export interface ObservacionJugadora {
+  id: string;
+  sesion_id: string;
+  persona_id: string;
+  tipo: TipoObservacion;
+  texto: string;
+  created_by: string | null;
+  created_at: string;
+  persona_nombre?: string;
+  persona_apellido?: string;
+}
+
+export interface RecordatorioCoach {
+  id: string;
+  club_id: string;
+  persona_id: string | null;
+  sesion_id: string | null;
+  titulo: string;
+  descripcion: string | null;
+  fecha_limite: string | null;
+  prioridad: "baja" | "media" | "alta";
+  estado: "pendiente" | "cumplido";
+  created_by: string | null;
+  cumplido_at: string | null;
+  created_at: string;
+  persona_nombre?: string;
+  persona_apellido?: string;
 }
 
 export interface AsistenciaRow {
