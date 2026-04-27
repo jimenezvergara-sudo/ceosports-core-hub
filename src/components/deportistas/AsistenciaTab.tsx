@@ -196,11 +196,39 @@ export default function AsistenciaTab() {
 
   if (view === "session" && selectedSesion) {
     return (
-      <SessionDetail
-        sesion={selectedSesion}
-        canEdit={canEdit}
-        onBack={() => { setSelectedSesion(null); setView("list"); refetch(); }}
-      />
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => { setSelectedSesion(null); setView("list"); refetch(); }} className="h-9 w-9 shrink-0">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-base truncate">
+              {format(new Date(selectedSesion.fecha + "T12:00:00"), "EEEE d 'de' MMMM", { locale: es })}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {selectedSesion.categoria_nombre} · {selectedSesion.hora_inicio?.slice(0, 5)} – {selectedSesion.hora_fin?.slice(0, 5)}
+              {selectedSesion.tipo_entrenamiento ? ` · ${selectedSesion.tipo_entrenamiento}` : ""}
+              {selectedSesion.intensidad ? ` · ${selectedSesion.intensidad}` : ""}
+            </p>
+          </div>
+        </div>
+        <Tabs defaultValue="asistencia">
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="asistencia">Asistencia</TabsTrigger>
+            <TabsTrigger value="bitacora">Bitácora</TabsTrigger>
+            <TabsTrigger value="observaciones">Observaciones</TabsTrigger>
+          </TabsList>
+          <TabsContent value="asistencia" className="mt-3">
+            <SessionDetail sesion={selectedSesion} canEdit={canEdit} onBack={() => { setSelectedSesion(null); setView("list"); refetch(); }} hideHeader />
+          </TabsContent>
+          <TabsContent value="bitacora" className="mt-3">
+            <BitacoraSesion sesion={selectedSesion} canEdit={canEdit} onUpdated={refetch} />
+          </TabsContent>
+          <TabsContent value="observaciones" className="mt-3">
+            <ObservacionesSesion sesion={selectedSesion} canEdit={canEdit} />
+          </TabsContent>
+        </Tabs>
+      </div>
     );
   }
 
