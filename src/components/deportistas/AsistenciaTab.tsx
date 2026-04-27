@@ -600,27 +600,36 @@ function SessionDetail({ sesion, canEdit, onBack, hideHeader }: DetailProps) {
   return (
     <div className="space-y-3 pb-24">
       {/* Header sticky */}
-      <div className="sticky top-0 z-10 bg-background -mx-4 px-4 py-3 border-b sm:mx-0 sm:px-0 sm:border-0 sm:static">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 shrink-0">
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-base truncate">
-              {format(new Date(sesion.fecha + "T12:00:00"), "EEEE d 'de' MMMM", { locale: es })}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {sesion.categoria_nombre} · {sesion.hora_inicio?.slice(0, 5)} – {sesion.hora_fin?.slice(0, 5)}
-            </p>
+      {!hideHeader && (
+        <div className="sticky top-0 z-10 bg-background -mx-4 px-4 py-3 border-b sm:mx-0 sm:px-0 sm:border-0 sm:static">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 shrink-0">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-base truncate">
+                {format(new Date(sesion.fecha + "T12:00:00"), "EEEE d 'de' MMMM", { locale: es })}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {sesion.categoria_nombre} · {sesion.hora_inicio?.slice(0, 5)} – {sesion.hora_fin?.slice(0, 5)}
+              </p>
+            </div>
+            <Badge variant={sinMarcar === 0 ? "default" : "secondary"} className="shrink-0">
+              {marcados}/{asistencia.length}
+            </Badge>
           </div>
-          <Badge variant={sinMarcar === 0 ? "default" : "secondary"} className="shrink-0">
-            {marcados}/{asistencia.length}
-          </Badge>
         </div>
+      )}
 
-        {/* Bulk actions */}
+      {/* Bulk actions y banners */}
+      <div>
+        {hideHeader && asistencia.length > 0 && (
+          <div className="flex items-center justify-between mb-2">
+            <Badge variant={sinMarcar === 0 ? "default" : "secondary"}>{marcados}/{asistencia.length}</Badge>
+          </div>
+        )}
         {editable && asistencia.length > 0 && (
-          <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1">
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
             <Button size="sm" variant="outline" className="h-8 text-xs shrink-0" onClick={() => marcarTodos("presente")}>
               ✅ Todos presentes
             </Button>
