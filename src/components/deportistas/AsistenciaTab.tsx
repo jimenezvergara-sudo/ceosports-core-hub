@@ -329,7 +329,7 @@ export default function AsistenciaTab() {
 
       {/* Nueva sesión */}
       <Dialog open={openNew} onOpenChange={setOpenNew}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Nueva Sesión de Entrenamiento</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
@@ -338,6 +338,38 @@ export default function AsistenciaTab() {
                 <SelectTrigger className="h-11"><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
                 <SelectContent>{categorias.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre} ({c.rama})</SelectItem>)}</SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label>Tipo</Label>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mt-1">
+                {TIPOS_ENT.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTipoNuevo(t)}
+                    className={cnUtil(
+                      "h-10 rounded-md border text-xs font-medium transition-all active:scale-95",
+                      tipoNuevo === t ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted/50"
+                    )}
+                  >{t}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label>Intensidad</Label>
+              <div className="grid grid-cols-3 gap-1.5 mt-1">
+                {INTENSIDADES_OPC.map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setIntensidadNueva(i)}
+                    className={cnUtil(
+                      "h-10 rounded-md border text-xs font-medium transition-all active:scale-95",
+                      intensidadNueva === i ? "bg-primary/10 border-primary text-primary" : "bg-background hover:bg-muted/50"
+                    )}
+                  >{i}</button>
+                ))}
+              </div>
             </div>
             <div>
               <Label>Fecha</Label>
@@ -357,11 +389,15 @@ export default function AsistenciaTab() {
               <div><Label>Hora inicio</Label><Input type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} className="h-11" /></div>
               <div><Label>Hora fin</Label><Input type="time" value={horaFin} onChange={(e) => setHoraFin(e.target.value)} className="h-11" /></div>
             </div>
-            <div><Label>Notas</Label><Input value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Opcional" className="h-11" /></div>
+            <div>
+              <Label>Objetivo del día</Label>
+              <Textarea value={objetivoNuevo} onChange={(e) => setObjetivoNuevo(e.target.value)} placeholder="Opcional" rows={2} className="resize-none" />
+            </div>
+            <div><Label>Notas breves</Label><Input value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Opcional" className="h-11" /></div>
           </div>
           <DialogFooter>
             <Button onClick={crearSesion} disabled={saving || !catId || !fecha} size="lg" className="w-full sm:w-auto">
-              {saving ? "Creando..." : "Crear y registrar asistencia"}
+              {saving ? "Creando..." : "Crear sesión"}
             </Button>
           </DialogFooter>
         </DialogContent>
