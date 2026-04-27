@@ -60,6 +60,9 @@ export default function AsistenciaTab() {
   const [horaFin, setHoraFin] = useState("18:00");
   const [catId, setCatId] = useState("");
   const [notas, setNotas] = useState("");
+  const [tipoNuevo, setTipoNuevo] = useState<TipoEntrenamiento>("Mixto");
+  const [intensidadNueva, setIntensidadNueva] = useState<Intensidad>("Media");
+  const [objetivoNuevo, setObjetivoNuevo] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Edit session metadata
