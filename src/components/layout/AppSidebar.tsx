@@ -92,6 +92,7 @@ export default function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProp
   const location = useLocation();
   const { clubActual, clubs, signOut, rolSistema } = useAuth();
   const { isSuperAdmin } = useIsSuperAdmin();
+  const { count: recordatoriosCount } = useRecordatoriosBadge();
 
   const role = (rolSistema || "viewer").toLowerCase();
   const isAdmin = role === "admin" || role === "owner";
