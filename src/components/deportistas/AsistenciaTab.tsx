@@ -471,9 +471,10 @@ interface DetailProps {
   sesion: SesionEntrenamiento;
   canEdit: boolean;
   onBack: () => void;
+  hideHeader?: boolean;
 }
 
-function SessionDetail({ sesion, canEdit, onBack }: DetailProps) {
+function SessionDetail({ sesion, canEdit, onBack, hideHeader }: DetailProps) {
   const { clubId } = useAuth();
   const { asistencia, refetch } = useAsistencia(sesion.id);
   const [drafts, setDrafts] = useState<Record<string, Estado>>({});
