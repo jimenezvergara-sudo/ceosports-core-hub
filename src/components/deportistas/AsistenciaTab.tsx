@@ -91,8 +91,12 @@ export default function AsistenciaTab() {
         club_id: clubId, categoria_id: catId,
         fecha: format(fecha, "yyyy-MM-dd"),
         hora_inicio: horaInicio, hora_fin: horaFin, notas: notas || null,
+        tipo_entrenamiento: tipoNuevo,
+        intensidad: intensidadNueva,
+        objetivo_dia: objetivoNuevo || null,
+        created_by: user?.id ?? null,
       } as any)
-      .select("id, categoria_id, fecha, hora_inicio, hora_fin, notas")
+      .select("id, categoria_id, fecha, hora_inicio, hora_fin, notas, tipo_entrenamiento, intensidad, objetivo_dia, created_by")
       .single();
     if (error || !data) { toast.error("Error al crear sesión"); setSaving(false); return; }
 
