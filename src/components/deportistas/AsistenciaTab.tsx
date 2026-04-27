@@ -155,6 +155,10 @@ export default function AsistenciaTab() {
       hora_fin: horaFin,
       notas: notas || null,
       categoria_nombre: cat?.nombre,
+      tipo_entrenamiento: tipoNuevo,
+      intensidad: intensidadNueva,
+      objetivo_dia: objetivoNuevo || null,
+      created_by: user?.id ?? null,
     });
     setView("session");
     refetch();
