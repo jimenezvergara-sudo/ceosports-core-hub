@@ -20,9 +20,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import {
   useSesiones, useAsistencia, useAsistenciaStatsCategoria, type SesionEntrenamiento,
+  type TipoEntrenamiento, type Intensidad,
 } from "@/hooks/use-deportistas";
 import { useCategorias } from "@/hooks/use-relational-data";
 import { motion } from "framer-motion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import BitacoraSesion from "./BitacoraSesion";
+import ObservacionesSesion from "./ObservacionesSesion";
+import { Textarea } from "@/components/ui/textarea";
+import { cn as cnUtil } from "@/lib/utils";
+
+const TIPOS_ENT: TipoEntrenamiento[] = ["Técnico", "Físico", "Táctico", "Partido", "Mixto"];
+const INTENSIDADES_OPC: Intensidad[] = ["Baja", "Media", "Alta"];
 
 const ESTADOS = [
   { value: "presente", label: "Presente", short: "✅", icon: Check, classes: "bg-success text-success-foreground border-success" },
